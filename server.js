@@ -1157,16 +1157,33 @@ app.post("/crear-pago", async (req, res) => {
                     {
                         title: `Casilla ${casilla}`,
                         quantity: 1,
-                        unit_price: casilla
+                        unit_price: Number(casilla)
                     }
                 ],
                 metadata: {
                     casilla: casilla
+                },
+
+                // 🔥 AGREGA ESTO (CRÍTICO)
+                notification_url: "https://quiz1000.onrender.com/webhook/mercadopago",
+
+                // opcional pero recomendado
+                back_urls: {
+                    success: "https://quiz1000.onrender.com",
+                    failure: "https://quiz1000.onrender.com",
+                    pending: "https://quiz1000.onrender.com"
                 }
             })
         });
 
         const data = await response.json();
+
+        console.log("🧠 RESPUESTA MP:", data);
+
+        if (!data.init_point) {
+            console.log("❌ ERROR MP:", data);
+            return res.status(500).json({ error: "Error creando pago" });
+        }
 
         console.log("🔗 Link generado:", data.init_point);
 
