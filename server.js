@@ -1139,12 +1139,12 @@ console.log("❌ ERROR PROCESANDO PAGO:",error);
 }
 
 app.post("/crear-pago", async (req, res) => {
-
     try {
-
         const { casilla } = req.body;
 
         console.log("🧾 Crear pago para casilla:", casilla);
+
+        console.log("🔐 TOKEN EN USO:", MP_ACCESS_TOKEN);
 
         const response = await fetch("https://api.mercadopago.com/checkout/preferences", {
             method: "POST",
@@ -1164,9 +1164,7 @@ app.post("/crear-pago", async (req, res) => {
                 metadata: {
                     casilla: casilla
                 },
-                payer: {
-                    email: "test@test.com"
-                },
+                // ❌ quitamos payer
                 notification_url: "https://quiz1000.onrender.com/webhook/mercadopago"
             })
         });
@@ -1175,22 +1173,20 @@ app.post("/crear-pago", async (req, res) => {
 
         console.log("🧠 RESPUESTA MP:", data);
 
-        if (!data.init_point) {
+        if (!data.sandbox_init_point) {
             console.log("❌ ERROR MP:", data);
             return res.status(500).json({ error: "Error creando pago" });
         }
 
         res.json({
-            link: data.init_point
+            link: data.sandbox_init_point
         });
 
     } catch (error) {
-        
         console.log("❌ ERROR CREANDO PAGO:", error);
 
         res.status(500).json({
             error: "Error creando pago"
         });
-
     }
 });
