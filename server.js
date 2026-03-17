@@ -668,7 +668,24 @@ app.get("/admin/tablero", (req, res) => {
     }
 
 });
+app.post("/admin/reset", (req,res)=>{
 
+    db.run(`DELETE FROM usuarios`);
+    db.run(`DELETE FROM casillas`);
+    db.run(`DELETE FROM tableros`);
+
+    const filePath = path.join(__dirname, "public", "data", "tablero.json");
+
+    const nuevoTablero = {
+        completo:false,
+        casillas:[]
+    };
+
+    fs.writeFileSync(filePath, JSON.stringify(nuevoTablero, null, 2));
+
+    res.json({ ok:true, mensaje:"Sistema reiniciado" });
+
+});
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
@@ -1185,22 +1202,4 @@ app.post("/crear-pago", async (req, res) => {
         });
 
     }
-});
-app.post("/admin/reset", (req,res)=>{
-
-    db.run(`DELETE FROM usuarios`);
-    db.run(`DELETE FROM casillas`);
-    db.run(`DELETE FROM tableros`);
-
-    const filePath = path.join(__dirname, "public", "data", "tablero.json");
-
-    const nuevoTablero = {
-        completo:false,
-        casillas:[]
-    };
-
-    fs.writeFileSync(filePath, JSON.stringify(nuevoTablero, null, 2));
-
-    res.json({ ok:true, mensaje:"Sistema reiniciado" });
-
 });
