@@ -3,7 +3,7 @@ const nodemailer = require("nodemailer");
 const cors = require("cors");
 const path = require("path");
 const fs = require("fs");
-const fetch = require("node-fetch");
+
 
 const sqlite3 = require("sqlite3").verbose();
 const bcrypt = require("bcrypt");
