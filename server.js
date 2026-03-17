@@ -140,26 +140,23 @@ app.post("/enviar-codigo", async (req, res) => {
 
     try {
 
-        await transporter.sendMail(mailOptions);
-        
-        console.log("Código enviado:", codigo);
+    // 👇 RESPONDE INMEDIATO (CLAVE)
+    res.json({ 
+        ok: true,
+        codigo: codigo
+    });
 
-        // 👇 RESPUESTA CON CÓDIGO (SOLO PRUEBAS)
-        res.json({ 
-            ok: true,
-            codigo: codigo
-        });
+    // 👇 ENVÍA EMAIL EN SEGUNDO PLANO
+    await transporter.sendMail(mailOptions);
 
-    } catch (error) {
+    console.log("Código enviado:", codigo);
 
-        console.error("ERROR ENVIANDO EMAIL:", error);
+} catch (error) {
 
-        res.json({ ok:false });
+    console.error("ERROR ENVIANDO EMAIL:", error);
 
-    }
-
+}
 });
-
 // ============================
 // VALIDAR CODIGO
 // ============================
