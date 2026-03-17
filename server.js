@@ -1138,7 +1138,8 @@ console.log("✅ CASILLA PAGADA:",casilla);
 console.log("❌ ERROR PROCESANDO PAGO:",error);
 
 }
-const PORT = process.env.PORT || 3000;
+}
+
 app.post("/crear-pago", async (req, res) => {
 
     try {
@@ -1176,16 +1177,12 @@ app.post("/crear-pago", async (req, res) => {
         });
 
     } catch (error) {
-
+        
         console.log("❌ ERROR CREANDO PAGO:", error);
 
         res.status(500).json({
             error: "Error creando pago"
         });
-    }
 
+    }
 });
-app.listen(PORT, () => {
-    console.log(`Servidor corriendo en http://localhost:${PORT}`);
-});
-}
