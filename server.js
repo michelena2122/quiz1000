@@ -158,46 +158,27 @@ app.post("/enviar-codigo", async (req, res) => {
 // VALIDAR CODIGO
 // ============================
 
-app.post("/validar-codigo", (req, res) => {
+app.post("/enviar-codigo", (req, res) => {
 
-    const { email, codigo } = req.body;
+    const { email } = req.body;
 
-    const registro = codigosEmail[email];
+    const codigo = Math.floor(100000 + Math.random() * 900000);
 
-    if(!registro){
-        return res.json({ ok:false, mensaje:"No existe código para este email" });
-    }
+    const expiracion = Date.now() + (5 * 60 * 1000);
 
-    if(Date.now() > registro.expira){
-        delete codigosEmail[email];
-        return res.json({ ok:false, mensaje:"El código expiró" });
-    }
+    codigosEmail[email] = {
+        codigo,
+        expira: expiracion,
+        intentos: 0
+    };
 
-   if(registro.codigo != codigo){
+    console.log("📧 Código generado:", codigo);
 
-    registro.intentos++;
-
-    if(registro.intentos >= 3){
-
-        delete codigosEmail[email];
-
-        return res.json({
-            ok:false,
-            mensaje:"Demasiados intentos. Solicita un nuevo código."
-        });
-
-    }
-
-    return res.json({
-        ok:false,
-        mensaje:"Código incorrecto"
+    // 🔥 RESPUESTA DIRECTA (SIN EMAIL)
+    res.json({ 
+        ok: true,
+        codigo: codigo
     });
-
-}
-
-    delete codigosEmail[email];
-
-    res.json({ ok:true });
 
 });
 // ============================
