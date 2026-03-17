@@ -9,7 +9,7 @@ const sqlite3 = require("sqlite3").verbose();
 const bcrypt = require("bcrypt");
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
@@ -1139,7 +1139,52 @@ console.log("❌ ERROR PROCESANDO PAGO:",error);
 
 }
 const PORT = process.env.PORT || 3000;
+app.post("/crear-pago", async (req, res) => {
 
+    try {
+
+        const { casilla } = req.body;
+
+        console.log("🧾 Crear pago para casilla:", casilla);
+
+        const response = await fetch("https://api.mercadopago.com/checkout/preferences", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${MP_ACCESS_TOKEN}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                items: [
+                    {
+                        title: `Casilla ${casilla}`,
+                        quantity: 1,
+                        unit_price: casilla
+                    }
+                ],
+                metadata: {
+                    casilla: casilla
+                }
+            })
+        });
+
+        const data = await response.json();
+
+        console.log("🔗 Link generado:", data.init_point);
+
+        res.json({
+            link: data.init_point
+        });
+
+    } catch (error) {
+
+        console.log("❌ ERROR CREANDO PAGO:", error);
+
+        res.status(500).json({
+            error: "Error creando pago"
+        });
+    }
+
+});
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
