@@ -1143,7 +1143,7 @@ app.post("/crear-pago", async (req, res) => {
         const { casilla } = req.body;
 
         console.log("🧾 Crear pago para casilla:", casilla);
-
+        const MP_ACCESS_TOKEN = "TEST-2663546958880234-110418-76e2aeb24b31137cb7f87b000963013f-153115257";
         console.log("🔐 TOKEN EN USO:", MP_ACCESS_TOKEN);
 
         const response = await fetch("https://api.mercadopago.com/checkout/preferences", {
