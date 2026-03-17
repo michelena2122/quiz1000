@@ -117,7 +117,7 @@ app.post("/enviar-codigo", async (req, res) => {
 
     const codigo = Math.floor(100000 + Math.random() * 900000);
 
-    const expiracion = Date.now() + (5 * 60 * 1000); // 5 minutos
+    const expiracion = Date.now() + (5 * 60 * 1000);
 
     codigosEmail[email] = {
         codigo,
@@ -138,24 +138,21 @@ app.post("/enviar-codigo", async (req, res) => {
         `
     };
 
-    try {
-
-    // 👇 RESPONDE INMEDIATO (CLAVE)
+    // ✅ RESPONDER INMEDIATO
     res.json({ 
         ok: true,
         codigo: codigo
     });
 
-    // 👇 ENVÍA EMAIL EN SEGUNDO PLANO
-    await transporter.sendMail(mailOptions);
+    // ✅ ENVIAR EMAIL SIN BLOQUEAR
+    transporter.sendMail(mailOptions)
+        .then(() => {
+            console.log("Código enviado:", codigo);
+        })
+        .catch((error) => {
+            console.error("ERROR ENVIANDO EMAIL:", error);
+        });
 
-    console.log("Código enviado:", codigo);
-
-} catch (error) {
-
-    console.error("ERROR ENVIANDO EMAIL:", error);
-
-}
 });
 // ============================
 // VALIDAR CODIGO
