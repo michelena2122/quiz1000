@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Recuperar contraseña</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:url("assets/images/fondo-rayos.jpg") no-repeat center center fixed;
+background-size:cover;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+margin:0;
+}
+
+.box{
+background:rgba(0,0,0,0.85);
+color:white;
+padding:40px;
+border-radius:12px;
+text-align:center;
+width:350px;
+}
+
+input{
+width:100%;
+padding:10px;
+margin-top:10px;
+margin-bottom:20px;
+border-radius:6px;
+border:none;
+}
+
+button{
+padding:10px 20px;
+background:#27ae60;
+border:none;
+color:white;
+border-radius:6px;
+cursor:pointer;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="box">
+
+<h2>Recuperar contraseña</h2>
+
+<p>Ingresa tu correo registrado</p>
+
+<input type="email" id="email" placeholder="Correo electrónico">
+
+<button onclick="enviar()">Enviar código</button>
+
+<p id="msg"></p>
+
+</div>
+
+<script>
+
+async function enviar(){
+
+const email = document.getElementById("email").value;
+
+localStorage.setItem("recuperarEmail", email);
+
+const res = await fetch("/enviar-codigo",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body: JSON.stringify({ email })
+
+});
+
+const data = await res.json();
+
+if(data.ok){
+
+window.location.href = "recuperar-validar.html";
+
+}else{
+
+document.getElementById("msg").innerText =
+"No se pudo enviar el código";
+
+}
+
+}
+
+</script>
+
+</body>
+</html>

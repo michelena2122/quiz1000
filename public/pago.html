@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finalizar Pago</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial, sans-serif;
+
+    background: url("assets/images/fondo-rayos.jpg") no-repeat center center fixed;
+background-size: cover;
+    display:flex;
+    flex-direction:column;
+    min-height:100vh;
+    position:relative;
+}
+
+/* HOME */
+.home-wrapper{
+    text-align:center;
+    margin:20px 0 10px;
+}
+
+.home-icon-bottom img{
+    width:90px;
+    cursor:pointer;
+    transition:transform 0.2s ease;
+}
+
+.home-icon-bottom img:hover{
+    transform:scale(1.15);
+}
+
+.home-icon img{
+    width:28px;
+}
+
+/* HEADER */
+header{
+    text-align:center;
+    padding:30px 20px 10px;
+}
+
+.logo{
+    width:120px;
+}
+
+/* CONTENIDO */
+.container{
+    max-width:650px;
+    margin:0 auto 30px;
+    background:white;
+    padding:30px;
+    border-radius:15px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.1);
+}
+
+h2{
+    text-align:center;
+    color:#003366;
+}
+
+.item{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:10px;
+    padding:10px;
+    background:#f2f8ff;
+    border-radius:8px;
+}
+
+.pagarBtn{
+    background:#003366;
+    color:white;
+    padding:6px 12px;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+}
+
+.pagado{
+    color:green;
+    font-weight:bold;
+}
+
+/* PROBABILIDAD */
+.probabilidad-box{
+    margin-top:25px;
+    padding:20px;
+    background:#f5fff7;
+    border-radius:12px;
+    text-align:center;
+}
+
+.probabilidad-porcentaje{
+    font-size:42px;
+    font-weight:bold;
+    color:#1e8e3e;
+}
+
+.barra-container{
+    width:100%;
+    height:20px;
+    background:#e0e0e0;
+    border-radius:10px;
+    margin-top:10px;
+    overflow:hidden;
+}
+
+.barra{
+    height:100%;
+    background:#1e8e3e;
+    width:0%;
+    transition:width 0.5s ease;
+}
+
+.mensaje-motivacion{
+    margin-top:10px;
+    font-size:14px;
+    color:#003366;
+}
+
+/* FOOTER */
+footer{
+    background:transparent;
+    color:white;
+    text-align:center;
+    padding:10px;
+}
+.estado-tablero{
+    text-align:center;
+    font-weight:bold;
+    color:#003366;
+    margin-bottom:20px;
+}
+
+.whatsapp-btn{
+    margin-top:15px;
+    width:100%;
+    padding:10px;
+    background:#25D366;
+    color:white;
+    border:none;
+    border-radius:8px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.whatsapp-btn:hover{
+    opacity:0.9;
+}
+body.pago .probabilidad-box p.nota-tipo-cambio-pago{
+    color:#ff1493 !important;
+}
+</style>
+</head>
+
+<body class="pago">
+
+<header>
+    <img src="assets/images/logotipo.png" class="logo" alt="Quiz 1000">
+</header>
+
+<div class="container">
+    
+<h2>¡Finaliza tu participación!</h2>
+<div id="estadoTablero" class="estado-tablero"></div>
+
+<div id="listaPagos"></div>
+
+<div class="probabilidad-box">
+    <div class="probabilidad-porcentaje" id="porcentaje">0%</div>
+
+    <div class="barra-container">
+        <div class="barra" id="barra"></div>
+    </div>
+
+    <div class="mensaje-motivacion" id="mensajeMotivacion"></div>
+    <button id="btnWhatsapp" class="whatsapp-btn">
+    Compartir tablero por WhatsApp
+</button>
+<p class="nota-tipo-cambio-pago">
+    (El Premio de los 1,000 USD se realizará en MXN al tipo de cambio vigente)
+</p>
+
+</div> <!-- cierre probabilidad-box -->
+
+</div> <!-- cierre container -->
+
+<div class="home-wrapper">
+    <a href="index.html" class="home-icon-bottom">
+        <img src="assets/images/home-icon.png" alt="Home">
+    </a>
+</div>
+
+<footer>
+© 2026 Quiz1000 LLC.
+All rights reserved. QUIZ1000 is a trademark of Quiz1000 LLC.
+www.Quiz1000.llc
+</footer>
+
+<script>
+
+const TOTAL_NUMEROS_TABLERO = 50;
+const params = new URLSearchParams(window.location.search);
+const folio = params.get("folio") || localStorage.getItem("folioTablero");
+
+let tableroEstado = JSON.parse(localStorage.getItem("tableroEstado_" + folio)) || {
+    casillasResueltas: []
+};
+
+const estadoTableroEl = document.getElementById("estadoTablero");
+// 🔹 LINKS REALES DE MERCADO PAGO (50)
+const linksMercadoPago = [
+"https://mpago.la/342pveX",
+"https://mpago.la/1FvdKT1",
+"https://mpago.la/2aDV6VR",
+"https://mpago.la/1zcb2A9",
+"https://mpago.la/2avw32n",
+"https://mpago.la/1WuTTc2",
+"https://mpago.la/14m8di1",
+"https://mpago.la/2Hd5xYz",
+"https://mpago.la/2a6eieN",
+"https://mpago.la/2NRxFX2",
+"https://mpago.la/1hLvbEw",
+"https://mpago.la/18h9tPa",
+"https://mpago.la/1Qb9Kz1",
+"https://mpago.la/2vzwrzk",
+"https://mpago.la/1z84fku",
+"https://mpago.la/2YKveSi",   
+"https://mpago.la/1qo8doy",   
+"https://mpago.la/1KqBGok",
+"https://mpago.la/1GthW7h",
+"https://mpago.la/2hqgybw",
+"https://mpago.la/1QY682Q",
+"https://mpago.la/18L8c5B",
+"https://mpago.la/2hSoMwM",
+"https://mpago.la/1EpmEV5",
+"https://mpago.la/1a7cCQo",
+"https://mpago.la/1wZTCbE",
+"https://mpago.la/1N7MBj7",
+"https://mpago.la/2umnKWj",
+"https://mpago.la/1A19rmp",
+"https://mpago.la/12bwADC",
+"https://mpago.la/2kcnR5V",
+"https://mpago.la/1Rf6sFm",
+"https://mpago.la/1xEkrC7",
+"https://mpago.la/2417deb",
+"https://mpago.la/1UzY4Sa",
+"https://mpago.la/2gocvP7",
+"https://mpago.la/2CVYRGJ",
+"https://mpago.la/1nXoefL",
+"https://mpago.la/1t22xtH",
+"https://mpago.la/2rFqT1G",
+"https://mpago.la/2SHVZtV",
+"https://mpago.la/1FWTu8j",
+"https://mpago.la/33EdfVE",
+"https://mpago.la/1rz353Y",
+"https://mpago.la/2YaVpAD",
+"https://mpago.la/1mfeZuz",
+"https://mpago.la/1iz1X2g",
+"https://mpago.la/1dmCLFB",
+"https://mpago.la/1JKkCTm",
+"https://mpago.la/2puJtzd"
+];
+
+function actualizarEstadoTablero(){
+    const resueltas = tableroEstado.casillasResueltas.length;
+    const faltantes = TOTAL_NUMEROS_TABLERO - resueltas;
+
+    estadoTableroEl.innerHTML =
+`Este tablero tiene ${resueltas} números resueltos.<br>
+Faltan ${faltantes} para completarse<br>
+<strong>¡INVITA A TUS AMIGOS!  Si se completa el tablero, se entrega el premio</strong>`;
+
+    if(faltantes <= 5){
+        estadoTableroEl.style.color = "red";
+    }
+}
+
+let carrito = JSON.parse(localStorage.getItem("carrito_" + folio)) || { items: [] };
+
+const lista = document.getElementById("listaPagos");
+const porcentajeEl = document.getElementById("porcentaje");
+const barra = document.getElementById("barra");
+const mensaje = document.getElementById("mensajeMotivacion");
+
+function renderPagos(){
+
+    lista.innerHTML = "";
+
+    carrito.items.forEach((item, index)=>{
+
+        const div = document.createElement("div");
+        div.classList.add("item");
+
+        const estado = item.pagado ? 
+            `<span class="pagado">Pagado</span>` :
+            `<button class="pagarBtn" onclick="pagar(${index})">Pagar ${item.numero} USD</button>`;
+
+        div.innerHTML = `
+            <div>
+                Número ${item.numero} USD
+            </div>
+            <div>${estado}</div>
+        `;
+
+        lista.appendChild(div);
+    });
+
+    calcularProbabilidad();
+}
+
+function pagar(index){
+
+    const numeroSeleccionado = parseInt(carrito.items[index].numero);
+
+    const linkPago = linksMercadoPago[numeroSeleccionado - 1];
+
+    if(!linkPago){
+        alert("No hay link configurado para el número " + numeroSeleccionado);
+        return;
+    }
+
+    window.location.href = linkPago;
+
+    carrito.items[index].pagado = true;
+    localStorage.setItem("carrito_" + folio, JSON.stringify(carrito));
+
+    renderPagos();
+}
+
+function calcularProbabilidad(){
+
+    const pagados = carrito.items.filter(i => i.pagado).length;
+    const seleccionados = carrito.items.length;
+
+    const probabilidadActual = (pagados / TOTAL_NUMEROS_TABLERO) * 100;
+    const probabilidadTotal = (seleccionados / TOTAL_NUMEROS_TABLERO) * 100;
+
+    porcentajeEl.textContent = probabilidadActual.toFixed(2) + "%";
+    barra.style.width = probabilidadActual + "%";
+
+    if(pagados < seleccionados){
+        mensaje.textContent =
+        `Actualmente tienes ${probabilidadActual.toFixed(2)}% de probabilidad.
+        Si completas tus ${seleccionados} números, tu probabilidad aumenta a ${probabilidadTotal.toFixed(2)}%.`;
+    } else {
+        mensaje.textContent =
+        "Excelente. Has completado todos tus números seleccionados.";
+    }
+}
+
+renderPagos();
+actualizarEstadoTablero();
+document.getElementById("btnWhatsapp").addEventListener("click", function(){
+
+    const folio = localStorage.getItem("folioTablero") || "TABLERO";
+
+    const linkTablero = window.location.origin + "/tablero.html?folio=" + folio;
+
+    const mensaje =
+        "Estoy participando en este tablero matemático para ganar 1,000 USD 💰\n\n" +
+        "¿Te atreves a superarme?.\n" +
+        "Accede aquí:\n" +
+        linkTablero;
+
+    const url = "https://wa.me/?text=" + encodeURIComponent(mensaje);
+
+    window.open(url, "_blank");
+});
+</script>
+
+</body>
+</html>
+
+

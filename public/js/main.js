@@ -1,0 +1,727 @@
+console.log("MAIN NUEVO VERSION 2");
+let reservasActivas = [];
+document.addEventListener("DOMContentLoaded", () => {
+
+    if (!document.body.classList.contains("tablero")) return;
+
+    const grid = document.querySelector(".tablero-grid");
+    if (!grid) return;
+
+    // ==========================
+    // DETECTAR FOLIO DESDE URL
+    // ==========================
+
+    const params = new URLSearchParams(window.location.search);
+    const folioURL = params.get("folio");
+
+    console.log("FOLIO DETECTADO:", folioURL);
+// ============================
+// VINCULAR TABLERO AL PERFIL
+// ============================
+
+if(document.body.classList.contains("tablero")){
+
+    let jugadorActual = JSON.parse(localStorage.getItem("jugadorActual"));
+
+    if(jugadorActual && folioURL){
+
+        if(!jugadorActual.tableros){
+            jugadorActual.tableros = {};
+        }
+
+        if(!jugadorActual.tableros[folioURL]){
+            jugadorActual.tableros[folioURL] = {
+                numeros: [],
+                mejorTiempo: null,
+                estado: "activo"
+            };
+
+            localStorage.setItem("jugadorActual", JSON.stringify(jugadorActual));
+        }
+    }
+}
+    // ==========================
+    // FOLIO Y FECHA (LÓGICA ACTUAL)
+    // ==========================
+
+   // ==========================
+// FOLIO Y FECHA
+// ==========================
+
+const folioSpan = document.getElementById("folio");
+
+let folio = folioURL || localStorage.getItem("folioTablero");
+let fechaApertura = localStorage.getItem("fechaApertura");
+
+if (!folio) {
+    folio = "TAB-" + Math.floor(100000 + Math.random() * 900000);
+}
+
+localStorage.setItem("folioTablero", folio);
+let tablerosGlobal = JSON.parse(localStorage.getItem("tableros")) || {};
+
+if (!tablerosGlobal[folio]) {
+
+    tablerosGlobal[folio] = {
+        fechaCreacion: new Date().toLocaleString(),
+        casillasResueltas: [],
+        completo: false
+    };
+
+    localStorage.setItem("tableros", JSON.stringify(tablerosGlobal));
+}
+
+if (!fechaApertura) {
+    fechaApertura = "Sin iniciar";
+if (!fechaApertura) {
+
+    fechaApertura = "Sin iniciar";
+
+} else {
+
+    // convertir timestamp a fecha legible
+    const fechaMostrar = new Date(parseInt(fechaApertura)).toLocaleString("es-MX");
+
+    fechaApertura = fechaMostrar;
+
+}
+}
+// ==========================
+// BARRA PROGRESO 10 DIAS
+// ==========================
+
+const barra = document.getElementById("barraTiempo");
+const textoTiempo = document.getElementById("textoTiempo");
+
+function actualizarBarraTiempo(){
+
+const fechaGuardada = localStorage.getItem("fechaApertura");
+
+if(!fechaGuardada || fechaGuardada === "Sin iniciar"){
+    if(textoTiempo){
+        textoTiempo.textContent = "El tablero inicia cuando se seleccione la primera casilla";
+    }
+    return;
+}
+
+const inicio = parseInt(fechaGuardada);
+const ahora = new Date();
+
+const diasTotal = 10;
+
+const msPorDia = 1000 * 60 * 60 * 24;
+
+const diasTranscurridos = (Date.now() - inicio) / msPorDia;
+
+let progreso = (diasTranscurridos / diasTotal) * 100;
+
+// ==========================
+// CIERRE AUTOMATICO TABLERO
+// ==========================
+
+if(progreso >= 100){
+
+    progreso = 100;
+
+    let tablerosGlobal = JSON.parse(localStorage.getItem("tableros")) || {};
+    const folioActual = localStorage.getItem("folioTablero");
+
+    if(tablerosGlobal[folioActual]){
+        tablerosGlobal[folioActual].cerrado = true;
+        localStorage.setItem("tableros", JSON.stringify(tablerosGlobal));
+    }
+
+    // bloquear todas las casillas
+    const celdas = document.querySelectorAll(".cell");
+
+    celdas.forEach(celda=>{
+        celda.style.pointerEvents = "none";
+        celda.style.opacity = "0.5";
+    });
+
+}
+// ==========================
+// MARCAR TABLERO CERRADO
+// ==========================
+
+if(progreso >= 100){
+
+    let tablerosGlobal = JSON.parse(localStorage.getItem("tableros")) || {};
+    const folioActual = localStorage.getItem("folioTablero");
+
+    if(tablerosGlobal[folioActual]){
+        tablerosGlobal[folioActual].cerrado = true;
+        localStorage.setItem("tableros", JSON.stringify(tablerosGlobal));
+    }
+
+}
+
+if(barra){
+    barra.style.width = progreso + "%";
+
+    if(progreso < 25){
+        barra.style.background = "#2ecc71";
+    }
+    else if(progreso < 50){
+        barra.style.background = "#f1c40f";
+    }
+    else if(progreso < 75){
+        barra.style.background = "#e67e22";
+    }
+    else{
+        barra.style.background = "#e74c3c";
+    }
+}
+
+if(textoTiempo){
+
+let diasRestantes = Math.max(0, Math.ceil(diasTotal - diasTranscurridos));
+
+// evitar NaN cuando la fecha no se puede interpretar
+if (isNaN(diasRestantes)) {
+    diasRestantes = 10;
+}
+// si el tablero ya cerró
+if(progreso >= 100){
+
+textoTiempo.textContent =
+"TABLERO CERRADO – BONIFICACIÓN A JUGADORES";
+
+textoTiempo.style.color = "#e74c3c";
+
+return;
+
+}
+
+textoTiempo.textContent =
+`Este tablero se cierra en 10 dias. Tiempo restante: ${diasRestantes} días`;
+
+}
+
+}
+
+actualizarBarraTiempo();
+setInterval(actualizarBarraTiempo,60000);
+
+if (folioSpan) {
+
+    let fechaMostrar = "Sin iniciar";
+
+    if (fechaApertura && fechaApertura !== "Sin iniciar") {
+        const fechaNum = Number(fechaApertura);
+        if (!isNaN(fechaNum)) {
+            fechaMostrar = new Date(fechaNum).toLocaleString("es-MX");
+        }
+    }
+
+    folioSpan.textContent = `Folio: ${folio} | Apertura: ${fechaMostrar}`;
+}
+    // ==========================
+    // ESTADO DEL TABLERO
+    // ==========================
+
+   let tableroEstado = JSON.parse(localStorage.getItem("tableroEstado_" + folio)) || {
+        casillasResueltas: [],
+        mejorTiempo: null,
+        completo: false
+    };
+
+ // ==========================
+// CARGAR PREGUNTAS
+// ==========================
+
+fetch("/api/preguntas")
+.then(res => res.json())
+.then(data => {
+
+    fetch("/api/tablero")
+    .then(res => res.json())
+    .then(tableroData => {
+
+// ==========================
+// CONSULTAR RESERVAS
+// ==========================
+
+fetch("/api/reservas")
+.then(res => res.json())
+.then(data => {
+
+    if(!data.ok) return;
+
+    data.reservas.forEach(reserva => {
+
+        const numero = reserva.casilla;
+        const cell = document.querySelector(`.cell[data-id="${numero-1}"]`);
+
+        if(!cell) return;
+
+        // evitar sobrescribir robots
+        if(cell.classList.contains("resuelta")) return;
+
+        const tiempoRestante = reserva.expira - Date.now();
+
+        if(tiempoRestante <= 0) return;
+
+        const segundos = Math.floor(tiempoRestante / 1000);
+        const minutos = Math.floor(segundos / 60);
+        const seg = segundos % 60;
+
+        const texto = `${minutos}:${seg.toString().padStart(2,"0")}`;
+
+        cell.classList.add("resuelta");
+        cell.style.backgroundColor = "white";
+        cell.innerHTML = `<span class="contador-reserva">${texto}</span>`;
+
+    });
+
+});
+
+        const casillasOcupadas = tableroData.casillas.map(c => c.casilla);
+        // ==========================
+// SINCRONIZAR FECHA APERTURA
+// ==========================
+      
+        // ==========================
+// ACTUALIZAR CONTADOR DESDE BACKEND
+// ==========================
+
+const TOTAL_NUMEROS_TABLERO = 50;
+const resueltas = casillasOcupadas.length;
+const reservadas = data.reservas
+? data.reservas.filter(r => r.expira > Date.now()).length
+: 0;
+const faltantes = TOTAL_NUMEROS_TABLERO - resueltas;
+const estadoTableroEl = document.getElementById("estadoTablero");
+
+if(estadoTableroEl){
+
+estadoTableroEl.innerHTML = `
+<span class="estado-tablero">
+
+<span class="estado-celda estado-resueltas">${resueltas}</span>
+<span class="estado-label">RESUELTOS</span>
+
+<span class="estado-celda estado-reservadas">${reservadas}</span>
+<span class="estado-label">RESERVADAS</span>
+
+<span class="estado-celda estado-faltantes">${faltantes}</span>
+<span class="estado-label">POR COMPLETAR</span>
+
+</span>
+`;
+
+}
+
+        const preguntasMezcladas = [...data].sort(() => Math.random() - 0.5);
+
+const colores = [
+            "#e74c3c","#2ecc71","#3498db","#9b59b6","#f39c12",
+            "#1abc9c","#e67e22","#16a085","#8e44ad","#c0392b"
+        ];
+
+        preguntasMezcladas.forEach((item, index) => {
+
+            const cell = document.createElement("div");
+            cell.classList.add("cell");
+
+            const colorOriginal = colores[Math.floor(Math.random() * colores.length)];
+            cell.style.backgroundColor = colorOriginal;
+            cell.dataset.color = colorOriginal;
+            cell.dataset.id = data.indexOf(item);
+            
+
+            // estado guardado en localStorage
+            const numero = parseInt(cell.dataset.id) + 1;
+
+if (tableroEstado.casillasResueltas.includes(numero)) {
+
+    cell.classList.add("resuelta");
+    cell.style.backgroundColor = "transparent";
+
+    const robot = document.createElement("img");
+    robot.src = "/assets/images/robot2.png";
+    robot.classList.add("robot-mini");
+
+    cell.textContent = "";
+    cell.appendChild(robot);
+}
+
+            // estado guardado en backend
+            if (casillasOcupadas.includes(item.resultado)) {
+            
+
+                cell.classList.add("resuelta");
+                cell.style.backgroundColor = "transparent";
+
+                const robot = document.createElement("img");
+                robot.src = "/assets/images/robot2.png";
+                robot.classList.add("robot-mini");
+
+                cell.innerHTML = "";
+                cell.appendChild(robot);
+            }
+
+            // 👇 EVENTO CLICK (ESTO FALTABA)
+            cell.addEventListener("click", () => {
+                if (cell.classList.contains("resuelta")) return;
+
+                abrirPregunta(cell, tableroEstado);
+            });
+
+            grid.appendChild(cell);
+
+        });
+
+    });
+
+});
+// ==========================
+// ACTUALIZAR TABLERO AUTOMATICAMENTE
+// ==========================
+function actualizarContadorHeader(reservas, ocupadas){
+
+const TOTAL = 50;
+
+const reservadas =
+reservas.filter(r => r.expira > Date.now()).length;
+
+const resueltas = ocupadas.length;
+
+const faltantes = TOTAL - resueltas - reservadas;
+
+const estado = document.getElementById("estadoTablero");
+
+if(!estado) return;
+
+estado.innerHTML = `
+<span class="estado-tablero">
+
+<span class="estado-celda estado-resueltas">${resueltas}</span>
+<span class="estado-label">RESUELTOS</span>
+
+<span class="estado-celda estado-reservadas">${reservadas}</span>
+<span class="estado-label">RESERVADAS</span>
+
+<span class="estado-celda estado-faltantes">${faltantes}</span>
+<span class="estado-label">POR COMPLETAR</span>
+
+</span>
+`;
+}
+setInterval(async () => {
+
+try{
+
+// ==========================
+// 1️⃣ OBTENER RESERVAS
+// ==========================
+
+const resReservas = await fetch("/api/reservas");
+const dataReservas = await resReservas.json();
+const reservas = dataReservas.ok ? dataReservas.reservas : [];
+
+const resTablero = await fetch("/api/tablero");
+const dataTablero = await resTablero.json();
+const ocupadas = dataTablero.casillas.map(c => c.casilla);
+actualizarContadorHeader(reservas, ocupadas);
+
+
+// ==========================
+// 3️⃣ RECORRER CELDAS
+// ==========================
+
+document.querySelectorAll(".cell").forEach(cell => {
+
+const numero = parseInt(cell.dataset.id) + 1;
+
+const reserva = reservas.find(r => r.casilla === numero);
+
+// ==========================
+// CASILLA RESERVADA
+// ==========================
+
+if(reserva){
+
+const tiempoRestante = reserva.expira - Date.now();
+
+if(tiempoRestante <= 0){
+
+// ignorar reserva expirada
+reserva = null;
+
+}else{
+
+const segundos = Math.floor(tiempoRestante / 1000);
+const minutos = Math.floor(segundos / 60);
+const seg = segundos % 60;
+
+const texto =
+`${minutos.toString().padStart(2,"0")}:${seg.toString().padStart(2,"0")}`;
+
+cell.classList.add("resuelta");
+cell.style.backgroundColor = "white";
+cell.innerHTML = `<span class="contador-reserva">${texto}</span>`;
+
+return;
+
+}
+
+}
+
+// ==========================
+// CASILLA PAGADA
+// ==========================
+
+if(ocupadas.includes(numero)){
+
+if(!cell.querySelector(".robot-mini")){
+
+cell.classList.add("resuelta");
+cell.style.backgroundColor = "transparent";
+
+const robot = document.createElement("img");
+robot.src = "/assets/images/robot2.png";
+robot.classList.add("robot-mini");
+
+cell.innerHTML = "";
+cell.appendChild(robot);
+
+}
+
+return;
+
+}
+
+// ==========================
+// CASILLA LIBRE
+// ==========================
+
+if(cell.classList.contains("resuelta")){
+
+cell.classList.remove("resuelta");
+cell.innerHTML = "";
+cell.style.backgroundColor = cell.dataset.color;
+
+}
+
+});
+
+}catch(error){
+
+console.log("Error actualizando tablero",error);
+
+}
+
+},1000);
+// ======================================
+// VARIABLES GLOBALES
+// ======================================
+
+let intervalo;
+let tiempoInicio;
+
+// ======================================
+// FUNCIÓN ABRIR PREGUNTA
+// ======================================
+
+function abrirPregunta(cell, tableroEstado) {
+
+    const modal = document.getElementById("modalPregunta");
+    const textoPregunta = document.getElementById("preguntaTexto");
+    const contador = document.getElementById("contador");
+    const input = document.getElementById("respuestaInput");
+    const boton = document.getElementById("btnResponder");
+
+    if (!modal || !textoPregunta || !contador || !input || !boton) {
+        console.error("Algún elemento del modal no existe");
+        return;
+    }
+
+    const jugadorActual = JSON.parse(localStorage.getItem("jugadorActual")) || {};
+
+fetch("/api/abrir-pregunta",{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+    id: cell.dataset.id,
+    jugador: jugadorActual.nombre || "Invitado"
+})
+});
+fetch("/api/pregunta/" + cell.dataset.id)
+.then(res => res.json())
+.then(data => {
+
+    textoPregunta.textContent = data.pregunta + " = ?";
+
+     });
+
+    input.value = "";
+    modal.classList.remove("hidden");
+
+    tiempoInicio = Date.now();
+
+    intervalo = setInterval(() => {
+
+        const tiempoActual = Date.now() - tiempoInicio;
+
+        const minutos = Math.floor(tiempoActual / 60000);
+        const segundos = Math.floor((tiempoActual % 60000) / 1000);
+        const decimas = Math.floor((tiempoActual % 1000) / 100);
+        const centesimas = Math.floor((tiempoActual % 100) / 10);
+
+        contador.textContent =
+            `${String(minutos).padStart(2,'0')}:` +
+            `${String(segundos).padStart(2,'0')}:` +
+            `${String(decimas).padStart(2,'0')}:` +
+            `${String(centesimas).padStart(2,'0')}`;
+
+    }, 10);
+
+    boton.onclick = () => {
+
+    clearInterval(intervalo);
+
+const respuestaUsuario = Number(input.value);
+
+// validar que el usuario haya escrito algo
+if (isNaN(respuestaUsuario)) {
+    alert("Escribe tu respuesta.");
+    return;
+}
+
+// ==========================
+// VALIDAR RESPUESTA EN BACKEND
+// ==========================
+
+fetch("/api/responder",{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+    id: cell.dataset.id,
+    respuesta: respuestaUsuario,
+    jugador: jugadorActual.nombre || "Invitado"
+})
+})
+.then(res=>res.json())
+.then(data=>{
+
+if(!data.ok){
+    alert("❌ Incorrecto");
+    modal.classList.add("hidden");
+    mezclarCeldas();
+    return;
+}
+
+// RESPUESTA CORRECTA
+const numeroPagado = data.resultado;
+
+modal.classList.add("hidden");
+
+if (!localStorage.getItem("fechaApertura")) {
+    localStorage.setItem("fechaApertura", Date.now());
+}
+
+const tiempoFormateado = contador.textContent;
+
+fetch("/api/ocupar-casilla", {
+method: "POST",
+headers: {
+"Content-Type": "application/json"
+},
+body: JSON.stringify({
+casilla: numeroPagado,
+jugador: jugadorActual.nombre || "Invitado",
+email: jugadorActual.email || "pendiente",
+tiempo: tiempoFormateado
+})
+});
+
+cell.classList.add("resuelta");
+cell.style.backgroundColor = "transparent";
+
+const robot = document.createElement("img");
+robot.src = "/assets/images/robot2.png";
+robot.classList.add("robot-mini");
+
+cell.innerHTML = "";
+cell.appendChild(robot);
+
+const folioCarrito = localStorage.getItem("folioTablero");
+
+let carrito = JSON.parse(localStorage.getItem("carrito_" + folioCarrito)) || { items: [] };
+
+const yaExiste = carrito.items.some(item => item.numero === numeroPagado);
+
+if (!yaExiste) {
+
+carrito.items.push({
+numero: numeroPagado,
+tiempo: tiempoFormateado
+});
+
+localStorage.setItem("carrito_" + folioCarrito, JSON.stringify(carrito));
+
+}
+
+localStorage.setItem("numeroSeleccionado", numeroPagado);
+
+// ir al carrito
+window.location.href = "carrito.html?folio=" + folioCarrito;
+
+});
+
+};   // cierre boton.onclick
+
+}   // cierre abrirPregunta
+
+function responder(opcion){
+
+let respuesta = document.getElementById("respuesta");
+
+if(opcion === "jugar"){
+respuesta.innerHTML = "Para jugar selecciona una casilla del tablero y responde la pregunta matemática. la respuesta que obtengas será 1,2,3.. maximo 50, y esa es la cantidad a pagar por participar. Recuerda que pagas en MXN al tipo de caambio del dólar. Ejemplo: Si tu respuesta es 1, pagaras aprox $18.00 pesos";
+}
+
+if(opcion === "pagos"){
+respuesta.innerHTML = "El pago es con Mercado Pago y dependemos de esta plataforma. Si tu pago no aparece espera 2 minutos y recarga la página.";
+}
+
+if(opcion === "folio"){
+respuesta.innerHTML = "Tu folio se envía al correo registrado.";
+}
+
+if(opcion === "soporte"){
+respuesta.innerHTML = "Contacta soporte en el botón de WhatsApp.";
+}
+
+}
+// ==========================
+// MEZCLAR CELDAS TABLERO
+// ==========================
+
+function mezclarCeldas(){
+
+const board = document.getElementById("board");
+
+const celdas = Array.from(board.children);
+
+celdas.sort(()=>Math.random()-0.5);
+
+board.innerHTML = "";
+
+celdas.forEach(c=>{
+board.appendChild(c);
+});
+
+}
+
+});
+
+
+
+
+

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi Perfil - Quiz $1000</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+
+<div class="perfil-contenedor">
+
+<img src="./assets/images/perfil.png"
+class="icono-perfil"
+alt="Mi Perfil">
+
+<form id="perfilForm" class="perfil-grid">
+
+<div class="campo">
+<label>Nombre</label>
+<input type="text" id="perfilNombre" disabled>
+</div>
+
+<div class="campo">
+<label>Apellidos</label>
+<input type="text" id="perfilApellidos" disabled>
+</div>
+
+<div class="campo">
+<label>Edad</label>
+<input type="number" id="perfilEdad" disabled>
+</div>
+
+<div class="campo">
+<label>Email</label>
+<input type="email" id="perfilEmail">
+</div>
+
+<div class="campo">
+<label>Teléfono</label>
+<input type="text" id="perfilTelefono">
+</div>
+
+<div class="campo">
+<label>Nueva Contraseña</label>
+<input type="password" id="perfilPassword">
+</div>
+
+<div class="campo-boton">
+<button type="submit">Guardar Cambios</button>
+</div>
+
+</form>
+
+<hr style="margin:40px 0;">
+
+<h2>🎯 Mis Tableros</h2>
+
+<div id="misTablerosPerfil"></div>
+</div>
+
+<!-- ICONO HOME -->
+<a href="index.html" class="home-icon">
+    <img src="./assets/images/home-icon.png" alt="Home">
+</a>
+
+<script>
+// PROTEGER PERFIL
+const usuario = JSON.parse(localStorage.getItem("usuarioLogueado"));
+
+if(!usuario){
+    window.location.href = "login.html";
+}
+// Esperar a que cargue el DOM
+document.addEventListener("DOMContentLoaded", function(){
+    // sincronizar login con perfil
+const usuarioLogueado = JSON.parse(localStorage.getItem("usuarioLogueado"));
+
+if(usuarioLogueado && !localStorage.getItem("jugadorActual")){
+    localStorage.setItem("jugadorActual", JSON.stringify(usuarioLogueado));
+}
+
+    const jugador = JSON.parse(localStorage.getItem("jugadorActual"));
+
+    if(jugador){
+        document.getElementById("perfilNombre").value = jugador.nombre || "";
+        document.getElementById("perfilApellidos").value = jugador.apellidos || "";
+        document.getElementById("perfilEdad").value = jugador.edad || "";
+        document.getElementById("perfilEmail").value = jugador.email || "";
+        document.getElementById("perfilTelefono").value = jugador.telefono || "";
+        if(jugador.tableroID){
+            const estado = JSON.parse(localStorage.getItem("tableroEstado_" + jugador.tableroID));
+
+            if(estado && estado.casillasResueltas){
+                const resueltas = estado.casillasResueltas.length;
+                const total = 50;
+                const faltan = total - resueltas;
+
+                const encabezado = document.getElementById("estadoTablero");
+                if(encabezado){
+                    encabezado.textContent = 
+                        `Este tablero tiene ${resueltas} números resueltos. Faltan ${faltan} para completarse`;
+                }
+            }
+        }
+    }
+// ============================
+// MOSTRAR TABLEROS EN PERFIL
+// ============================
+
+const contenedorTableros = document.getElementById("misTablerosPerfil");
+
+if(jugador && jugador.tableros && Object.keys(jugador.tableros).length > 0){
+
+    for(let folio in jugador.tableros){
+
+        const tablero = jugador.tableros[folio];
+
+        const estadoClase = tablero.estado === "completo"
+            ? "tablero-estado-completo"
+            : "tablero-estado-activo";
+
+        const div = document.createElement("div");
+        div.classList.add("tablero-perfil-card");
+
+        div.innerHTML = `
+            <strong>${folio}</strong><br>
+            Estado: <span class="${estadoClase}">
+                ${tablero.estado || "activo"}
+            </span><br>
+            Números: ${(tablero.numeros || []).join(", ") || "Sin números"}<br>
+            Mejor tiempo: ${tablero.mejorTiempo || "Sin registro"}
+        `;
+
+        contenedorTableros.appendChild(div);
+    }
+
+}else{
+    contenedorTableros.innerHTML = "<p>Aún no participas en ningún tablero.</p>";
+}
+    document.getElementById("perfilForm").addEventListener("submit", function(e){
+
+e.preventDefault();
+
+const jugadorActual = JSON.parse(localStorage.getItem("jugadorActual"));
+if(!jugadorActual) return;
+
+const email = document.getElementById("perfilEmail").value;
+const telefono = document.getElementById("perfilTelefono").value;
+const password = document.getElementById("perfilPassword").value;
+
+fetch("/actualizar-perfil",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body: JSON.stringify({
+id: jugadorActual.id,
+email,
+telefono,
+password
+})
+
+})
+.then(res=>res.json())
+.then(data=>{
+
+if(data.ok){
+
+jugadorActual.email = email;
+jugadorActual.telefono = telefono;
+
+localStorage.setItem("jugadorActual", JSON.stringify(jugadorActual));
+
+alert("Perfil actualizado correctamente ✅");
+
+}else{
+
+alert("Error actualizando perfil");
+
+}
+
+});
+
+});
+
+});
+const inputsCodigo = document.querySelectorAll(".codigo");
+
+inputsCodigo.forEach((input, index) => {
+
+input.addEventListener("input", function(){
+
+if(this.value.length === 1 && index < inputsCodigo.length - 1){
+inputsCodigo[index + 1].focus();
+}
+
+});
+
+input.addEventListener("keydown", function(e){
+
+if(e.key === "Backspace" && this.value === "" && index > 0){
+inputsCodigo[index - 1].focus();
+}
+
+});
+
+});
+function logout(){
+
+localStorage.removeItem("usuarioLogueado");
+localStorage.removeItem("jugadorActual");
+
+window.location.href = "index.html";
+
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Home - Quiz $1000</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body class="home">
+    <header class="home-header">
+    <img src="./assets/images/logotipo.png" 
+         class="logo-header"
+         alt="Quiz $1000">
+</header>
+
+<div class="container">
+
+
+    <h1 class="home-titulo">Plataforma Oficial Quiz $1000</h1>
+
+    <!-- ===================== -->
+    <!-- BLOQUE MI CUENTA -->
+    <!-- ===================== -->
+
+    <div class="home-bloque">
+
+    <a href="perfil.html" class="perfil-link-home">
+        <img src="./assets/images/perfil.png" 
+             alt="Mi Perfil" 
+             class="perfil-icono-home">
+    </a>
+
+</div>
+
+<div class="home-bloque">
+
+    <a href="lobby.html" class="tableros-link-home">
+        <img src="./assets/images/tableros.png" 
+             alt="Tableros Disponibles" 
+             class="tableros-icono-home">
+    </a>
+
+</div>
+
+    <!-- ===================== -->
+    <!-- BLOQUE INFORMACIÓN -->
+    <!-- ===================== -->
+
+    <div class="home-bloque">
+
+    <div class="info-iconos-home">
+
+        <a href="reglas.html" class="info-link-home">
+            <img src="./assets/images/reglas.png" 
+                 alt="Reglas del Juego" 
+                 class="info-icono-home">
+        </a>
+
+        <a href="legales.html" class="info-link-home">
+            <img src="./assets/images/legales.png" 
+                 alt="Términos Legales" 
+                 class="info-icono-home">
+        </a>
+
+    </div>
+
+</div>
+
+    <!-- ===================== -->
+    <!-- BLOQUE TRANSPARENCIA -->
+    <!-- ===================== -->
+
+    <div class="home-bloque transparencia">
+        <h2 class="testimonios-titulo">
+    <img src="./assets/images/testimonios.png"
+         alt="Testimonios"
+         class="testimonios-icono-home">
+</h2>
+
+        <p>Último tablero completado:</p>
+        <p><strong>Próximamente visible aquí</strong></p>
+
+        <p>Total premios entregados:</p>
+        <p><strong>En construcción</strong></p>
+    </div>
+<!-- BOTON WHATSAPP SOPORTE -->
+
+<div class="whatsapp-flotante">
+    <a href="https://wa.me/5215532004805" target="_blank">
+        <img src="assets/images/whatsapp.png" alt="WhatsApp">
+    </a>
+    </div>
+    <p class="texto-whatsapp">Atención a Jugadores</p>
+</div>
+</div>
+<footer class="home-footer">
+    © 2026 Quiz $1000 | Plataforma Oficial | Todos los derechos reservados
+</footer>
+
+</a>
+
+</div>
+<div class="chatbot">
+
+    <div class="chatbot-header">
+        🤖 Ayuda a jugadores
+    </div>
+
+    <div class="chatbot-body" id="chatbot-body">
+        <p>Hola 👋 ¿En qué puedo ayudarte?</p>
+
+        <button onclick="responder('jugar')">¿Cómo jugar?</button>
+        <button onclick="responder('pagos')">¿Problemas con pagos?</button>
+        <button onclick="responder('folio')">¿Recuperar folio?</button>
+        <button onclick="responder('soporte')">Soporte técnico</button>
+
+      <div id="respuesta"></div>
+
+</div>
+</div>
+
+<script src="js/main.js"></script>
+</body>
+</html>

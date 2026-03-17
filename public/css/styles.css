@@ -1,0 +1,1169 @@
+/* ========================= */
+/* ======= GLOBAL ========= */
+/* ========================= */
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+a {
+    text-decoration: none;
+}
+
+/* ========================= */
+/* ======= PORTADA ========= */
+/* ========================= */
+
+body.portada {
+    background-image: url("../assets/images/fondo-rayos.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    margin: 0;
+}
+
+/* Contenedor centrado */
+
+.portada-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+/* Imagen principal */
+
+.portada-imagen {
+    width: 380px;
+    max-width: 90%;
+    height: auto;
+}
+
+/* Texto debajo */
+
+.portada-texto {
+    font-size: 20px;
+    color: #003366;
+    font-weight: bold;
+    margin-top: 25px;
+}
+
+/* Botón */
+
+.portada-boton {
+    display: inline-block;
+    margin-top: 25px;
+    padding: 14px 40px;
+    background-color: #009624;
+    color: white;
+    font-weight: bold;
+    border-radius: 8px;
+    transition: 0.3s;
+}
+
+.portada-boton:hover {
+    background-color: #00e676;
+    transform: scale(1.05);
+}
+
+/* Footer */
+
+.portada-footer {
+    margin-top: 30px;
+    font-size: 13px;
+    color: #003366;
+}
+
+/* Icono Home */
+
+.home-icon-portada {
+    position: fixed;
+    bottom: 95px;
+    left: 550px;
+    z-index: 1000;
+}
+
+.home-icon-portada img {
+    width: 140px;
+    height: auto;
+}
+
+/* ========================= */
+/* ===== MENSAJE SUPERIOR === */
+/* ========================= */
+
+.portada-mensaje-superior {
+    position: absolute;
+    top: 40px;
+    width: 100%;
+    text-align: center;
+    font-weight: bold;
+    line-height: 1.4;
+}
+
+.portada-mensaje-superior p {
+    margin: 5px 0;
+    font-size: 22px;
+    color: #002244;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+}
+
+/* ========================= */
+/* ======= TABLERO ========= */
+/* ========================= */
+
+body.tablero {
+    background-image: url("../assets/images/fondo-rayos.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    margin: 0;
+}
+
+/* ===== HOME ABAJO DEL TABLERO CENTRADO ===== */
+
+.home-icon-tablero {
+    position: static;
+    display: block;
+    text-align: center;
+    margin: 20px auto 0 auto;
+}
+
+.home-icon-tablero img {
+    width: 95px;
+    border: 5px 
+}
+
+.tablero-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 40px;
+    padding-bottom: 30px;
+    text-align: center;
+}
+
+.tablero-logo {
+    width: 230px;
+    margin-bottom: 20px;
+}
+
+.tablero-instrucciones {
+    color: #003366;
+    font-weight: bold;
+    max-width: 600px;
+    margin-bottom: 10px;
+}
+
+.tablero-folio {
+    color: #003366;
+    margin-bottom: 30px;
+}
+
+.tablero-grid {
+    display: grid;
+    grid-template-columns: repeat(10, 70px);
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 30px;
+
+    /* 🔲 Marco del tablero */
+    background-color: black;
+    border: 4px solid white;
+    padding: 20px;
+    border-radius: 15px;
+}
+
+.tablero-footer {
+    text-align: center;
+    padding: 35px 0;
+    font-size: 12px;
+    color: #003366;
+}
+
+/* Casillas */
+
+.cell {
+    width: 70px;
+    height: 70px;
+    border-radius: 12px;
+    color: white;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s;
+    animation: glowPulse 2.5s infinite ease-in-out;
+}
+
+.cell:hover {
+    transform: scale(1.1);
+}
+
+.cell.resuelta {
+    animation: none;
+    box-shadow: none;
+    cursor: not-allowed;
+    color: transparent;
+}
+
+/* Robot dentro de la celda */
+
+.cell.resuelta {
+    animation: none;
+    box-shadow: none;
+    cursor: not-allowed;
+    color: transparent;
+}
+
+/* ========================= */
+/* ===== MODAL PREGUNTA ==== */
+/* ========================= */
+
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.hidden {
+    display: none;
+}
+
+.modal-contenido {
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    text-align: center;
+    width: 350px;
+}
+
+.contador {
+    font-size: 22px;
+    font-weight: bold;
+    margin: 15px 0;
+    color: #e74c3c;
+}
+
+.modal input {
+    padding: 10px;
+    width: 80%;
+    margin-bottom: 10px;
+}
+
+.modal button {
+    padding: 10px 20px;
+    background: #00c853;
+    border: none;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+/* ========================= */
+/* ======= HOME ============ */
+/* ========================= */
+
+/* (todo tu código HOME intacto aquí) */
+
+/* ========================= */
+/* ======= CARRITO ========= */
+/* ========================= */
+
+body.carrito {
+    background-image: url("../assets/images/fondo-rayos.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+/* ========================= */
+/* ===== ROBOT PORTADA ===== */
+/* ========================= */
+
+.robot-flotante {
+    position: fixed;
+    left: 1020px;
+    bottom: 120px;
+    width: 160px;
+    height: auto;
+    z-index: 500;
+    animation: flotarRobot 3s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes flotarRobot {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+    100% { transform: translateY(0px); }
+}
+/* ========================= */
+/* ===== ROBOT TABLERO ===== */
+/* ========================= */
+
+.robot-tablero {
+    position: fixed;
+    top: 325px;
+    left: 1125px;
+    width: 120px; /* pequeño y discreto */
+    height: auto;
+    z-index: 500;
+    pointer-events: none;
+    animation: flotarRobotTablero 3s ease-in-out infinite;
+    transform: rotate(-5deg);
+}
+
+@keyframes flotarRobotTablero {
+    0% { transform: translateY(0px) rotate(-5deg); }
+    50% { transform: translateY(-12px) rotate(-5deg); }
+    100% { transform: translateY(0px) rotate(-5deg); }
+}
+/* ===== LOGO HOME ===== */
+
+.logo-header {
+    width: 220px;
+    height: auto;
+}
+/* ===== HEADER HOME ===== */
+
+.home-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 30px 0;
+}
+/* ========================= */
+/* ===== HOME GENERAL ====== */
+/* ========================= */
+
+/* Centrar todo el contenido principal */
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    text-align: center;
+    padding: 20px;
+}
+
+/* Centrar bloques internos */
+.home-bloque {
+    margin: 30px auto;
+    text-align: center;
+}
+
+/* Centrar botones */
+.btn-home {
+    display: block;
+    margin: 12px auto;
+    width: 260px;
+}
+
+/* Footer centrado */
+.home-footer {
+    text-align: center;
+    padding: 30px 0;
+}
+/* ========================= */
+/* ========= HOME ========= */
+/* ========================= */
+
+body.home {
+    background-image: url("../assets/images/fondo-rayos.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    margin: 0;
+}
+/* ========================= */
+/* ===== TARJETAS HOME ===== */
+/* ========================= */
+
+.home-bloque {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(6px);
+    border-radius: 20px;
+    padding: 30px;
+    margin: 25px auto;
+    width: 100%;
+    max-width: 600px;
+
+    /* Difuminado elegante */
+    box-shadow: 
+        0 10px 25px rgba(0, 0, 0, 0.15),
+        0 0 40px rgba(255, 255, 255, 0.4);
+
+    transition: 0.3s ease;
+}
+.cell img.robot-mini {
+    width: 80%;
+    height: auto;
+    pointer-events: none;
+}
+.robot-mini {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    pointer-events: none;
+}
+/* ========================= */
+/* ===== REGLAS PAGE ====== */
+/* ========================= */
+
+.icono-reglas {
+    width: 180px;        /* ajusta aquí el tamaño */
+    height: auto;
+    display: block;
+    margin: 30px auto 10px auto;
+}
+/* ========================= */
+/* ===== REGLAS - HOME ===== */
+/* ========================= */
+
+.home-icon {
+    display: block;
+    text-align: center;
+    margin: 40px auto;
+}
+
+.home-icon img {
+    width: 140px;   /* 🔹 ajusta aquí el tamaño */
+    height: auto;
+    transition: 0.3s ease;
+}
+
+.home-icon img:hover {
+    transform: scale(1.1);
+}
+/* ========================= */
+/* ===== REGLAS FONDO ====== */
+/* ========================= */
+
+body {
+    background-image: url("/assets/images/fondo-rayos.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+/* ========================= */
+/* ===== REGLAS TEXTO ====== */
+/* ========================= */
+
+.instrucciones {
+    background: rgba(255, 255, 255, 0.95); /* fondo blanco elegante */
+    padding: 35px;
+    border-radius: 20px;
+    max-width: 750px;
+    margin: 30px auto;
+    line-height: 1.7;
+    font-size: 18px;
+    color: #002244;
+
+    /* sombra institucional */
+    box-shadow:
+        0 10px 25px rgba(0, 0, 0, 0.15),
+        0 0 40px rgba(255, 255, 255, 0.4);
+}
+.instrucciones {
+    text-align: left;   /* 👈 alinear texto a la izquierda */
+}
+/* ========================= */
+/* ===== LOBBY FONDO ======= */
+/* ========================= */
+
+body.lobby {
+    background-image: url("/assets/images/fondo-rayos.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+/* ========================= */
+/* ===== TERMINOS LEGALES == */
+/* ========================= */
+
+.icono-legales {
+    width: 260px;      /* 👈 Ajusta aquí el tamaño */
+    height: auto;
+    display: block;
+    margin: 30px auto 10px auto;
+}
+/* ========================= */
+/* ===== REGISTRO FIX ====== */
+/* ========================= */
+
+body.registro {
+    background-image: url("/assets/images/portada-rayos.png") !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+    background-attachment: fixed !important;
+}
+/* ========================= */
+/* ===== VISOR TERMINOS ==== */
+/* ========================= */
+
+.visor-terminos {
+    margin-top: 20px;
+}
+
+.btn-descargar {
+    display: inline-block;
+    margin-top: 15px;
+    padding: 12px 25px;
+    background: #003366;
+    color: white;
+    border-radius: 8px;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.btn-descargar:hover {
+    background: #0055aa;
+    transform: scale(1.05);
+}
+#folio {
+    display: inline-block;
+    background-color: #000;
+    color: #fff;
+    border: 2px solid #ffffff;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    margin-bottom: 15px;
+}
+.nota-tipo-cambio {
+    color: #ff2f92; /* rosa elegante */
+    font-size: 14px;
+    font-weight: 500;
+    margin-top: -5px;
+    margin-bottom: 15px;
+    text-align: center;
+}
+#seguir,
+#pagar {
+    background-color: #2ecc71;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+#seguir:hover,
+#pagar:hover {
+    background-color: #27ae60;
+}
+.nota-tipo-cambio-pago {
+    color:#ff1493 !important;
+    font-size: 14px;
+    font-weight: 500;
+    margin-top: 10px;
+    text-align: center;
+}
+/* ========================= */
+/* ===== PERFIL HOME ======= */
+/* ========================= */
+
+.perfil-link-home {
+    display: inline-block;
+}
+
+.perfil-icono-home {
+    width: 150px;   /* más grande y visible */
+    height: auto;
+    transition: 0.3s ease;
+    cursor: pointer;
+}
+
+.perfil-icono-home:hover {
+    transform: scale(1.08);
+}
+/* ========================= */
+/* ===== TABLEROS HOME ===== */
+/* ========================= */
+
+.tableros-link-home {
+    display: inline-block;
+}
+
+.tableros-icono-home {
+    width: 150px;   /* ligeramente más grande que el emoji original */
+    height: auto;
+    transition: 0.3s ease;
+    cursor: pointer;
+}
+
+.tableros-icono-home:hover {
+    transform: scale(1.08);
+}
+/* ========================= */
+/* ===== INFO HOME ========= */
+/* ========================= */
+
+.info-iconos-home {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 40px;   /* espacio entre los dos iconos */
+}
+
+.info-link-home {
+    display: inline-block;
+}
+
+.info-icono-home {
+    width: 150px;   /* más grande que el emoji original */
+    height: auto;
+    transition: 0.3s ease;
+    cursor: pointer;
+}
+
+.info-icono-home:hover {
+    transform: scale(1.08);
+}
+/* ========================= */
+/* ===== TESTIMONIOS HOME == */
+/* ========================= */
+
+.testimonios-titulo {
+    text-align: center;
+}
+
+.testimonios-icono-home {
+    width: 150px;   /* más grande que el emoji anterior */
+    height: auto;
+    transition: 0.3s ease;
+}
+
+.testimonios-icono-home:hover {
+    transform: scale(1.05);
+}
+.icono-perfil{
+    display:block;
+    margin:20px auto;
+    width:120px;
+    height:auto;
+}
+/* CONTENEDOR PERFIL */
+.perfil-contenedor{
+    width:420px;
+    margin:60px auto;
+    background:white;
+    padding:30px;
+    border-radius:12px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.25);
+    text-align:center;
+}
+
+/* ICONO PERFIL */
+.icono-perfil{
+    display:block;
+    margin:0 auto 20px auto;
+    width:120px;
+}
+
+/* CAMPOS */
+.campo{
+    display:flex;
+    flex-direction:column;
+    text-align:left;
+    margin-bottom:15px;
+}
+
+.campo label{
+    font-weight:bold;
+    margin-bottom:5px;
+}
+
+.campo input{
+    padding:10px;
+    border-radius:6px;
+    border:1px solid #ccc;
+}
+
+/* BOTON */
+.campo-boton{
+    text-align:center;
+    margin-top:20px;
+}
+
+.campo-boton button{
+    background-color:#28a745;
+    color:white;
+    border:none;
+    padding:12px 20px;
+    border-radius:6px;
+    font-size:16px;
+    cursor:pointer;
+}
+
+.campo-boton button:hover{
+    background-color:#1f7e34;
+}
+/* ========================= */
+/* ===== ANIMACION CELDAS == */
+/* ========================= */
+
+@keyframes glowPulse {
+
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 5px rgba(255,255,255,0.4);
+        opacity: 0.9;
+    }
+
+    50% {
+        transform: scale(1.08);
+        box-shadow: 0 0 18px rgba(255,255,255,0.9);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 5px rgba(255,255,255,0.4);
+        opacity: 0.9;
+    }
+
+}
+/* ========================= */
+/* ===== WHATSAPP BOTON ==== */
+/* ========================= */
+
+.whatsapp-flotante{
+    position: relative;
+    text-align: center;
+    margin: 40px 0;
+    z-index: 9999;
+}
+
+.whatsapp-flotante img{
+    width: 65px;
+    height: auto;
+    transition: 0.3s;
+}
+
+.whatsapp-flotante img:hover{
+    transform: scale(1.1);
+}
+.texto-whatsapp{
+    margin-top: 8px;
+    font-size: 16px;        /* texto más grande */
+    color: white;           /* texto blanco para contraste */
+    font-weight: 600;
+    background-color: #0b2a5b;  /* azul obscuro */
+    display: inline-block;  /* hace que el fondo solo cubra el texto */
+    padding: 6px 12px;      /* espacio interno */
+    border-radius: 6px;     /* esquinas redondeadas */
+}
+.chatbot{
+    position: fixed;
+    bottom: 120px;
+    right: 20px;
+    width: 260px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    font-family: Arial;
+}
+
+.chatbot-header{
+    background: #0b2a5b;
+    color: white;
+    padding: 20px;
+    font-weight: bold;
+    border-radius: 10px 10px 0 0;
+}
+
+.chatbot-body{
+    padding: 10px;
+}
+
+.chatbot button{
+    width: 100%;
+    margin-top: 6px;
+    padding: 8px;
+    border: none;
+    border-radius: 6px;
+    background: #25D366;
+    color: white;
+    cursor: pointer;
+}
+
+.chatbot button:hover{
+    background: #1ebe5d;
+}
+#estadoTablero {
+    white-space: pre-line;
+}
+/* ========================= */
+/* ===== ESTADO TABLERO ==== */
+/* ========================= */
+
+.estado-tablero-tablero{
+    text-align:center;
+    font-weight:bold;
+    color:#003366;
+    margin-top:-10px;
+    margin-bottom:10px;
+}
+
+.mensaje-tablero{
+    text-align:center;
+    font-size:14px;
+    font-weight:bold;
+    color:#003366; /* azul oscuro */
+    margin-bottom:20px;
+}
+/* ========================= */
+/* ===== ESTADO TABLERO ==== */
+/* ========================= */
+
+.estado-linea{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:8px;
+    margin-top:10px;
+    margin-bottom:10px;
+    font-weight:bold;
+}
+
+/* números estilo casilla */
+
+.numero-resuelto,
+.numero-faltante{
+    width:38px;
+    height:38px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:8px;
+    color:white;
+    font-size:18px;
+}
+
+/* verde */
+
+.numero-resuelto{
+    background:#2ecc71;
+}
+
+/* naranja */
+
+.numero-faltante{
+    background:#f39c12;
+}
+
+/* textos */
+
+.texto-resuelto{
+    background:#2ecc71;
+    color:white;
+    padding:6px 10px;
+    border-radius:6px;
+    font-size:13px;
+}
+
+.texto-faltante{
+    background:#f39c12;
+    color:white;
+    padding:6px 10px;
+    border-radius:6px;
+    font-size:13px;
+}
+
+.separador{
+    font-size:18px;
+    font-weight:bold;
+    color:white;
+}
+/* ========================= */
+/* === ESTADO TABLERO UI === */
+/* ========================= */
+
+.estado-tablero-ui{
+display:flex;
+justify-content:center;
+align-items:center;
+gap:10px;
+margin-top:10px;
+margin-bottom:10px;
+}
+
+/* mini casillas */
+
+.mini-cell{
+width:45px;
+height:45px;
+border-radius:10px;
+display:flex;
+align-items:center;
+justify-content:center;
+font-weight:bold;
+color:white;
+font-size:18px;
+animation: glowPulse 2.5s infinite ease-in-out;
+}
+
+/* verde */
+
+.resueltos{
+background:#2ecc71;
+}
+
+/* naranja */
+
+.faltantes{
+background:#f39c12;
+}
+
+/* texto */
+
+.estado-texto{
+color:#003366;
+font-weight:bold;
+font-size:14px;
+}
+
+.estado-separador{
+font-weight:bold;
+font-size:20px;
+color:#003366;
+}
+/* ========================= */
+/* ===== CONTADOR TABLERO === */
+/* ========================= */
+
+.estado-tablero{
+display:flex;
+justify-content:center;
+align-items:center;
+gap:18px;
+margin-top:10px;
+margin-bottom:10px;
+}
+
+.estado-celda{
+width:42px;
+height:42px;
+border-radius:10px;
+display:flex;
+align-items:center;
+justify-content:center;
+color:white;
+font-weight:bold;
+font-size:18px;
+
+/* mismo glow que las casillas */
+animation: glowPulse 2.5s infinite ease-in-out;
+}
+
+.estado-resueltas{
+background:#2ecc71;
+}
+
+.estado-faltantes{
+background:#f39c12;
+}
+
+.estado-label{
+color:#003366;
+font-weight:bold;
+font-size:14px;
+}
+/* ========================= */
+/* ===== BARRA TIEMPO ====== */
+/* ========================= */
+
+.barra-tiempo-container{
+width:320px;
+height:18px;
+background:#ddd;
+border-radius:10px;
+margin:10px auto 5px auto;
+overflow:hidden;
+border:2px solid #003366;
+}
+
+.barra-tiempo{
+height:100%;
+width:0%;
+background:green;
+transition:width 0.5s linear;
+}
+
+.texto-tiempo{
+text-align:center;
+font-size:13px;
+font-weight:bold;
+color:#003366;
+margin-bottom:10px;
+}
+.codigo-container{
+display:flex;
+justify-content:center;
+gap:8px;
+margin:20px 0;
+}
+
+.codigo-input{
+width:45px;
+height:45px;
+text-align:center;
+font-size:24px;
+border:2px solid #ccc;
+border-radius:8px;
+background:white;
+color:black;
+padding:0;
+box-sizing:border-box;
+}
+
+.codigo-input:focus{
+border-color:#27ae60;
+outline:none;
+}
+
+.boton-verde{
+background:#27ae60;
+color:white;
+border:none;
+padding:14px 40px;
+font-size:18px;
+border-radius:8px;
+cursor:pointer;
+margin-top:15px;
+}
+
+.boton-verde:hover{
+background:#1f8a4c;
+}
+
+.boton-verde-sec{
+background:#2ecc71;
+color:white;
+border:none;
+padding:12px 30px;
+font-size:16px;
+border-radius:8px;
+cursor:pointer;
+margin-top:10px;
+}
+.codigo-container{
+display:flex;
+justify-content:center;
+gap:12px;
+margin:20px 0;
+}
+
+.codigo-container input{
+width:45px !important;
+height:45px !important;
+max-width:45px !important;
+min-width:45px !important;
+
+padding:0;
+margin:0;
+
+text-align:center;
+font-size:24px;
+
+border-radius:8px;
+border:2px solid #ccc;
+
+background:white;
+color:black;
+
+box-sizing:border-box;
+}
+.codigo-container{
+display:flex;
+justify-content:center;
+gap:10px;
+margin:20px 0;
+}
+
+.codigo-container input{
+width:45px;
+height:45px;
+flex:0 0 45px;
+text-align:center;
+font-size:22px;
+border-radius:6px;
+border:2px solid #ccc;
+box-sizing:border-box;
+}
+.codigo-container{
+display:flex;
+justify-content:center;
+gap:8px;
+margin:20px 0;
+}
+
+.codigo-input{
+flex:0 0 45px;
+width:45px;
+height:45px;
+max-width:45px;
+min-width:45px;
+
+text-align:center;
+font-size:22px;
+
+border-radius:6px;
+border:2px solid #ccc;
+
+padding:0;
+margin:0;
+
+box-sizing:border-box;
+}
+.codigo{
+
+width:60px;
+height:60px;
+
+font-size:28px;
+font-weight:bold;
+
+text-align:center;
+
+border-radius:8px;
+border:2px solid #ccc;
+
+background:white;
+
+outline:none;
+
+}
+.codigo:focus{
+
+border:2px solid #2ecc71;
+
+box-shadow:0 0 6px rgba(46,204,113,0.6);
+
+}
+.codigo{
+caret-color:transparent;
+}
+.contador-reserva{
+font-size:14px;
+font-weight:bold;
+color:#003366;
+}
+.estado-reservadas{
+background:#3498db;
+color:white;
+}

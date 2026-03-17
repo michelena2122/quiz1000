@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registro de Participante</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial, sans-serif;
+   background: url("assets/images/fondo-rayos.jpg") no-repeat center center fixed;
+background-size: cover;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+    color:white;
+}
+
+.container{
+    background:#000;
+    padding:40px;
+    border-radius:15px;
+    width:400px;
+    box-shadow:0 0 30px rgba(255,255,255,0.2);
+}
+
+h2{
+    text-align:center;
+    margin-bottom:20px;
+}
+
+input, select{
+    width:100%;
+    padding:10px;
+    margin-bottom:12px;
+    border:none;
+    border-radius:6px;
+}
+
+button{
+    width:100%;
+    padding:10px;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.payBtn{
+    background:#00c853;
+    color:white;
+}
+
+.error{
+    color:#ff5252;
+    font-size:13px;
+    margin-bottom:10px;
+}
+.logo-registro{
+    position: absolute;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 220px;
+    height: auto;
+    z-index: 10;
+}
+</style>
+</head>
+
+<body class="registro">
+<img src="assets/images/logotipo.png" class="logo-registro">
+<div class="container">
+
+<h2>Registro de Participante</h2>
+
+<p id="amountText"></p>
+
+<div class="error" id="errorMsg"></div>
+
+<input type="text" id="nombre" placeholder="Nombre">
+<input type="text" id="apellidos" placeholder="Apellidos">
+<input type="number" id="edad" placeholder="Edad" min="1">
+<input type="text" id="nacionalidad" placeholder="Nacionalidad">
+
+<div style="display:flex; gap:5px;">
+    <select id="codigoPais" style="width:35%;">
+        <option value="+52">🇲🇽 +52</option>
+        <option value="+1">🇺🇸 +1</option>
+        <option value="+34">🇪🇸 +34</option>
+        <option value="+57">🇨🇴 +57</option>
+        <option value="+54">🇦🇷 +54</option>
+    </select>
+
+    <input type="tel" id="telefono" placeholder="Teléfono" style="width:65%;">
+</div>
+
+<input type="email" id="email" placeholder="Correo electrónico">
+<input type="password" id="password" placeholder="Crea una contraseña">
+<div style="margin-bottom:15px; font-size:14px;">
+    <input type="checkbox" id="aceptaTerminos">
+    He leído y acepto los 
+    <a href="legales.html" target="_blank" style="color:#00e676;">
+        Términos Legales y Aviso de Privacidad
+    </a>
+</div>
+<button class="payBtn" id="pagarBtn">Continuar al Pago</button>
+
+</div>
+
+<script>
+
+// ============================
+// OBTENER PARÁMETROS URL
+// ============================
+
+const params = new URLSearchParams(window.location.search);
+let numero = params.get("numero");
+
+if(!numero){
+    numero = localStorage.getItem("numeroSeleccionado") || "0";
+}
+const pagoLink = params.get("pago") || "#";
+
+// Cambiar mensaje superior (psicología correcta)
+document.getElementById("amountText").innerHTML =
+    "<strong>Continúa, vas en serio por los 1,000 USD 💰</strong>";
+
+// Cambiar texto del botón dinámicamente
+const pagarBtn = document.getElementById("pagarBtn");
+pagarBtn.textContent =
+    `Tu número es ${numero} — págalo y sigue rumbo a los 1,000 USD`;
+
+const errorMsg = document.getElementById("errorMsg");
+
+// ============================
+// BOTÓN REGISTRO
+// ============================
+
+pagarBtn.addEventListener("click", function(){
+
+    const nombre = document.getElementById("nombre").value.trim();
+    const apellidos = document.getElementById("apellidos").value.trim();
+    const edad = document.getElementById("edad").value.trim();
+    const nacionalidad = document.getElementById("nacionalidad").value.trim();
+    const telefono = document.getElementById("telefono").value.trim();
+    const codigoPais = document.getElementById("codigoPais").value;
+    const email = document.getElementById("email").value.trim();
+const password = document.getElementById("password").value.trim();
+
+    const aceptaTerminos = document.getElementById("aceptaTerminos").checked;
+
+if(!aceptaTerminos){
+    errorMsg.textContent = "Debes aceptar los Términos Legales para continuar.";
+    return;
+}
+    if(!nombre || !apellidos || !edad || !nacionalidad || !telefono || !email || !password){
+        errorMsg.textContent = "Todos los campos son obligatorios.";
+        return;
+    }
+
+    if(isNaN(edad) || edad <= 0){
+        errorMsg.textContent = "Ingresa una edad válida.";
+        return;
+    }
+
+    if(parseInt(edad) < 18){
+        errorMsg.textContent = "Debes ser mayor de 18 años para participar.";
+        return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if(!emailRegex.test(email)){
+        errorMsg.textContent = "Correo electrónico inválido.";
+        return;
+    }
+
+   errorMsg.textContent = "";
+
+// generar código
+const codigoVerificacion = Math.floor(100000 + Math.random() * 900000);
+
+localStorage.setItem("codigoEmail", codigoVerificacion);
+localStorage.setItem("emailRegistro", email);
+
+// enviar correo al backend
+fetch("http://localhost:3000/enviar-codigo", {
+
+    method:"POST",
+
+    headers:{
+        "Content-Type":"application/json"
+    },
+
+    body: JSON.stringify({
+        email: email,
+        codigo: codigoVerificacion
+    })
+
+})
+.then(res => res.json())
+.then(data => {
+
+    if(data.ok){
+
+        alert("📧 Te enviamos un código de verificación");
+
+        window.location.href = "validar.html";
+
+    }else{
+
+        errorMsg.textContent = "Error enviando el correo";
+
+    }
+
+})
+.catch(err => {
+
+    errorMsg.textContent = "No se pudo conectar con el servidor.";
+
+});
+    // ============================
+    // GENERAR ID INTERNO
+    // ============================
+
+    const jugadorID = "JUG-" + Date.now();
+    const folioTablero = localStorage.getItem("folioTablero");
+
+    const jugadorData = {
+    id: jugadorID,
+    nombre,
+    apellidos,
+    edad,
+    nacionalidad,
+    telefono: codigoPais + telefono,
+    email,
+    password,
+    folioTablero,
+    numeroComprado: numero,
+    mejorTiempoGlobal: null
+};
+localStorage.setItem("registroPendiente", JSON.stringify(jugadorData));
+   
+window.location.href = "validar.html";
+
+});
+</script>
+
+</body>
+</html>
+

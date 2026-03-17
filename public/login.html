@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Login QUIZ1000</title>
+</head>
+
+<body>
+
+<h2>Iniciar sesión</h2>
+
+<input type="email" id="email" placeholder="Correo electrónico">
+<br><br>
+
+<input type="password" id="password" placeholder="Contraseña">
+<br><br>
+
+<button onclick="login()">Entrar</button>
+
+<p id="msg"></p>
+<p>
+<a href="recuperar.html">¿Olvidaste tu contraseña?</a>
+</p>
+
+<script>
+
+function login(){
+
+const email = document.getElementById("email").value.trim();
+const password = document.getElementById("password").value.trim();
+
+fetch("/login",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body: JSON.stringify({
+email,
+password
+})
+
+})
+.then(res=>res.json())
+.then(data=>{
+
+if(data.ok){
+
+localStorage.setItem("usuarioLogueado", JSON.stringify(data.usuario));
+
+window.location.href = "perfil.html";
+
+}else{
+
+document.getElementById("msg").innerText = data.mensaje;
+
+}
+
+});
+
+}
+
+</script>
+
+</body>
+</html>

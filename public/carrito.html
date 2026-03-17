@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carrito de Participación</title>
+
+<link rel="stylesheet" href="css/styles.css">
+
+
+<style>
+body{
+    margin:0;
+    font-family:Arial, sans-serif;
+    display:flex;
+    flex-direction:column;
+    min-height:100vh;
+    position:relative;
+}
+
+/* ========================= */
+/* HOME ICON */
+/* ========================= */
+
+
+.home-icon img{
+    width:120px !important;
+    height:auto !important;
+    display:block;
+}
+
+/* ========================= */
+/* HEADER / LOGO */
+/* ========================= */
+
+header{
+    text-align:center;
+    padding:30px 20px 10px 20px;
+}
+
+.carrito-logo{
+    width:190px !important;
+    max-width:190px !important;
+    height:auto !important;
+    display:block;
+    margin:0 auto;
+}
+
+/* ========================= */
+/* CONTENIDO */
+/* ========================= */
+
+.container{
+    flex:1;
+    max-width:600px;
+    margin:0 auto 30px auto;
+    background:white;
+    padding:30px;
+    border-radius:15px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.1);
+}
+
+h2{
+    text-align:center;
+    color:#003366;
+}
+
+.item{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:10px;
+    padding:10px;
+    background:#f2f8ff;
+    border-radius:8px;
+}
+
+button{
+    padding:8px 12px;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.removeBtn{
+    background:#ff5252;
+    color:white;
+}
+
+.primaryBtn{
+    background:#003366;
+    color:white;
+    width:100%;
+    margin-top:10px;
+}
+
+.total{
+    font-size:20px;
+    text-align:right;
+    margin-top:15px;
+    font-weight:bold;
+    color:#003366;
+}
+
+/* ========================= */
+/* FOOTER */
+/* ========================= */
+
+footer{
+    background:#003366;
+    color:white;
+    text-align:center;
+    padding:10px;
+}
+
+/* ========================= */
+/* RESPONSIVE */
+/* ========================= */
+
+@media(max-width:600px){
+    .carrito-logo{
+        width:100px !important;
+    }
+
+    .container{
+        margin:0 15px 20px 15px;
+        padding:20px;
+    }
+}
+.leyenda-transparencia{
+    font-size:14px;
+    margin-top:20px;
+    padding:15px;
+    background:#eaf4ff;
+    border-left:4px solid #003366;
+    color:#003366;
+    border-radius:8px;
+    line-height:1.5;
+}
+.container{
+    flex: 0 0 auto !important;
+}
+footer{
+    background: transparent !important;  /* quita azul */
+    color: #003366;                      /* texto azul oscuro */
+    margin-top: 40px;                    /* lo baja un poco */
+    padding-bottom: 30px;                /* más espacio abajo */
+}
+</style>
+</head>
+
+<body class="carrito">
+
+</a>
+
+<header>
+    <img src="assets/images/logotipo.png" class="carrito-logo" alt="Quiz 1000">
+</header>
+
+<div class="container">
+
+<h2 id="mensajeJugador"></h2>
+<p class="nota-tipo-cambio">
+    (El pago del Premio de 1,000 USD se realizará en MXN al tipo de cambio vigente)
+</p>
+
+<div id="lista"></div>
+
+<div class="total">
+   Total: <span id="total"></span> USD (Recuerda que pagas el equivalente en MXN)
+</div>
+
+<p class="leyenda-transparencia">
+Cada número adquirido genera un registro independiente de tiempo.
+Para garantizar transparencia y trazabilidad en la determinación del ganador,
+es necesario pagar EN MXN por separado cada número con el que participas.
+</p>
+
+<button class="primaryBtn" id="seguir">Quiero otro número
+y aumentar mi posibilidad de ganar 1,000 USD
+</button>
+<button class="primaryBtn" id="pagar">CONTINUAR</button>
+
+</div>
+<a href="index.html" class="home-icon">
+    <img src="assets/images/home-icon.png" alt="Home">
+</a>
+
+<footer>
+© 2026 Quiz1000 LLC.
+All rights reserved. QUIZ1000 is a trademark of Quiz1000 LLC.
+www.Quiz1000.llc
+</footer>
+
+<script>
+console.log("CARRITO CARGADO");
+const params = new URLSearchParams(window.location.search);
+const folio = params.get("folio") || localStorage.getItem("folioTablero");
+let carrito = JSON.parse(localStorage.getItem("carrito_" + folio)) || { items: [] };
+const lista = document.getElementById("lista");
+const totalSpan = document.getElementById("total");
+// ============================
+// PERSONALIZAR NOMBRE JUGADOR
+// ============================
+
+const jugadorActual = JSON.parse(localStorage.getItem("jugadorActual"));
+
+if(jugadorActual && jugadorActual.nombre){
+    document.getElementById("mensajeJugador").textContent =
+        jugadorActual.nombre.toUpperCase() + ", ¡Estás muy cerca de los 1,000 USD!";
+}else{
+    document.getElementById("mensajeJugador").textContent =
+        "¡Estás muy cerca de los 1,000 USD!";
+}
+
+function render(){
+    lista.innerHTML = "";
+    let total = 0;
+
+    if(carrito.items.length === 0){
+        lista.innerHTML = "<p>No has seleccionado números aún.</p>";
+    }
+
+    carrito.items.forEach((item, index)=>{
+        total += parseInt(item.numero);
+
+        lista.innerHTML += `
+            <div class="item">
+                <div>
+                    Número ${item.numero} USD<br>
+                    <small>Tiempo: ${item.tiempo}</small>
+                </div>
+                <button class="removeBtn" onclick="eliminar(${index})">X</button>
+            </div>
+        `;
+    });
+
+    carrito.total = total;
+    totalSpan.textContent = total;
+
+    localStorage.setItem("carrito_" + folio, JSON.stringify(carrito));
+}
+
+function eliminar(index){
+    carrito.items.splice(index,1);
+    render();
+}
+
+document.getElementById("seguir").addEventListener("click",()=>{
+    window.location.href = "tablero.html";
+});
+
+document.getElementById("pagar").addEventListener("click",()=>{
+
+    console.log("BOTON PAGAR PRESIONADO");
+
+    const jugadorActual = JSON.parse(localStorage.getItem("jugadorActual"));
+
+    console.log("jugadorActual:", jugadorActual);
+
+    if(!jugadorActual){
+        console.log("IR A REGISTRO");
+        window.location.href = "registro.html?folio=" + folio;
+    }else{
+        console.log("IR A PAGO");
+        window.location.href = "pago.html?folio=" + folio;
+    }
+
+});
+
+render();
+
+</script>
+
+</body>
+</html>

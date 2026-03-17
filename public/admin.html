@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+
+<meta charset="UTF-8">
+<title>QUIZ1000 Admin</title>
+
+<style>
+
+body{
+font-family: Arial;
+background:#111;
+color:white;
+padding:40px;
+}
+
+h1{
+color:#00ffcc;
+}
+
+table{
+width:100%;
+border-collapse: collapse;
+margin-top:20px;
+}
+
+td,th{
+border:1px solid #444;
+padding:8px;
+text-align:center;
+}
+
+th{
+background:#222;
+}
+
+.estado{
+margin-top:20px;
+font-size:20px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>QUIZ1000 - Panel Administrador</h1>
+
+<div class="estado">
+Casillas ocupadas: <span id="ocupadas">0</span> / 50
+</div>
+
+<div id="estadoTablero" style="margin-top:10px;font-size:18px;color:#00ffcc;">
+TABLERO ACTIVO
+</div>
+
+<div id="ganador" style="margin-top:20px;font-size:18px;color:#ffd700;">
+</div>
+
+<table>
+
+<thead>
+<tr>
+<th>Jugador</th>
+<th>Casilla</th>
+<th>Email</th>
+<th>Tiempo</th>
+</tr>
+</thead>
+
+<tbody id="tabla"></tbody>
+
+</table>
+
+<script>
+
+async function cargarTablero(){
+
+const res = await fetch("/admin/tablero");
+const data = await res.json();
+
+document.getElementById("ocupadas").innerText = data.ocupadas;
+
+const tabla = document.getElementById("tabla");
+tabla.innerHTML = "";
+
+data.casillas.forEach(c=>{
+
+const fila = document.createElement("tr");
+
+fila.innerHTML = `
+<td>${c.jugador}</td>
+<td>${c.casilla}</td>
+<td>${c.email}</td>
+<td>${c.tiempo}</td>
+`;
+
+tabla.appendChild(fila);
+
+});
+
+
+// Estado del tablero
+
+const estado = document.getElementById("estadoTablero");
+
+if(data.completo){
+    estado.innerText = "⚠ TABLERO COMPLETO";
+    estado.style.color = "red";
+}else{
+    estado.innerText = "TABLERO ACTIVO";
+    estado.style.color = "#00ffcc";
+}
+
+
+// Calcular ganador en vivo
+
+if(data.casillas.length > 0){
+
+const tiempos = data.casillas.map(c => {
+
+const partes = c.tiempo.split(":");
+
+const minutos = parseFloat(partes[0]) || 0;
+const segundos = parseFloat(partes[1]) || 0;
+const decimas = parseFloat(partes[2]) || 0;
+const centesimas = parseFloat(partes[3]) || 0;
+
+const tiempoTotal =
+(minutos * 60) +
+segundos +
+(decimas / 10) +
+(centesimas / 100);
+
+return {
+jugador:c.jugador,
+casilla:c.casilla,
+tiempo:segundos,
+tiempoTexto:c.tiempo
+}
+
+});
+
+tiempos.sort((a,b)=>a.tiempo-b.tiempo);
+
+const ganador = tiempos[0];
+
+document.getElementById("ganador").innerHTML =
+"🏆 Ganador actual: <b>" +
+ganador.jugador +
+"</b> — Casilla " +
+ganador.casilla +
+" — Tiempo " +
+ganador.tiempoTexto;
+
+}
+
+}
+
+cargarTablero();
+
+setInterval(cargarTablero,3000);
+
+</script>
+
+</body>
+</html>

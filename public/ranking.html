@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Ranking del Tablero</title>
+<style>
+body { font-family: Arial; padding: 30px; background:#f2f8ff; }
+h2 { text-align:center; }
+.item {
+    padding:10px;
+    margin-bottom:8px;
+    background:white;
+    border-radius:8px;
+    display:flex;
+    justify-content:space-between;
+}
+.primero {
+    background:#d4edda;
+    font-weight:bold;
+}
+</style>
+</head>
+<body>
+
+<h2>🏆 Ranking del Tablero</h2>
+
+<div id="rankingLista"></div>
+
+<script>
+
+const folio = localStorage.getItem("folioTablero");
+const ranking = JSON.parse(localStorage.getItem("ranking_" + folio)) || [];
+
+const contenedor = document.getElementById("rankingLista");
+
+if (ranking.length === 0) {
+    contenedor.innerHTML = "<p>No hay participantes aún.</p>";
+} else {
+
+    ranking.forEach((jugador, index) => {
+
+        const div = document.createElement("div");
+        div.classList.add("item");
+
+        if (index === 0) {
+            div.classList.add("primero");
+        }
+
+        div.innerHTML = `
+            <span>#${index + 1} ${jugador.nombre}</span>
+            <span>${(jugador.mejorTiempo / 1000).toFixed(3)} seg</span>
+        `;
+
+        contenedor.appendChild(div);
+    });
+}
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,61 @@
+{
+  "completo": false,
+  "casillas": [
+    {
+      "casilla": 29,
+      "jugador": "Invitado",
+      "email": "pendiente",
+      "tiempo": "00:03:05:04",
+      "fecha": 1773688568731
+    },
+    {
+      "casilla": 44,
+      "jugador": "Invitado",
+      "email": "pendiente",
+      "tiempo": "00:07:02:00",
+      "fecha": 1773689763122
+    },
+    {
+      "casilla": 1,
+      "jugador": "Invitado",
+      "email": "pendiente",
+      "tiempo": "00:03:07:08",
+      "fecha": 1773690295836
+    },
+    {
+      "casilla": 24,
+      "jugador": "Invitado",
+      "email": "pendiente",
+      "tiempo": "00:18:09:08",
+      "fecha": 1773690812660
+    },
+    {
+      "casilla": 11,
+      "jugador": "Invitado",
+      "email": "pendiente",
+      "tiempo": "00:04:07:09",
+      "fecha": 1773691612234
+    },
+    {
+      "casilla": 40,
+      "jugador": "Invitado",
+      "email": "pendiente",
+      "tiempo": "00:06:02:04",
+      "fecha": 1773692617804
+    },
+    {
+      "casilla": 49,
+      "jugador": "Invitado",
+      "email": "pendiente",
+      "tiempo": "00:06:02:07",
+      "fecha": 1773708039936
+    },
+    {
+      "casilla": 21,
+      "jugador": "Invitado",
+      "email": "pendiente",
+      "tiempo": "00:07:01:05",
+      "fecha": 1773711292102
+    }
+  ]
+}

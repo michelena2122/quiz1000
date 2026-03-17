@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Validar Correo</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:url("assets/images/fondo-rayos.jpg") no-repeat center center fixed;
+background-size:cover;
+color:white;
+
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+
+height:100vh;
+margin:0;
+}
+
+.logo-verificacion{
+width:420px;
+height:auto;
+display:block;
+margin-bottom:30px;
+}
+
+.box{
+background:rgba(0,0,0,0.85);
+padding:40px;
+border-radius:12px;
+text-align:center;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<img src="assets/images/logotipo.png" class="logo-verificacion">
+
+<div class="box">
+
+<h2>Verifica tu correo</h2>
+
+<p>Ingresa el código que enviamos a tu email</p>
+<p id="contador"></p>
+
+<div style="display:flex;gap:8px;justify-content:center;width:auto;">
+
+<input class="codigo" type="tel" maxlength="1"
+style="width:60px;height:60px;font-size:28px;text-align:center;border-radius:8px;border:2px solid #ccc;">
+
+<input class="codigo" type="tel" maxlength="1"
+style="width:60px;height:60px;font-size:28px;text-align:center;border-radius:8px;border:2px solid #ccc;">
+
+<input class="codigo" type="tel" maxlength="1"
+style="width:60px;height:60px;font-size:28px;text-align:center;border-radius:8px;border:2px solid #ccc;">
+
+<input class="codigo" type="tel" maxlength="1"
+style="width:60px;height:60px;font-size:28px;text-align:center;border-radius:8px;border:2px solid #ccc;">
+
+<input class="codigo" type="tel" maxlength="1"
+style="width:60px;height:60px;font-size:28px;text-align:center;border-radius:8px;border:2px solid #ccc;">
+
+<input class="codigo" type="tel" maxlength="1"
+style="width:60px;height:60px;font-size:28px;text-align:center;border-radius:8px;border:2px solid #ccc;">
+
+</div>
+
+<br>
+
+<button onclick="verificar()" style="background:#27ae60;color:white;border:none;padding:12px 30px;border-radius:8px;font-size:16px;cursor:pointer;">
+Verificar
+</button>
+
+<br><br>
+
+<button onclick="reenviar()" style="background:#2ecc71;color:white;border:none;padding:10px 25px;border-radius:8px;font-size:15px;cursor:pointer;">
+Reenviar código
+</button>
+
+<p id="error"></p>
+
+</div>
+
+<script>
+
+// ============================
+// INPUTS CODIGO
+// ============================
+
+const inputs = document.querySelectorAll(".codigo");
+
+inputs.forEach((input, index) => {
+
+input.addEventListener("input", () => {
+
+if(input.value.length === 1 && index < inputs.length - 1){
+inputs[index + 1].focus();
+}
+
+});
+
+input.addEventListener("keydown", (e) => {
+
+if(e.key === "Backspace" && input.value === "" && index > 0){
+inputs[index - 1].focus();
+}
+
+});
+
+});
+
+
+// ============================
+// OBTENER CODIGO
+// ============================
+
+function obtenerCodigo(){
+
+let codigo = "";
+
+inputs.forEach(input=>{
+codigo += input.value;
+});
+
+return codigo;
+
+}
+
+
+// ============================
+// VERIFICAR CODIGO
+// ============================
+
+async function verificar(){
+
+const codigoUsuario = obtenerCodigo();
+
+const email = localStorage.getItem("emailRegistro");
+
+const res = await fetch("/validar-codigo",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+email:email,
+codigo:codigoUsuario
+})
+
+});
+
+const data = await res.json();
+
+if(data.ok){
+
+alert("Correo verificado correctamente");
+
+// obtener datos del registro
+const registroPendiente = JSON.parse(localStorage.getItem("registroPendiente"));
+
+const resRegistro = await fetch("/registro",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body: JSON.stringify(registroPendiente)
+
+});
+
+const dataRegistro = await resRegistro.json();
+
+if(dataRegistro.ok){
+
+localStorage.removeItem("registroPendiente");
+
+const folio = localStorage.getItem("folioTablero");
+
+window.location.href = "pago.html?folio=" + folio;
+
+}else{
+
+document.getElementById("error").innerText =
+"No se pudo completar el registro";
+
+}
+
+}else{
+
+document.getElementById("error").innerText = data.mensaje;
+
+}
+
+}
+
+
+// ============================
+// REENVIAR CODIGO
+// ============================
+
+async function reenviar(){
+
+const email = localStorage.getItem("emailRegistro");
+
+const res = await fetch("/enviar-codigo",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+email:email
+})
+
+});
+
+const data = await res.json();
+
+if(data.ok){
+
+alert("Te enviamos un nuevo código");
+
+tiempo = 300;
+
+}else{
+
+alert("Error enviando código");
+
+}
+
+}
+
+
+// ============================
+// CONTADOR
+// ============================
+
+let tiempo = 300;
+
+const contador = document.getElementById("contador");
+
+const timer = setInterval(()=>{
+
+let minutos = Math.floor(tiempo/60);
+let segundos = tiempo % 60;
+
+contador.innerText =
+"⏳ Este código expira en " +
+String(minutos).padStart(2,"0") +
+":" +
+String(segundos).padStart(2,"0");
+
+tiempo--;
+
+if(tiempo < 0){
+
+clearInterval(timer);
+
+contador.innerText = "El código expiró. Solicita uno nuevo.";
+
+}
+
+},1000);
+
+</script>
+
+</body>
+</html>

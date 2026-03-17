@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lobby - Quiz 1000</title>
+
+<link rel="stylesheet" href="css/styles.css">
+
+<style>
+body{
+    margin:0;
+    font-family:Arial, sans-serif;
+    background:#cfe9ff;
+    display:flex;
+    flex-direction:column;
+    min-height:100vh;
+}
+
+header{
+    text-align:center;
+    padding:30px 20px 10px;
+}
+
+.logo{
+    width:120px;
+}
+
+.container{
+    flex:1;
+    max-width:700px;
+    margin:0 auto 30px;
+    background:white;
+    padding:30px;
+    border-radius:15px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.1);
+}
+
+h2{
+    text-align:center;
+    color:#003366;
+}
+
+.tablero-card{
+    padding:15px;
+    margin-bottom:10px;
+    background:#f2f8ff;
+    border-radius:10px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.activo{
+    color:green;
+    font-weight:bold;
+}
+
+.completo{
+    color:red;
+    font-weight:bold;
+}
+
+button{
+    padding:8px 12px;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.btn-entrar{
+    background:#003366;
+    color:white;
+}
+
+.btn-crear{
+    width:100%;
+    margin-top:20px;
+    background:#1e8e3e;
+    color:white;
+}
+
+footer{
+    background:#003366;
+    color:white;
+    text-align:center;
+    padding:10px;
+}
+.estado-rapido{
+    max-width:700px;
+    margin:0 auto 20px;
+    background:white;
+    padding:20px;
+    border-radius:15px;
+    box-shadow:0 8px 20px rgba(0,0,0,0.08);
+    text-align:center;
+}
+
+.estado-rapido h3{
+    margin-top:0;
+    color:#003366;
+}
+</style>
+</head>
+
+<body class="home lobby">
+
+<header>
+    <img src="assets/images/logotipo.png" class="logo" alt="Quiz 1000">
+</header>
+
+<div class="estado-rapido" id="estadoRapido"></div>
+
+<div class="container">
+
+<h2>Tableros Disponibles</h2>
+
+<div id="listaTableros"></div>
+
+<button class="btn-crear" id="crearTablero">
+    Crear Nuevo Tablero
+</button>
+
+</div>
+
+<footer>
+© 2026 Quiz1000 LLC.
+All rights reserved. QUIZ1000 is a trademark of Quiz1000 LLC.
+www.Quiz1000.llc
+</footer>
+
+<script>
+    // PROTEGER LOBBY
+const usuario = JSON.parse(localStorage.getItem("usuarioLogueado"));
+
+if(!usuario){
+    window.location.href = "login.html";
+}
+
+let tableros = JSON.parse(localStorage.getItem("tableros")) || {};
+
+const lista = document.getElementById("listaTableros");
+
+function renderTableros(){
+
+    lista.innerHTML = "";
+
+    const claves = Object.keys(tableros);
+
+    if(claves.length === 0){
+        lista.innerHTML = "<p>No hay tableros activos aún.</p>";
+        return;
+    }
+
+    claves.forEach(folio => {
+
+        const tablero = tableros[folio];
+
+        const div = document.createElement("div");
+        div.classList.add("tablero-card");
+
+        const estadoTexto = tablero.completo ?
+            `<span class="completo">Completo</span>` :
+            `<span class="activo">Activo</span>`;
+
+        div.innerHTML = `
+            <div>
+                <strong>${folio}</strong><br>
+                ${estadoTexto}
+            </div>
+            <button class="btn-entrar" onclick="entrar('${folio}')">
+                Entrar
+            </button>
+        `;
+
+        lista.appendChild(div);
+    });
+}
+
+function entrar(folio){
+    window.location.href = "tablero.html?folio=" + folio;
+}
+
+document.getElementById("crearTablero").addEventListener("click", function(){
+
+    const nuevoFolio = "TAB-" + Math.floor(100000 + Math.random() * 900000);
+
+    tableros[nuevoFolio] = {
+        fechaCreacion: new Date().toLocaleString(),
+        casillasResueltas: [],
+        completo: false
+    };
+    // ============================
+// ASOCIAR TABLERO AL JUGADOR
+// ============================
+
+let jugadorActual = JSON.parse(localStorage.getItem("jugadorActual"));
+
+if(jugadorActual){
+
+    if(!jugadorActual.tableros){
+        jugadorActual.tableros = {};
+    }
+
+    jugadorActual.tableros[nuevoFolio] = {
+        numeros: [],
+        mejorTiempo: null,
+        estado: "activo"
+    };
+
+    localStorage.setItem("jugadorActual", JSON.stringify(jugadorActual));
+}
+
+    localStorage.setItem("tableros", JSON.stringify(tableros));
+
+    window.location.href = "tablero.html?folio=" + nuevoFolio;
+});
+
+renderTableros();
+// =============================
+// ESTADO RAPIDO DEL JUGADOR
+// =============================
+
+function cargarEstadoRapido(){
+
+    const contenedor = document.getElementById("estadoRapido");
+    if(!contenedor) return;
+
+    const tablerosGlobal = JSON.parse(localStorage.getItem("tableros")) || {};
+    const totalTablerosJugador = Object.keys(tablerosGlobal).length;
+
+    contenedor.innerHTML = `
+        <h3>📊 Estado Actual</h3>
+        <p>Participas en <strong>${totalTablerosJugador}</strong> tablero(s)</p>
+    `;
+}
+
+cargarEstadoRapido();
+
+</script>
+
+</body>
+</html>
