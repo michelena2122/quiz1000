@@ -120,10 +120,10 @@ app.post("/enviar-codigo", async (req, res) => {
     const expiracion = Date.now() + (5 * 60 * 1000); // 5 minutos
 
     codigosEmail[email] = {
-    codigo,
-    expira: expiracion,
-    intentos: 0
-};
+        codigo,
+        expira: expiracion,
+        intentos: 0
+    };
 
     console.log("Enviando código a:", email);
     console.log("Código generado:", codigo);
@@ -140,9 +140,15 @@ app.post("/enviar-codigo", async (req, res) => {
 
     try {
 
-       console.log("Código enviado:", codigo);
+        await transporter.sendMail(mailOptions);
+        
+        console.log("Código enviado:", codigo);
 
-        res.json({ ok:true });
+        // 👇 RESPUESTA CON CÓDIGO (SOLO PRUEBAS)
+        res.json({ 
+            ok: true,
+            codigo: codigo
+        });
 
     } catch (error) {
 
