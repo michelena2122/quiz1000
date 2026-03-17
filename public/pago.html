@@ -315,23 +315,39 @@ function renderPagos(){
     calcularProbabilidad();
 }
 
-function pagar(index){
+async function pagar(index){
 
     const numeroSeleccionado = parseInt(carrito.items[index].numero);
 
-    const linkPago = linksMercadoPago[numeroSeleccionado - 1];
+    try{
 
-    if(!linkPago){
-        alert("No hay link configurado para el número " + numeroSeleccionado);
-        return;
+        const response = await fetch("/crear-pago", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                casilla: numeroSeleccionado
+            })
+        });
+
+        const data = await response.json();
+
+        if(!data.link){
+            alert("Error generando pago");
+            return;
+        }
+
+        // redirigir a MercadoPago
+        window.location.href = data.link;
+
+    }catch(error){
+
+        console.log("Error:", error);
+        alert("Error conectando con el servidor");
+
     }
 
-    window.location.href = linkPago;
-
-    carrito.items[index].pagado = true;
-    localStorage.setItem("carrito_" + folio, JSON.stringify(carrito));
-
-    renderPagos();
 }
 
 function calcularProbabilidad(){
