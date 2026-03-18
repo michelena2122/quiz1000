@@ -1091,7 +1091,8 @@ async function procesarPago(data){
     console.log("🚀 ENTRÓ A procesarPago");
 
     try{
-
+        console.log("🧪 TIPO WEBHOOK:", data.type);
+        console.log("🧪 DATA COMPLETA:", JSON.stringify(data));
         if(data.type !== "payment") return;
 
         if(!data.data?.id) return;
