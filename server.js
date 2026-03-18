@@ -1,5 +1,6 @@
 console.log("🧪 typeof fetch:", typeof fetch);
 const express = require("express");
+const MP_ACCESS_TOKEN = "APP_USR-bd5adbc3-40ca-43d2-9125-df2e1ec97992";
 const nodemailer = require("nodemailer");
 const cors = require("cors");
 const path = require("path");
@@ -17,7 +18,7 @@ const FILE_PATH = path.join(__dirname, "public", "data", "preguntas.json");
 
 const codigosEmail = {};
 const preguntasAbiertas = {};
-const MP_ACCESS_TOKEN = "c0E8HVNboWsJMBiRkHxKBW3pypue47uk";
+const EMAIL_API_TOKEN = "c0E8HVNboWsJMBiRkHxKBW3pypue47uk";
 // ============================
 // BASE DE DATOS USUARIOS
 // ============================
@@ -1098,7 +1099,7 @@ async function procesarPago(data){
         if(!data.data?.id) return;
 
         const paymentId = data.data.id;
-
+        console.log("🔐 TOKEN EN PROCESAR:", MP_ACCESS_TOKEN);
         const response = await fetch(
             `https://api.mercadopago.com/v1/payments/${paymentId}`,
             {
@@ -1157,7 +1158,6 @@ app.post("/crear-pago", async (req, res) => {
         const { casilla } = req.body;
 
         console.log("🧾 Crear pago para casilla:", casilla);
-        const MP_ACCESS_TOKEN = "TEST-2663546958880234-110418-76e2aeb24b31137cb7f87b000963013f-153115257";
         console.log("🔐 TOKEN EN USO:", MP_ACCESS_TOKEN);
 
         const response = await fetch("https://api.mercadopago.com/checkout/preferences", {
