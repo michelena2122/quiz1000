@@ -1120,3 +1120,53 @@ app.post("/webhook/mercadopago", async (req, res) => {
     }
 
 });
+app.post("/crear-pago", async (req, res) => {
+
+    try {
+
+        const { casilla } = req.body;
+
+        console.log("🧾 Crear pago para casilla:", casilla);
+
+        const response = await fetch("https://api.mercadopago.com/checkout/preferences", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${MP_ACCESS_TOKEN}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                items: [
+                    {
+                        title: `Casilla ${casilla}`,
+                        quantity: 1,
+                        unit_price: Number(casilla),
+                        currency_id: "MXN"
+                    }
+                ],
+                metadata: {
+                    casilla: casilla
+                },
+                payer: {
+                    email: "test@test.com"
+                },
+                notification_url: "https://quiz1000.onrender.com/webhook/mercadopago"
+            })
+        });
+
+        const data = await response.json();
+
+        console.log("🧠 RESPUESTA MP:", data);
+
+        if (!data.init_point) {
+            return res.status(500).json({ error: "Error creando pago" });
+        }
+
+        res.json({ link: data.init_point });
+
+    } catch (error) {
+
+        console.log("❌ ERROR CREANDO PAGO:", error);
+
+        res.status(500).json({ error: "Error creando pago" });
+    }
+});
