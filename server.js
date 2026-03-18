@@ -1090,54 +1090,65 @@ res.sendStatus(200);
 async function procesarPago(data){
     console.log("🚀 ENTRÓ A procesarPago");
 
-try{
+    try{
 
-if(data.type !== "payment") return;
+        if(data.type !== "payment") return;
 
-if(!data.data?.id) return;
+        if(!data.data?.id) return;
 
-const paymentId = data.data.id;
+        const paymentId = data.data.id;
 
-const response = await fetch(
-`https://api.mercadopago.com/v1/payments/${paymentId}`,
-{
-headers:{
-Authorization:`Bearer ${MP_ACCESS_TOKEN}`
-}
-}
-);
+        const response = await fetch(
+            `https://api.mercadopago.com/v1/payments/${paymentId}`,
+            {
+                headers:{
+                    Authorization:`Bearer ${MP_ACCESS_TOKEN}`
+                }
+            }
+        );
 
-const pago = await response.json();
-console.log("💰 STATUS:", pago.status);
-console.log("💰 DETAIL:", pago.status_detail);
+        console.log("📡 RESPONSE STATUS:", response.status);
 
-if(pago.status === "approved" || pago.status_detail === "accredited"){
+        const text = await response.text();
+        console.log("📡 RAW RESPONSE:", text);
 
-const casilla = pago.metadata?.casilla;
+        let pago;
+        try{
+            pago = JSON.parse(text);
+        }catch(e){
+            console.log("❌ ERROR PARSEANDO JSON");
+            return;
+        }
 
-if(!casilla) return;
+        console.log("💰 STATUS:", pago.status);
+        console.log("💰 DETAIL:", pago.status_detail);
 
-db.run(
-`UPDATE casillas SET estado = 'pagada' WHERE casilla = ?`,
-[casilla],
-function(err){
+        if(pago.status === "approved" || pago.status_detail === "accredited"){
 
-if(err){
-console.log("Error actualizando pago");
-return;
-}
+            const casilla = pago.metadata?.casilla;
 
-console.log("✅ CASILLA PAGADA:",casilla);
+            if(!casilla) return;
 
-}
-);
+            db.run(
+                `UPDATE casillas SET estado = 'pagada' WHERE casilla = ?`,
+                [casilla],
+                function(err){
 
-}
+                    if(err){
+                        console.log("Error actualizando pago");
+                        return;
+                    }
 
-}catch(error){
-console.log("❌ ERROR PROCESANDO PAGO:",error);
+                    console.log("✅ CASILLA PAGADA:",casilla);
 
-}
+                }
+            );
+
+        }
+
+    }catch(error){
+        console.log("❌ ERROR PROCESANDO PAGO:",error);
+    }
 }
 
 app.post("/crear-pago", async (req, res) => {
