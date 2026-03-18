@@ -321,15 +321,15 @@ async function pagar(index){
 
     try{
 
-        const response = await fetch("/crear-pago", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                casilla: numeroSeleccionado
-            })
-        });
+        fetch("https://quiz1000.onrender.com/crear-pago", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    casilla: casilla
+  })
+})
 
         const data = await response.json();
 
