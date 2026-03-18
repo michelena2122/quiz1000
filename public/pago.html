@@ -321,15 +321,15 @@ async function pagar(index){
 
     try{
 
-        fetch("https://quiz1000.onrender.com/crear-pago", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-    casilla: casilla
-  })
-})
+        const response = await fetch("/crear-pago", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                casilla: numeroSeleccionado
+            })
+        });
 
         const data = await response.json();
 
@@ -393,5 +393,6 @@ document.getElementById("btnWhatsapp").addEventListener("click", function(){
 
 </body>
 </html>
+
 
 
