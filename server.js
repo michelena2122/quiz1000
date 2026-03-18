@@ -1,3 +1,4 @@
+console.log("🧪 typeof fetch:", typeof fetch);
 const express = require("express");
 const nodemailer = require("nodemailer");
 const cors = require("cors");
@@ -1065,18 +1066,18 @@ console.log("Reservas liberadas:", this.changes);
 
 // ejecutar cada minuto
 setInterval(limpiarReservasAutomatico,60000);
-app.post("/webhook/mercadopago", (req,res)=>{
+app.post("/webhook/mercadopago", async (req,res)=>{
 
 try{
 
 console.log("🔥 WEBHOOK RECIBIDO");
-console.log(req.body);
+console.log("🔥 WEBHOOK RAW:", JSON.stringify(req.body, null, 2));
 
-// responder inmediato (clave)
-res.sendStatus(200);
+// 👇 PRIMERO procesas
+    await procesarPago(req.body);
 
-// procesar en segundo plano
-procesarPago(req.body);
+    // 👇 DESPUÉS respondes
+    res.sendStatus(200);
 
 }catch(error){
 
@@ -1087,6 +1088,7 @@ res.sendStatus(200);
 
 });
 async function procesarPago(data){
+    console.log("🚀 ENTRÓ A procesarPago");
 
 try{
 
@@ -1106,8 +1108,10 @@ Authorization:`Bearer ${MP_ACCESS_TOKEN}`
 );
 
 const pago = await response.json();
+console.log("💰 STATUS:", pago.status);
+console.log("💰 DETAIL:", pago.status_detail);
 
-if(pago.status === "approved"){
+if(pago.status === "approved" || pago.status_detail === "accredited"){
 
 const casilla = pago.metadata?.casilla;
 
@@ -1131,7 +1135,6 @@ console.log("✅ CASILLA PAGADA:",casilla);
 }
 
 }catch(error){
-
 console.log("❌ ERROR PROCESANDO PAGO:",error);
 
 }
