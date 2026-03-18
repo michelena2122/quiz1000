@@ -1066,127 +1066,57 @@ console.log("Reservas liberadas:", this.changes);
 
 // ejecutar cada minuto
 setInterval(limpiarReservasAutomatico,60000);
-app.post("/webhook/mercadopago", (req,res)=>{
+app.post("/webhook/mercadopago", async (req, res) => {
 
-try{
+    console.log("🔥 WEBHOOK RECIBIDO");
+    console.log(req.body);
 
-console.log("🔥 WEBHOOK RECIBIDO");
-console.log(req.body);
-
-// responder inmediato (clave)
-res.sendStatus(200);
-
-// procesar en segundo plano
-procesarPago(req.body);
-
-}catch(error){
-
-console.log("❌ ERROR WEBHOOK:",error);
-res.sendStatus(200);
-
-}
-
-});
-async function procesarPago(data){
-
-try{
-
-if(data.type !== "payment") return;
-
-if(!data.data?.id) return;
-
-const paymentId = data.data.id;
-
-const response = await fetch(
-`https://api.mercadopago.com/v1/payments/${paymentId}`,
-{
-headers:{
-Authorization:`Bearer ${MP_ACCESS_TOKEN}`
-}
-}
-);
-
-const pago = await response.json();
-
-if(pago.status === "approved"){
-
-const casilla = pago.metadata?.casilla;
-
-if(!casilla) return;
-
-db.run(
-`UPDATE casillas SET estado = 'pagada' WHERE casilla = ?`,
-[casilla],
-function(err){
-
-if(err){
-console.log("Error actualizando pago");
-return;
-}
-
-console.log("✅ CASILLA PAGADA:",casilla);
-
-}
-);
-
-}
-
-}catch(error){
-
-console.log("❌ ERROR PROCESANDO PAGO:",error);
-
-}
-}
-
-app.post("/crear-pago", async (req, res) => {
     try {
-        const { casilla } = req.body;
 
-        console.log("🧾 Crear pago para casilla:", casilla);
-        const MP_ACCESS_TOKEN = "TEST-2663546958880234-110418-76e2aeb24b31137cb7f87b000963013f-153115257";
-        console.log("🔐 TOKEN EN USO:", MP_ACCESS_TOKEN);
+        if (req.body.type === "payment") {
 
-        const response = await fetch("https://api.mercadopago.com/checkout/preferences", {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${MP_ACCESS_TOKEN}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                items: [
-                    {
-                        title: `Casilla ${casilla}`,
-                        quantity: 1,
-                        unit_price: Number(casilla),
-                        currency_id: "MXN"
+            const paymentId = req.body.data.id;
+
+            console.log("💳 Payment ID:", paymentId);
+
+            const response = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
+                headers: {
+                    Authorization: `Bearer ${MP_ACCESS_TOKEN}`
+                }
+            });
+
+            const payment = await response.json();
+
+            console.log("📊 PAYMENT STATUS:", payment.status);
+            console.log("📦 METADATA:", payment.metadata);
+
+            if (payment.status === "approved") {
+
+                const casilla = payment.metadata.casilla;
+
+                console.log("✅ PAGO APROBADO para casilla:", casilla);
+
+                db.run(
+                    "UPDATE casillas SET estado = 'pagada' WHERE numero = ?",
+                    [casilla],
+                    (err) => {
+                        if (err) {
+                            console.log("❌ ERROR SQLITE:", err);
+                        } else {
+                            console.log("✅ CASILLA ACTUALIZADA");
+                        }
                     }
-                ],
-                metadata: {
-                    casilla: casilla
-                },
-                // ❌ quitamos payer
-                notification_url: "https://quiz1000.onrender.com/webhook/mercadopago"
-            })
-        });
-
-        const data = await response.json();
-
-        console.log("🧠 RESPUESTA MP:", data);
-
-        if (!data.sandbox_init_point) {
-            console.log("❌ ERROR MP:", data);
-            return res.status(500).json({ error: "Error creando pago" });
+                );
+            }
         }
 
-        res.json({
-            link: data.sandbox_init_point
-        });
+        res.sendStatus(200);
 
     } catch (error) {
-        console.log("❌ ERROR CREANDO PAGO:", error);
 
-        res.status(500).json({
-            error: "Error creando pago"
-        });
+        console.log("❌ ERROR EN WEBHOOK:", error);
+        res.sendStatus(500);
+
     }
+
 });
