@@ -1212,18 +1212,19 @@ header p {
 }
 .robot-flotante {
   position: fixed;
-  bottom: 20px;
-  right: 10px;
+  bottom: 80px;
+  right: 20px;
   width: 80px;
-  z-index: 1000;
+  max-width: 20vw;
+  z-index: 9999;
 }
 
 /* Ajuste específico para celular */
 @media (max-width: 600px) {
   .robot-flotante {
-    width: 60px;
-    bottom: 15px;
-    right: 10px;
+    bottom: 70px;
+    right: 15px;
+    width: 70px;
   }
 }
 .robot-flotante {
@@ -1267,5 +1268,6 @@ body.portada {
 }
 
 .home-icon-portada img {
-  width: 40px;
+  width: 60px;
+  height: auto;
 }
