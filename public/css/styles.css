@@ -1244,10 +1244,18 @@ body.portada {
   overflow: visible !important;
 }
 .robot-flotante {
-  position: fixed !important;
-  top: 50% !important;
-  left: 50% !important;
-  transform: translate(-50%, -50%) !important;
-  width: 100px !important;
-  z-index: 9999 !important;
+  position: fixed;
+  bottom: 80px;   /* súbelo un poco para que no choque con botones */
+  right: 10px;    /* pegado al lado derecho */
+  width: 70px;
+  z-index: 9999;
+}
+
+/* Ajuste fino para celular */
+@media (max-width: 600px) {
+  .robot-flotante {
+    bottom: 70px;
+    right: 8px;
+    width: 60px;
+  }
 }
