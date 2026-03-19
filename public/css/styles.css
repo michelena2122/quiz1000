@@ -1246,17 +1246,20 @@ body.portada {
 }
 .robot-flotante {
   position: fixed;
-  bottom: 80px;   /* súbelo un poco para que no choque con botones */
-  right: 10px;    /* pegado al lado derecho */
+  bottom: 120px;
+  right: 20px;
   width: 70px;
   z-index: 9999;
+  pointer-events: none;
 }
-
+body.portada {
+  position: relative;
+}
 /* Ajuste fino para celular */
 @media (max-width: 600px) {
   .robot-flotante {
-    bottom: 70px;
-    right: 20px;
+    bottom: 100px;
+    right: 15px;
     width: 60px;
   }
 }
