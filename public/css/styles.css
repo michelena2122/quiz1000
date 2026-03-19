@@ -1193,3 +1193,8 @@ header p {
   margin: 0 auto;
   max-width: 90%;
 }
+.portada-imagen {
+  display: block;
+  margin: 40px auto 0 auto;
+  max-width: 90%;
+}
