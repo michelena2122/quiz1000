@@ -80,16 +80,14 @@ body.portada {
     font-size: 13px;
     color: #003366;
 }
-
-/* Icono Home */
-
-.home-icon-portada {
-    position: fixed;
-    bottom: 90px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 1000;
+.home-icon-container {
+    margin-top: 20px;
 }
+
+.home-icon-container img {
+    width: 60px;
+}
+/* Icono Home */
 
 .home-icon-portada img {
     width: 80px;
