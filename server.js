@@ -15,7 +15,7 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
-app.get("/portada.html", (req, res) => {
+app.get("/portada", (req, res) => {
     res.sendFile(__dirname + "/public/portada.html");
 });
 app.listen(3000, () => {
