@@ -1167,4 +1167,6 @@ color:#003366;
 background:#3498db;
 color:white;
 }
-
+html, body {
+  background-color: red !important;
+}
