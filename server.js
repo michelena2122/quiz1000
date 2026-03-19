@@ -18,9 +18,10 @@ app.use(express.static("public"));
 app.get("/portada", (req, res) => {
     res.sendFile(__dirname + "/public/portada.html");
 });
-app.listen(3000, () => {
-    console.log("Servidor corriendo");
+app.get("/tablero", (req, res) => {
+    res.sendFile(__dirname + "/public/tablero.html");
 });
+
 const FILE_PATH = path.join(__dirname, "public", "data", "preguntas.json");
 
 const codigosEmail = {};

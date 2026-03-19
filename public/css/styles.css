@@ -134,7 +134,7 @@ body.tablero {
 
 .home-icon-tablero img {
     width: 95px;
-    border: 5px 
+    border: 5px solid white;
 }
 
 .tablero-container {
@@ -165,7 +165,11 @@ body.tablero {
 
 .tablero-grid {
     display: grid;
-    grid-template-columns: repeat(10, 70px);
+    @media (max-width: 600px) {
+    .tablero-grid {
+        grid-template-columns: repeat(5, 60px);
+    }
+}
     gap: 10px;
     justify-content: center;
     margin-bottom: 30px;
@@ -202,13 +206,6 @@ body.tablero {
 
 .cell:hover {
     transform: scale(1.1);
-}
-
-.cell.resuelta {
-    animation: none;
-    box-shadow: none;
-    cursor: not-allowed;
-    color: transparent;
 }
 
 /* Robot dentro de la celda */
@@ -308,10 +305,10 @@ body.carrito {
 /* ===== ROBOT TABLERO ===== */
 /* ========================= */
 
-.robot-tablero {
+robot-tablero {
     position: fixed;
-    top: 325px;
-    left: 1125px;
+    bottom: 100px;
+    right: 10px;
     width: 120px; /* pequeño y discreto */
     height: auto;
     z-index: 500;
