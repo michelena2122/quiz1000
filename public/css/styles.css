@@ -1183,3 +1183,13 @@ header h1,
 header p {
   margin: 5px 0;
 }
+.portada-mensaje-superior {
+  margin-bottom: 20px;
+  padding: 0 15px;
+}
+
+.portada-imagen {
+  display: block;
+  margin: 0 auto;
+  max-width: 90%;
+}
