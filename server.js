@@ -1,10 +1,7 @@
-console.log("🔥 INICIO TOTAL DEL ARCHIVO");
 const express = require("express");
 const nodemailer = require("nodemailer");
 const cors = require("cors");
 const path = require("path");
-console.log("🔥 SERVER ARRANCANDO");
-console.log("DB PATH:", path.resolve("./usuarios.db"));
 const fs = require("fs");
 
 const sqlite3 = require("sqlite3").verbose();
@@ -15,13 +12,6 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
-app.get("/portada", (req, res) => {
-    res.sendFile(__dirname + "/public/portada.html");
-});
-app.get("/tablero", (req, res) => {
-    res.sendFile(__dirname + "/public/tablero.html");
-});
-
 const FILE_PATH = path.join(__dirname, "public", "data", "preguntas.json");
 
 const codigosEmail = {};
@@ -30,8 +20,8 @@ const MP_ACCESS_TOKEN = "c0E8HVNboWsJMBiRkHxKBW3pypue47uk";
 // ============================
 // BASE DE DATOS USUARIOS
 // ============================
-const dbPath = path.join(__dirname, "usuarios.db");
-const db = new sqlite3.Database(dbPath);
+
+const db = new sqlite3.Database("./usuarios.db");
 
 db.serialize(() => {
 
@@ -101,15 +91,6 @@ db.serialize(() => {
     `);
 
 });
-db.run(`ALTER TABLE casillas ADD COLUMN expira INTEGER`, (err)=>{
-        if(err){
-            if(!String(err).includes("duplicate column name")){
-                console.log("Error agregando columna expira:", err.message);
-            }
-        }else{
-            console.log("Columna expira agregada a casillas");
-        }
-    });
 
 // ============================
 // CONFIGURAR EMAIL OUTLOOK
@@ -172,30 +153,33 @@ app.post("/enviar-codigo", async (req, res) => {
         });
 
 });
-app.post("/verificar-codigo", (req, res) => {
+// ============================
+// VALIDAR CODIGO
+// ============================
 
-    const { email, codigo } = req.body;
+app.post("/enviar-codigo", (req, res) => {
 
-    const registro = codigosEmail[email];
+    const { email } = req.body;
 
-    if (!registro) {
-        return res.json({ ok:false, mensaje:"Código no encontrado" });
-    }
+    const codigo = Math.floor(100000 + Math.random() * 900000);
 
-    if (Date.now() > registro.expira) {
-        return res.json({ ok:false, mensaje:"Código expirado" });
-    }
+    const expiracion = Date.now() + (5 * 60 * 1000);
 
-    if (parseInt(codigo) !== registro.codigo) {
-        return res.json({ ok:false, mensaje:"Código incorrecto" });
-    }
+    codigosEmail[email] = {
+        codigo,
+        expira: expiracion,
+        intentos: 0
+    };
 
-    delete codigosEmail[email];
+    console.log("📧 Código generado:", codigo);
 
-    res.json({ ok:true });
+    // 🔥 RESPUESTA DIRECTA (SIN EMAIL)
+    res.json({ 
+        ok: true,
+        codigo: codigo
+    });
 
 });
-
 // ============================
 // REGISTRO DE USUARIO
 // ============================
@@ -682,7 +666,6 @@ app.post("/admin/reset", (req,res)=>{
     res.json({ ok:true, mensaje:"Sistema reiniciado" });
 
 });
-console.log("🚧 LLEGÓ A listen");
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });

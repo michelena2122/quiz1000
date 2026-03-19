@@ -1,90 +1,52 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tablero</title>
-<link rel="stylesheet" href="/css/styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bienvenido</title>
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 
-<body class="tablero">
+<body class="portada">
 
-<!-- ROBOT -->
-<img src="/assets/images/robot.png"> class="robot-tablero" alt="Robot">
+    <img src="assets/images/robot.png" class="robot-flotante" alt="Robot">
 
-<div class="tablero-container">
+    <div class="portada-container">
 
-<!-- Logo -->
-<img src="assets/images/logotipo.png" class="tablero-logo" alt="Quiz 1000">
-
-<!-- Instrucciones -->
-<h2 class="tablero-instrucciones">
-Selecciona una casilla y contesta la pregunta,<br>
-¡El jugador más rápido gana 1,000 USD!
-</h2>
-
-<!-- Folio -->
-<p class="tablero-folio">
-<span id="folio">---</span>
-</p>
-
-<!-- Barra progreso -->
-<div class="barra-tiempo-container">
-<div id="barraTiempo" class="barra-tiempo"></div>
+    <div class="portada-header">
+        <a href="index.html" class="home-icon-portada">
+            <img src="assets/images/home-icon.png" alt="Home">
+        </a>
+    </div>
+    <!-- Mensaje superior promocional -->
+<div class="portada-mensaje-superior">
+    <p>Jugando con <strong>MÁXIMO 50 dólares</strong>,</p>
+    <p>¡Hoy mismo puedes ganar <strong>1,000 dólares</strong>!</p>
+    <p>¡Tu habilidad te hará el ganador!</p>
 </div>
+        <!-- Imagen principal -->
+        <img src="assets/images/portada.png" class="portada-imagen" alt="Quiz 1000">
 
-<div id="textoTiempo" class="texto-tiempo"></div>
+        <!-- Texto -->
+        <p class="portada-texto">
+            ¡Estás muy cerca de 1,000 USD!
+        </p>
 
-<!-- Estado tablero -->
-<div id="estadoTablero" class="estado-tablero-tablero"></div>
+        <!-- Botón -->
+        <a href="tablero.html" class="portada-boton">
+            ¡Sí, quiero los 1,000!
+        </a>
 
-<!-- Mensaje -->
-<p class="mensaje-tablero">
-EL PREMIO SE PAGA HASTA QUE SE COMPLETA EL TABLERO,<br>
-¡INVITA A TUS AMIGOS A JUGAR!
-</p>
-
-<!-- GRID -->
-<div id="board" class="tablero-grid"></div>
-
-</div>
-
-<!-- HOME -->
-<div class="home-wrapper">
-<a href="portada.html" class="home-icon-tablero">
-<img src="assets/images/home-icon.png" alt="Home">
-</a>
-</div>
-
-<!-- FOOTER -->
-<footer class="tablero-footer">
-© 2026 Quiz1000 LLC.
+        <!-- Footer -->
+        <footer class="portada-footer">
+             © 2026 Quiz1000 LLC.
 All rights reserved. QUIZ1000 is a trademark of Quiz1000 LLC.
 www.Quiz1000.llc
-</footer>
+        </footer>
 
-<script>
-const usuario = localStorage.getItem("usuarioLogueado");
-
-if(!usuario){
-    window.location.href = "login.html";
-}
-</script>
-
-<script src="js/main.js"></script>
-
-if(!usuario){
-    window.location.href = "login.html";
-}
-<!-- MODAL -->
-<div id="modalPregunta" class="modal hidden">
-<div class="modal-contenido">
-<h2 id="preguntaTexto"></h2>
-<div id="contador" class="contador">00:00:00</div>
-<input type="number" id="respuestaInput" placeholder="Tu respuesta">
-<button id="btnResponder">Responder</button>
-</div>
-</div>
+    </div>
 
 </body>
 </html>
+
+
