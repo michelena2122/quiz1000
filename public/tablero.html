@@ -63,9 +63,15 @@ All rights reserved. QUIZ1000 is a trademark of Quiz1000 LLC.
 www.Quiz1000.llc
 </footer>
 
-<script src="js/main.js"></script>
-// PROTEGER TABLERO
+<script>
 const usuario = localStorage.getItem("usuarioLogueado");
+
+if(!usuario){
+    window.location.href = "login.html";
+}
+</script>
+
+<script src="js/main.js"></script>
 
 if(!usuario){
     window.location.href = "login.html";
