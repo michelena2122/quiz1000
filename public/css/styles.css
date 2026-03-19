@@ -1226,3 +1226,13 @@ header p {
     right: 10px;
   }
 }
+.robot-flotante {
+  display: block !important;
+  position: fixed !important;
+  bottom: 20px !important;
+  right: 10px !important;
+  width: 80px !important;
+  z-index: 9999 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
