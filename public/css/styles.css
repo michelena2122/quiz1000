@@ -1210,3 +1210,19 @@ header p {
   margin: 40px auto 0 auto;
   max-width: 90%;
 }
+.robot-flotante {
+  position: fixed;
+  bottom: 20px;
+  right: 10px;
+  width: 80px;
+  z-index: 1000;
+}
+
+/* Ajuste específico para celular */
+@media (max-width: 600px) {
+  .robot-flotante {
+    width: 60px;
+    bottom: 15px;
+    right: 10px;
+  }
+}
