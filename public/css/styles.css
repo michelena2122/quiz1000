@@ -1198,3 +1198,15 @@ header p {
   margin: 40px auto 0 auto;
   max-width: 90%;
 }
+.portada-mensaje-superior {
+  position: relative;
+  z-index: 2;
+}
+
+.portada-imagen {
+  position: relative;
+  z-index: 1;
+  display: block;
+  margin: 40px auto 0 auto;
+  max-width: 90%;
+}
