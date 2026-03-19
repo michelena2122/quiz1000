@@ -1243,3 +1243,11 @@ body.portada {
 .portada-container {
   overflow: visible !important;
 }
+.robot-flotante {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: 100px !important;
+  z-index: 9999 !important;
+}
