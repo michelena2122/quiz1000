@@ -1,9 +1,10 @@
-console.log("🧪 typeof fetch:", typeof fetch);
+console.log("🔥 INICIO TOTAL DEL ARCHIVO");
 const express = require("express");
-const MP_ACCESS_TOKEN = "APP_USR-bd5adbc3-40ca-43d2-9125-df2e1ec97992";
 const nodemailer = require("nodemailer");
 const cors = require("cors");
 const path = require("path");
+console.log("🔥 SERVER ARRANCANDO");
+console.log("DB PATH:", path.resolve("./usuarios.db"));
 const fs = require("fs");
 
 const sqlite3 = require("sqlite3").verbose();
@@ -14,16 +15,22 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
+app.get("/portada.html", (req, res) => {
+    res.sendFile(__dirname + "/public/portada.html");
+});
+app.listen(3000, () => {
+    console.log("Servidor corriendo");
+});
 const FILE_PATH = path.join(__dirname, "public", "data", "preguntas.json");
 
 const codigosEmail = {};
 const preguntasAbiertas = {};
-const EMAIL_API_TOKEN = "c0E8HVNboWsJMBiRkHxKBW3pypue47uk";
+const MP_ACCESS_TOKEN = "c0E8HVNboWsJMBiRkHxKBW3pypue47uk";
 // ============================
 // BASE DE DATOS USUARIOS
 // ============================
-
-const db = new sqlite3.Database("./usuarios.db");
+const dbPath = path.join(__dirname, "usuarios.db");
+const db = new sqlite3.Database(dbPath);
 
 db.serialize(() => {
 
@@ -93,6 +100,15 @@ db.serialize(() => {
     `);
 
 });
+db.run(`ALTER TABLE casillas ADD COLUMN expira INTEGER`, (err)=>{
+        if(err){
+            if(!String(err).includes("duplicate column name")){
+                console.log("Error agregando columna expira:", err.message);
+            }
+        }else{
+            console.log("Columna expira agregada a casillas");
+        }
+    });
 
 // ============================
 // CONFIGURAR EMAIL OUTLOOK
@@ -155,33 +171,30 @@ app.post("/enviar-codigo", async (req, res) => {
         });
 
 });
-// ============================
-// VALIDAR CODIGO
-// ============================
+app.post("/verificar-codigo", (req, res) => {
 
-app.post("/enviar-codigo", (req, res) => {
+    const { email, codigo } = req.body;
 
-    const { email } = req.body;
+    const registro = codigosEmail[email];
 
-    const codigo = Math.floor(100000 + Math.random() * 900000);
+    if (!registro) {
+        return res.json({ ok:false, mensaje:"Código no encontrado" });
+    }
 
-    const expiracion = Date.now() + (5 * 60 * 1000);
+    if (Date.now() > registro.expira) {
+        return res.json({ ok:false, mensaje:"Código expirado" });
+    }
 
-    codigosEmail[email] = {
-        codigo,
-        expira: expiracion,
-        intentos: 0
-    };
+    if (parseInt(codigo) !== registro.codigo) {
+        return res.json({ ok:false, mensaje:"Código incorrecto" });
+    }
 
-    console.log("📧 Código generado:", codigo);
+    delete codigosEmail[email];
 
-    // 🔥 RESPUESTA DIRECTA (SIN EMAIL)
-    res.json({ 
-        ok: true,
-        codigo: codigo
-    });
+    res.json({ ok:true });
 
 });
+
 // ============================
 // REGISTRO DE USUARIO
 // ============================
@@ -668,6 +681,7 @@ app.post("/admin/reset", (req,res)=>{
     res.json({ ok:true, mensaje:"Sistema reiniciado" });
 
 });
+console.log("🚧 LLEGÓ A listen");
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
@@ -1067,18 +1081,18 @@ console.log("Reservas liberadas:", this.changes);
 
 // ejecutar cada minuto
 setInterval(limpiarReservasAutomatico,60000);
-app.post("/webhook/mercadopago", async (req,res)=>{
+app.post("/webhook/mercadopago", (req,res)=>{
 
 try{
 
 console.log("🔥 WEBHOOK RECIBIDO");
-console.log("🔥 WEBHOOK RAW:", JSON.stringify(req.body, null, 2));
+console.log(req.body);
 
-// 👇 PRIMERO procesas
-    await procesarPago(req.body);
+// responder inmediato (clave)
+res.sendStatus(200);
 
-    // 👇 DESPUÉS respondes
-    res.sendStatus(200);
+// procesar en segundo plano
+procesarPago(req.body);
 
 }catch(error){
 
@@ -1089,68 +1103,54 @@ res.sendStatus(200);
 
 });
 async function procesarPago(data){
-    console.log("🚀 ENTRÓ A procesarPago");
 
-    try{
-        console.log("🧪 TIPO WEBHOOK:", data.type);
-        console.log("🧪 DATA COMPLETA:", JSON.stringify(data));
-        if(data.type !== "payment") return;
+try{
 
-        if(!data.data?.id) return;
+if(data.type !== "payment") return;
 
-        const paymentId = data.data.id;
-        console.log("🔐 TOKEN EN PROCESAR:", MP_ACCESS_TOKEN);
-        const response = await fetch(
-            `https://api.mercadopago.com/v1/payments/${paymentId}`,
-            {
-                headers:{
-                    Authorization:`Bearer ${MP_ACCESS_TOKEN}`
-                }
-            }
-        );
+if(!data.data?.id) return;
 
-        console.log("📡 RESPONSE STATUS:", response.status);
+const paymentId = data.data.id;
 
-        const text = await response.text();
-        console.log("📡 RAW RESPONSE:", text);
+const response = await fetch(
+`https://api.mercadopago.com/v1/payments/${paymentId}`,
+{
+headers:{
+Authorization:`Bearer ${MP_ACCESS_TOKEN}`
+}
+}
+);
 
-        let pago;
-        try{
-            pago = JSON.parse(text);
-        }catch(e){
-            console.log("❌ ERROR PARSEANDO JSON");
-            return;
-        }
+const pago = await response.json();
 
-        console.log("💰 STATUS:", pago.status);
-        console.log("💰 DETAIL:", pago.status_detail);
+if(pago.status === "approved"){
 
-        if(pago.status === "approved" || pago.status_detail === "accredited"){
+const casilla = pago.metadata?.casilla;
 
-            const casilla = pago.metadata?.casilla;
+if(!casilla) return;
 
-            if(!casilla) return;
+db.run(
+`UPDATE casillas SET estado = 'pagada' WHERE casilla = ?`,
+[casilla],
+function(err){
 
-            db.run(
-                `UPDATE casillas SET estado = 'pagada' WHERE casilla = ?`,
-                [casilla],
-                function(err){
+if(err){
+console.log("Error actualizando pago");
+return;
+}
 
-                    if(err){
-                        console.log("Error actualizando pago");
-                        return;
-                    }
+console.log("✅ CASILLA PAGADA:",casilla);
 
-                    console.log("✅ CASILLA PAGADA:",casilla);
+}
+);
 
-                }
-            );
+}
 
-        }
+}catch(error){
 
-    }catch(error){
-        console.log("❌ ERROR PROCESANDO PAGO:",error);
-    }
+console.log("❌ ERROR PROCESANDO PAGO:",error);
+
+}
 }
 
 app.post("/crear-pago", async (req, res) => {
@@ -1158,6 +1158,7 @@ app.post("/crear-pago", async (req, res) => {
         const { casilla } = req.body;
 
         console.log("🧾 Crear pago para casilla:", casilla);
+        const MP_ACCESS_TOKEN = "TEST-2663546958880234-110418-76e2aeb24b31137cb7f87b000963013f-153115257";
         console.log("🔐 TOKEN EN USO:", MP_ACCESS_TOKEN);
 
         const response = await fetch("https://api.mercadopago.com/checkout/preferences", {
