@@ -1255,7 +1255,17 @@ body.portada {
 @media (max-width: 600px) {
   .robot-flotante {
     bottom: 70px;
-    right: 8px;
+    right: 20px;
     width: 60px;
   }
+}
+.home-icon-portada {
+  position: static;
+  display: block;
+  margin: 20px auto;
+  text-align: center;
+}
+
+.home-icon-portada img {
+  width: 40px;
 }
