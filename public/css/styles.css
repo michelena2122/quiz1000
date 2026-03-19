@@ -1236,3 +1236,10 @@ header p {
   opacity: 1 !important;
   visibility: visible !important;
 }
+body.portada {
+  overflow: visible !important;
+}
+
+.portada-container {
+  overflow: visible !important;
+}
