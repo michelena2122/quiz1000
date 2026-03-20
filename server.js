@@ -1176,20 +1176,20 @@ res.sendStatus(200);
 }
 
 });
-async function procesarPago(data){
+async function procesarPago(webhookData){
 
 try{
 
 let paymentId = null;
 
 // Caso 1: webhook moderno
-if (data.type === "payment" && data.data?.id) {
-    paymentId = data.data.id;
+if (webhookData.type === "payment" && webhookData.data?.id) {
+    paymentId = webhookData.data.id;
 }
 
-// Caso 2: webhook antiguo (por seguridad)
-if (data.topic === "payment" && data.resource) {
-    const parts = data.resource.split("/");
+// Caso 2: webhook antiguo
+if (webhookData.topic === "payment" && webhookData.resource) {
+    const parts = webhookData.resource.split("/");
     paymentId = parts[parts.length - 1];
 }
 
