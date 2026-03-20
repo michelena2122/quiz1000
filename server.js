@@ -6,17 +6,13 @@ const fs = require("fs");
 
 const sqlite3 = require("sqlite3").verbose();
 const bcrypt = require("bcrypt");
+const { MercadoPagoConfig, Preference } = require("mercadopago");
 const client = new MercadoPagoConfig({
     accessToken: "TEST-2663546958880234-110418-76e2aeb24b31137cb7f87b000963013f-153115257"
 });
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-mercadopago.configure({
-    access_token: "TEST-2663546958880234-110418-76e2aeb24b31137cb7f87b000963013f-153115257"
-});
-
 
 app.use(cors());
 app.use(express.json());
