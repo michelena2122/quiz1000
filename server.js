@@ -1201,9 +1201,11 @@ const pago = await payment.get({
     id: paymentId
 });
 
-if(pago.body.status === "approved"){
+const data = pago.body || pago;
 
-const casilla = pago.body.metadata?.casilla;
+if(data.status === "approved"){
+
+const casilla = data.metadata?.casilla;
 
 if(!casilla) return;
 
