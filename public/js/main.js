@@ -436,29 +436,24 @@ const reserva = reservas.find(r => r.casilla === numero);
 
 if(reserva){
 
-const tiempoRestante = reserva.expira - Date.now();
+    const tiempoRestante = reserva.expira - Date.now();
 
-if(tiempoRestante <= 0){
+    if(tiempoRestante > 0){
 
-// ignorar reserva expirada
-reserva = null;
+        const segundos = Math.floor(tiempoRestante / 1000);
+        const minutos = Math.floor(segundos / 60);
+        const seg = segundos % 60;
 
-}else{
+        const texto =
+        `${minutos.toString().padStart(2,"0")}:${seg.toString().padStart(2,"0")}`;
 
-const segundos = Math.floor(tiempoRestante / 1000);
-const minutos = Math.floor(segundos / 60);
-const seg = segundos % 60;
+        cell.classList.add("resuelta");
+        cell.style.backgroundColor = "white";
+        cell.innerHTML = `<span class="contador-reserva">${texto}</span>`;
 
-const texto =
-`${minutos.toString().padStart(2,"0")}:${seg.toString().padStart(2,"0")}`;
+        return;
 
-cell.classList.add("resuelta");
-cell.style.backgroundColor = "white";
-cell.innerHTML = `<span class="contador-reserva">${texto}</span>`;
-
-return;
-
-}
+    }
 
 }
 
