@@ -1258,11 +1258,15 @@ app.post("/crear-pago", async (req, res) => {
             notification_url: "https://quiz1000.onrender.com/webhook/mercadopago"
         };
 
-        const response = await mercadopago.preferences.create(preference);
+        const preferenceClient = new Preference(client);
 
-        res.json({
-            link: response.body.init_point
-        });
+const response = await preferenceClient.create({
+    body: preference
+});
+
+res.json({
+    link: response.init_point
+});
 
     } catch (error) {
         console.log("❌ ERROR SDK:", error);
