@@ -4,11 +4,16 @@ const cors = require("cors");
 const path = require("path");
 const fs = require("fs");
 
+const sqlite3 = require("sqlite3").verbose();
+const bcrypt = require("bcrypt");
+const mercadopago = require("mercadopago");
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const sqlite3 = require("sqlite3").verbose();
-const bcrypt = require("bcrypt");
+mercadopago.configure({
+    access_token: "TEST-2663546958880234-110418-76e2aeb24b31137cb7f87b000963013f-153115257"
+});
 
 
 app.use(cors());
@@ -85,7 +90,6 @@ res.sendFile(path.join(__dirname, "public", "nueva-password.html"));
 app.get("/nueva-password", (req, res) => {
 res.sendFile(path.join(__dirname, "public", "nueva-password.html"));
 });
-
 app.get("/", (req, res) => {
 res.sendFile(path.join(__dirname, "public", "ranking.html"));
 });
@@ -1177,11 +1181,20 @@ async function procesarPago(data){
 
 try{
 
-if(data.type !== "payment") return;
+let paymentId = null;
 
-if(!data.data?.id) return;
+// Caso 1: webhook moderno
+if (data.type === "payment" && data.data?.id) {
+    paymentId = data.data.id;
+}
 
-const paymentId = data.data.id;
+// Caso 2: webhook antiguo (por seguridad)
+if (data.topic === "payment" && data.resource) {
+    const parts = data.resource.split("/");
+    paymentId = parts[parts.length - 1];
+}
+
+if (!paymentId) return;
 
 const response = await fetch(
 `https://api.mercadopago.com/v1/payments/${paymentId}`,
@@ -1228,52 +1241,37 @@ app.post("/crear-pago", async (req, res) => {
     try {
         const { casilla } = req.body;
 
-        console.log("🧾 Crear pago para casilla:", casilla);
-        const MP_ACCESS_TOKEN = "TEST-2663546958880234-110418-76e2aeb24b31137cb7f87b000963013f-153115257";
-        console.log("🔐 TOKEN EN USO:", MP_ACCESS_TOKEN);
+        console.log("🧾 Crear pago SDK para casilla:", casilla);
 
-        const response = await fetch("https://api.mercadopago.com/checkout/preferences", {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${MP_ACCESS_TOKEN}`,
-                "Content-Type": "application/json"
+        const preference = {
+            items: [
+                {
+                    title: `Casilla ${casilla}`,
+                    quantity: 1,
+                    unit_price: Number(casilla),
+                    currency_id: "MXN"
+                }
+            ],
+            metadata: {
+                casilla: casilla
             },
-            body: JSON.stringify({
-                items: [
-                    {
-                        title: `Casilla ${casilla}`,
-                        quantity: 1,
-                        unit_price: Number(casilla),
-                        currency_id: "MXN"
-                    }
-                ],
-                metadata: {
-                    casilla: casilla
-                },
-                // ❌ quitamos payer
-                notification_url: "https://quiz1000.onrender.com/webhook/mercadopago"
-            })
-        });
+            back_urls: {
+                success: "https://quiz1000.onrender.com/pago",
+                failure: "https://quiz1000.onrender.com/pago",
+                pending: "https://quiz1000.onrender.com/pago"
+            },
+            auto_return: "approved",
+            notification_url: "https://quiz1000.onrender.com/webhook/mercadopago"
+        };
 
-        const data = await response.json();
-
-        console.log("🧠 RESPUESTA MP:", data);
-
-        if (!data.sandbox_init_point) {
-            console.log("❌ ERROR MP:", data);
-            return res.status(500).json({ error: "Error creando pago" });
-        }
+        const response = await mercadopago.preferences.create(preference);
 
         res.json({
-            link: data.sandbox_init_point
+            link: response.body.init_point
         });
 
     } catch (error) {
-        console.log("❌ ERROR CREANDO PAGO:", error);
-
-        res.status(500).json({
-            error: "Error creando pago"
-        });
+        console.log("❌ ERROR SDK:", error);
+        res.status(500).json({ error: "Error creando pago" });
     }
 });
-
