@@ -6,7 +6,9 @@ const fs = require("fs");
 
 const sqlite3 = require("sqlite3").verbose();
 const bcrypt = require("bcrypt");
-const mercadopago = require("mercadopago");
+const client = new MercadoPagoConfig({
+    accessToken: "TEST-2663546958880234-110418-76e2aeb24b31137cb7f87b000963013f-153115257"
+});
 
 const app = express();
 const PORT = process.env.PORT || 3000;
