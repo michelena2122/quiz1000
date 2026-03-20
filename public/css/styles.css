@@ -1212,57 +1212,22 @@ header p {
 }
 .robot-flotante {
   position: fixed;
-  bottom: 80px;
-  right: 20px;
-  width: 80px;
-  max-width: 20vw;
-  z-index: 9999;
-}
-
-/* Ajuste específico para celular */
-@media (max-width: 600px) {
-  .robot-flotante {
-    bottom: 70px;
-    right: 15px;
-    width: 70px;
-  }
-}
-.robot-flotante {
-  display: block !important;
-  position: fixed !important;
-  bottom: 20px !important;
-  right: 10px !important;
-  width: 80px !important;
-  z-index: 9999 !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-}
-body.portada {
-  overflow: visible !important;
-}
-
-.portada-container {
-  overflow: visible !important;
-}
-.robot-flotante {
-  position: fixed;
-  bottom: 120px;
+  bottom: 100px;
   right: 20px;
   width: 70px;
   z-index: 9999;
   pointer-events: none;
 }
-body.portada {
-  position: relative;
-}
-/* Ajuste fino para celular */
+
+/* Móvil */
 @media (max-width: 600px) {
   .robot-flotante {
-    bottom: 100px;
+    bottom: 90px;
     right: 15px;
     width: 60px;
   }
 }
+
 .home-icon-portada {
   position: static;
   display: block;
