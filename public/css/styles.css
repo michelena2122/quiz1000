@@ -1210,23 +1210,6 @@ header p {
   margin: 40px auto 0 auto;
   max-width: 90%;
 }
-.robot-flotante {
-  position: fixed;
-  bottom: 100px;
-  right: 20px;
-  width: 70px;
-  z-index: 9999;
-  pointer-events: none;
-}
-
-/* Móvil */
-@media (max-width: 600px) {
-  .robot-flotante {
-    bottom: 90px;
-    right: 15px;
-    width: 60px;
-  }
-}
 
 .home-icon-portada {
   position: static;
@@ -1238,4 +1221,18 @@ header p {
 .home-icon-portada img {
   width: 80px;
   height: auto;
+}
+.robot-flotante {
+  display: block;
+  margin: 20px auto;
+  width: 80px;
+}
+
+/* Móvil */
+@media (max-width: 600px) {
+  .robot-flotante {
+    bottom: 90px;
+    right: 15px;
+    width: 60px;
+  }
 }
