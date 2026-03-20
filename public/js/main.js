@@ -331,9 +331,18 @@ const colores = [
             
 
             // estado guardado en localStorage
-            const numero = parseInt(cell.dataset.id) + 1;
+           const numero = parseInt(cell.dataset.id) + 1;
 
+// estado local (reserva)
 if (tableroEstado.casillasResueltas.includes(numero)) {
+
+    cell.classList.add("resuelta");
+    cell.style.backgroundColor = "white";
+    cell.innerHTML = `<span class="contador-reserva">05:00</span>`;
+}
+
+// estado backend (pagada)
+if (casillasOcupadas.includes(numero)) {
 
     cell.classList.add("resuelta");
     cell.style.backgroundColor = "transparent";
@@ -342,24 +351,9 @@ if (tableroEstado.casillasResueltas.includes(numero)) {
     robot.src = "/assets/images/robot2.png";
     robot.classList.add("robot-mini");
 
-    cell.textContent = "";
+    cell.innerHTML = "";
     cell.appendChild(robot);
 }
-
-            // estado guardado en backend
-            if (casillasOcupadas.includes(item.resultado)) {
-            
-
-                cell.classList.add("resuelta");
-                cell.style.backgroundColor = "transparent";
-
-                const robot = document.createElement("img");
-                robot.src = "/assets/images/robot2.png";
-                robot.classList.add("robot-mini");
-
-                cell.innerHTML = "";
-                cell.appendChild(robot);
-            }
 
             // 👇 EVENTO CLICK (ESTO FALTABA)
             cell.addEventListener("click", () => {
