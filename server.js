@@ -7,6 +7,7 @@ const fs = require("fs");
 const sqlite3 = require("sqlite3").verbose();
 const bcrypt = require("bcrypt");
 const { MercadoPagoConfig, Preference } = require("mercadopago");
+const { Payment } = require("mercadopago");
 const client = new MercadoPagoConfig({
     accessToken: "TEST-2663546958880234-110418-76e2aeb24b31137cb7f87b000963013f-153115257"
 });
@@ -1194,20 +1195,15 @@ if (data.topic === "payment" && data.resource) {
 
 if (!paymentId) return;
 
-const response = await fetch(
-`https://api.mercadopago.com/v1/payments/${paymentId}`,
-{
-headers:{
-Authorization:`Bearer ${MP_ACCESS_TOKEN}`
-}
-}
-);
+const payment = new Payment(client);
 
-const pago = await response.json();
+const pago = await payment.get({
+    id: paymentId
+});
 
-if(pago.status === "approved"){
+if(pago.body.status === "approved"){
 
-const casilla = pago.metadata?.casilla;
+const casilla = pago.body.metadata?.casilla;
 
 if(!casilla) return;
 
