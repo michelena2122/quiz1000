@@ -4,14 +4,101 @@ const cors = require("cors");
 const path = require("path");
 const fs = require("fs");
 
+const app = express();
+const PORT = process.env.PORT || 3000;
+
 const sqlite3 = require("sqlite3").verbose();
 const bcrypt = require("bcrypt");
 
-const app = express();
-const PORT = process.env.PORT || 3000;
+
 app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
+
+app.get("/tablero", (req, res) => {
+res.sendFile(path.join(__dirname, "public", "tablero.html"));
+});
+
+app.get("/", (req, res) => {
+res.sendFile(path.join(__dirname, "public", "portada.html"));
+});
+app.get("/portada", (req, res) => {
+res.sendFile(path.join(__dirname, "public", "portada.html"));
+});
+app.get("/", (req, res) => {
+res.sendFile(path.join(__dirname, "public", "carrito.html"));
+});
+app.get("/carrito", (req, res) => {
+res.sendFile(path.join(__dirname, "public", "carrito.html"));
+});
+app.get("/", (req, res) => {
+res.sendFile(path.join(__dirname, "public", "registro.html"));
+});
+app.get("/registro", (req, res) => {
+res.sendFile(path.join(__dirname, "public", "registro.html"));
+});
+app.get("/", (req, res) => {
+res.sendFile(path.join(__dirname, "public", "pago.html"));
+});
+app.get("/pago", (req, res) => {
+res.sendFile(path.join(__dirname, "public", "pago.html"));
+});
+app.get("/", (req, res) => {
+res.sendFile(path.join(__dirname, "public", "perfil.html"));
+});
+app.get("/perfil", (req, res) => {
+res.sendFile(path.join(__dirname, "public", "perfil.html"));
+});
+app.get("/", (req, res) => {
+res.sendFile(path.join(__dirname, "public", "login.html"));
+});
+app.get("/login", (req, res) => {
+res.sendFile(path.join(__dirname, "public", "login.html"));
+});
+app.get("/", (req, res) => {
+res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+app.get("/index", (req, res) => {
+res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+app.get("/", (req, res) => {
+res.sendFile(path.join(__dirname, "public", "legales.html"));
+});
+app.get("/legales", (req, res) => {
+res.sendFile(path.join(__dirname, "public", "legales.html"));
+});
+app.get("/", (req, res) => {
+res.sendFile(path.join(__dirname, "public", "lobby.html"));
+});
+app.get("/lobby", (req, res) => {
+res.sendFile(path.join(__dirname, "public", "lobby.html"));
+});
+app.get("/", (req, res) => {
+res.sendFile(path.join(__dirname, "public", "reglas.html"));
+});
+app.get("/reglas", (req, res) => {
+res.sendFile(path.join(__dirname, "public", "reglas.html"));
+});
+app.get("/", (req, res) => {
+res.sendFile(path.join(__dirname, "public", "nueva-password.html"));
+});
+app.get("/nueva-password", (req, res) => {
+res.sendFile(path.join(__dirname, "public", "nueva-password.html"));
+});
+
+app.get("/", (req, res) => {
+res.sendFile(path.join(__dirname, "public", "ranking.html"));
+});
+app.get("/ranking", (req, res) => {
+res.sendFile(path.join(__dirname, "public", "ranking.html"));
+});
+app.get("/", (req, res) => {
+res.sendFile(path.join(__dirname, "public", "recuperar.html"));
+});
+app.get("/recuperar", (req, res) => {
+res.sendFile(path.join(__dirname, "public", "recuperar.html"));
+});
+
 const FILE_PATH = path.join(__dirname, "public", "data", "preguntas.json");
 
 const codigosEmail = {};
