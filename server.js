@@ -659,6 +659,15 @@ try {
         tiempo: tiempo,
         fecha: Date.now()
     });
+    const ahora = Date.now();
+const expira = ahora + (5 * 60 * 1000);
+
+console.log("⏱️ RESERVA:", {
+    casilla,
+    ahora,
+    expira,
+    diff: (expira - ahora) / 1000 + " segundos"
+});
 // guardar también en base de datos
 db.run(
 `INSERT INTO casillas
@@ -671,8 +680,8 @@ jugador,
 email,
 tiempo,
 "reservada",
-Date.now() + 300000,
-Date.now()
+expira,
+ahora
 ],
 function(err){
 
