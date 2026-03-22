@@ -15,11 +15,7 @@ const client = new MercadoPagoConfig({
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors({
-    origin: "*",
-    methods: ["GET", "POST"],
-    allowedHeaders: ["Content-Type"]
-}));
+app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
 
@@ -640,85 +636,78 @@ try {
 
     const data = fs.readFileSync(filePath, "utf8");
     const tablero = JSON.parse(data);
-
     if(tablero.completo){
-        return res.json({ ok:false, mensaje:"Tablero cerrado" });
+    return res.json({ ok:false, mensaje:"Tablero cerrado" });
+}
+
+    // verificar si ya está ocupada
+    const ocupada = tablero.casillas.find(c => c.casilla === casilla);
+
+    if (ocupada) {
+        return res.json({ ok:false, mensaje:"Casilla ya ocupada" });
+    }
+    db.get(
+`SELECT estado FROM casillas WHERE casilla = ? AND (estado = 'reservada' OR estado = 'pagada')`,
+[casilla],
+(err,row)=>{
+    
+    if(row){
+        return res.json({ ok:false, mensaje:"Casilla ya reservada o pagada" });
     }
 
-    // ✅ VALIDAR EN DB PRIMERO
-    db.get(
-    `SELECT * FROM casillas WHERE casilla = ? AND estado IN ('reservada','pagada')`,
-    [casilla],
-    (err,row)=>{
-
-        if(row){
-            return res.json({ ok:false, mensaje:"Casilla ya ocupada" });
-        }
-
-        // ✅ GUARDAR EN JSON
-        tablero.casillas.push({
-            casilla: casilla,
-            jugador: jugador,
-            email: email,
-            tiempo: tiempo,
-            fecha: Date.now()
-        });
-
-        const ahora = Date.now();
-        const expira = ahora + (5 * 60 * 1000);
-
-        console.log("⏱️ RESERVA:", {
-            casilla,
-            ahora,
-            expira,
-            diff: (expira - ahora) / 1000 + " segundos"
-        });
-
-        // ✅ INSERT SOLO SI NO EXISTE
-        db.run(
-        `INSERT INTO casillas
-        (tableroId,casilla,jugador,email,tiempo,estado,expira,fecha)
-        VALUES (?,?,?,?,?,?,?,?)`,
-        [
-            "TAB-1001",
-            casilla,
-            jugador,
-            email,
-            tiempo,
-            "reservada",
-            expira,
-            ahora
-        ],
-        function(err){
-
-            if(err){
-                console.error("ERROR INSERTANDO RESERVA:", err.message);
-                return res.json({ ok:false });
-            }
-
-            console.log("RESERVA GUARDADA EN DB:", casilla);
-
-            // ✅ DETECTAR TABLERO COMPLETO
-            if(tablero.casillas.length === 50){
-
-                console.log("TABLERO COMPLETO");
-
-                tablero.completo = true;
-
-                fs.writeFileSync(filePath, JSON.stringify(tablero, null, 2));
-
-                calcularGanador(tablero.casillas);
-            }
-
-            fs.writeFileSync(filePath, JSON.stringify(tablero, null, 2));
-
-            // ✅ RESPUESTA FINAL (UNA SOLA VEZ)
-            res.json({ ok:true });
-
-        });
-
+    continuarReserva();
+});
+    // guardar casilla con tiempo
+function continuarReserva(){
+    tablero.casillas.push({
+        casilla: casilla,
+        jugador: jugador,
+        email: email,
+        tiempo: tiempo,
+        fecha: Date.now()
     });
 
+    db.run(
+    `INSERT INTO casillas
+    (tableroId,casilla,jugador,email,tiempo,estado,expira,fecha)
+    VALUES (?,?,?,?,?,?,?,?)`,
+    [
+    "TAB-1001",
+    casilla,
+    jugador,
+    email,
+    tiempo,
+    "reservada",
+    Date.now() + 300000,
+    Date.now()
+    ],
+    function(err){
+
+    if(err){
+    console.error("ERROR INSERTANDO RESERVA:", err.message);
+    }else{
+    console.log("RESERVA GUARDADA EN DB:", casilla);
+    }
+
+    }
+    );
+
+    if(tablero.casillas.length === 50){
+
+    console.log("TABLERO COMPLETO");
+
+    tablero.completo = true;
+
+    fs.writeFileSync(filePath, JSON.stringify(tablero, null, 2));
+
+    calcularGanador(tablero.casillas);
+
+}
+
+    fs.writeFileSync(filePath, JSON.stringify(tablero, null, 2));
+
+    res.json({ ok:true });
+}
 } catch(error){
 
     console.error("ERROR OCUPANDO CASILLA:", error);
@@ -727,7 +716,8 @@ try {
 
 }
 
-});// =============================
+});
+// =============================
 // ADMIN - ESTADO DEL TABLERO
 // =============================
 
@@ -1295,3 +1285,5 @@ res.json({
         res.status(500).json({ error: "Error creando pago" });
     }
 });
+
+
