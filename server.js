@@ -594,26 +594,23 @@ app.post("/api/preguntas", (req, res) => {
 app.get("/api/tablero", (req, res) => {
 
 db.all(
-
-`SELECT casilla
+`SELECT casilla, estado
 FROM casillas
-WHERE estado = 'pagada'`,
-
-[],
-
+WHERE estado = 'pagada'
+OR (estado = 'reservada' AND expira > ?)`,
+[Date.now()],
 (err,rows)=>{
 
 if(err){
-return res.json({ casillas:[] });
+    return res.json({ casillas:[] });
 }
 
 res.json({
-completo:false,
-casillas:rows
+    completo:false,
+    casillas:rows
 });
 
 }
-
 );
 
 });
