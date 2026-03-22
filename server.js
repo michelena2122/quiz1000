@@ -649,9 +649,11 @@ const ahora = Date.now();
 db.get(
 `SELECT estado FROM casillas 
  WHERE casilla = ? 
- AND (estado = 'reservada' OR estado = 'pagada') 
- AND (expira IS NULL OR expira > ?)`,
-[casilla, ahora],
+ AND (
+        estado = 'pagada'
+        OR (estado = 'reservada' AND expira > ?)
+     )`,
+[casilla, Date.now()],
 (err,row)=>{
 
     if(row){
