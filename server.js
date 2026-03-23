@@ -594,20 +594,17 @@ app.post("/api/preguntas", (req, res) => {
 app.get("/api/tablero", (req, res) => {
 
 db.all(
-`SELECT casilla, estado
-FROM casillas
-WHERE estado = 'pagada'
-OR (estado = 'reservada' AND expira > ?)`,
-[Date.now()],
+`SELECT casilla, estado, expira
+ FROM casillas`,
+[],
 (err,rows)=>{
 
 if(err){
-    return res.json({ casillas:[] });
+return res.json({ casillas:[] });
 }
 
 res.json({
-    completo:false,
-    casillas:rows
+casillas:rows
 });
 
 }
@@ -638,30 +635,13 @@ try {
 }
 
     // verificar si ya está ocupada
- const ocupada = tablero.casillas.find(c => c.casilla === casilla);
+    const ocupada = tablero.casillas.find(c => c.casilla === casilla);
 
-if (ocupada) {
-    return res.json({ ok:false, mensaje:"Casilla ya ocupada" });
-}
-
-const ahora = Date.now();
-
-db.get(
-`SELECT estado FROM casillas 
- WHERE casilla = ? 
- AND (
-        estado = 'pagada'
-        OR (estado = 'reservada' AND expira > ?)
-     )`,
-[casilla, Date.now()],
-(err,row)=>{
-
-    if(row){
-        return res.json({ ok:false, mensaje:"Casilla ya reservada o pagada" });
+    if (ocupada) {
+        return res.json({ ok:false, mensaje:"Casilla ya ocupada" });
     }
 
-    // ✅ SI PASA VALIDACIÓN → SIGUE FLUJO ORIGINAL
-
+    // guardar casilla con tiempo
     tablero.casillas.push({
         casilla: casilla,
         jugador: jugador,
@@ -669,49 +649,53 @@ db.get(
         tiempo: tiempo,
         fecha: Date.now()
     });
+const ahora = Date.now();
+const expira = ahora + 300000;
 
-    db.run(
-    `INSERT INTO casillas
-    (tableroId,casilla,jugador,email,tiempo,estado,expira,fecha)
-    VALUES (?,?,?,?,?,?,?,?)`,
-    [
-    "TAB-1001",
-    casilla,
-    jugador,
-    email,
-    tiempo,
-    "reservada",
-    Date.now() + 300000,
-    Date.now()
-    ],
-    function(err){
+console.log("AHORA:", ahora);
+console.log("EXPIRA:", expira);
+    // guardar también en base de datos
+db.run(
+`INSERT INTO casillas
+(tableroId,casilla,jugador,email,tiempo,estado,expira,fecha)
+VALUES (?,?,?,?,?,?,?,?)`,
+[
+"TAB-1001",
+casilla,
+jugador,
+email,
+tiempo,
+"reservada",
+expira,
+ahora
+],
+function(err){
 
-        if(err){
-            console.error("ERROR INSERTANDO RESERVA:", err.message);
-        }else{
-            console.log("RESERVA GUARDADA EN DB:", casilla);
-        }
+if(err){
+console.error("ERROR INSERTANDO RESERVA:", err.message);
+}else{
+console.log("RESERVA GUARDADA EN DB:", casilla);
+}
 
-    }
-    );
+}
+);
 
+    // detectar tablero completo
     if(tablero.casillas.length === 50){
 
-        console.log("TABLERO COMPLETO");
+    console.log("TABLERO COMPLETO");
 
-        tablero.completo = true;
+    tablero.completo = true;
 
-        fs.writeFileSync(filePath, JSON.stringify(tablero, null, 2));
+    fs.writeFileSync(filePath, JSON.stringify(tablero, null, 2));
 
-        calcularGanador(tablero.casillas);
+    calcularGanador(tablero.casillas);
 
-    }
+}
 
     fs.writeFileSync(filePath, JSON.stringify(tablero, null, 2));
 
     res.json({ ok:true });
-
-});
 
 } catch(error){
 

@@ -242,40 +242,31 @@ fetch("/api/preguntas")
 // CONSULTAR RESERVAS
 // ==========================
 
-fetch("/api/reservas")
-.then(res => res.json())
-.then(data => {
+const reservas = data.reservas || [];
 
-    if(!data.ok) return;
+reservas.forEach(reserva => {
 
-    data.reservas.forEach(reserva => {
+    const numero = reserva.casilla;
 
-        const numero = reserva.casilla;
-        const cell = document.querySelector(`.cell[data-id="${numero-1}"]`);
+    const cell = document.querySelector(`.cell[data-id="${numero-1}"]`);
 
-        if(!cell) return;
+    if(!cell) return;
 
-        // evitar sobrescribir robots
-        if(cell.classList.contains("resuelta")) return;
+    const tiempoRestante = reserva.expira - Date.now();
 
-        const tiempoRestante = reserva.expira - Date.now();
+    if(tiempoRestante <= 0) return;
 
-        if(tiempoRestante <= 0) return;
+    const segundos = Math.floor(tiempoRestante / 1000);
+    const minutos = Math.floor(segundos / 60);
+    const seg = segundos % 60;
 
-        const segundos = Math.floor(tiempoRestante / 1000);
-        const minutos = Math.floor(segundos / 60);
-        const seg = segundos % 60;
+    const texto = `${minutos}:${seg.toString().padStart(2,"0")}`;
 
-        const texto = `${minutos}:${seg.toString().padStart(2,"0")}`;
-
-        cell.classList.add("resuelta");
-        cell.style.backgroundColor = "white";
-        cell.innerHTML = `<span class="contador-reserva">${texto}</span>`;
-
-    });
+    cell.classList.add("resuelta");
+    cell.style.backgroundColor = "white";
+    cell.innerHTML = `<span class="contador-reserva">${texto}</span>`;
 
 });
-
         const casillasOcupadas = tableroData.casillas.map(c => c.casilla);
         // ==========================
 // SINCRONIZAR FECHA APERTURA
@@ -333,13 +324,6 @@ const colores = [
             // estado guardado en localStorage
            const numero = parseInt(cell.dataset.id) + 1;
 
-// estado local (reserva)
-if (tableroEstado.casillasResueltas.includes(numero)) {
-
-    cell.classList.add("resuelta");
-    cell.style.backgroundColor = "white";
-    cell.innerHTML = `<span class="contador-reserva">05:00</span>`;
-}
 
 // estado backend (pagada)
 if (casillasOcupadas.includes(numero)) {
@@ -427,6 +411,9 @@ actualizarContadorHeader(reservas, ocupadas);
 document.querySelectorAll(".cell").forEach(cell => {
 
 const numero = parseInt(cell.dataset.id) + 1;
+cell.classList.remove("resuelta");
+cell.innerHTML = "";
+cell.style.backgroundColor = cell.dataset.color;
 
 const reserva = reservas.find(r => r.casilla === numero);
 
