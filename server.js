@@ -101,7 +101,12 @@ res.sendFile(path.join(__dirname, "public", "recuperar.html"));
 app.get("/recuperar", (req, res) => {
 res.sendFile(path.join(__dirname, "public", "recuperar.html"));
 });
-
+app.get("/", (req, res) => {
+res.sendFile(path.join(__dirname, "public", "admin.html"));
+});
+app.get("/admin", (req, res) => {
+res.sendFile(path.join(__dirname, "public", "admin.html"));
+});
 const FILE_PATH = path.join(__dirname, "public", "data", "preguntas.json");
 
 const codigosEmail = {};
@@ -113,98 +118,123 @@ const MP_ACCESS_TOKEN = "c0E8HVNboWsJMBiRkHxKBW3pypue47uk";
 
 const db = new sqlite3.Database("./usuarios.db");
 
-db.serialize(() => {
-
-    db.run(`
-        CREATE TABLE IF NOT EXISTS usuarios (
-
-            id TEXT PRIMARY KEY,
-            nombre TEXT,
-            apellidos TEXT,
-            edad INTEGER,
-            nacionalidad TEXT,
-            telefono TEXT,
-            email TEXT UNIQUE,
-            password TEXT,
-            numeroComprado TEXT,
-            folioTablero TEXT,
-            mejorTiempoGlobal INTEGER
-
-        )
-    `);
-
-});
 // ============================
-    // ASEGURAR COLUMNA expira
-    // ============================
+// BASE DE DATOS
+// ============================
+function inicializarConfiguracion(callback){
+    db.serialize(() => {
 
-    db.run(`ALTER TABLE casillas ADD COLUMN expira INTEGER`, (err)=>{
-        if(err){
-            if(!String(err).includes("duplicate column name")){
-                console.log("Error agregando columna expira:", err.message);
+        db.run(`
+            CREATE TABLE IF NOT EXISTS usuarios (
+                id TEXT PRIMARY KEY,
+                nombre TEXT,
+                apellidos TEXT,
+                edad INTEGER,
+                nacionalidad TEXT,
+                telefono TEXT,
+                email TEXT UNIQUE,
+                password TEXT,
+                numeroComprado TEXT,
+                folioTablero TEXT,
+                mejorTiempoGlobal INTEGER
+            )
+        `, (err) => {
+            if(err){
+                console.log("Error creando tabla usuarios:", err.message);
+                return callback(err);
             }
-        }else{
-            console.log("Columna expira agregada a casillas");
-        }
+        });
+
+        db.run(`
+            CREATE TABLE IF NOT EXISTS tableros (
+                id TEXT PRIMARY KEY,
+                completo INTEGER DEFAULT 0,
+                fechaCreacion INTEGER
+            )
+        `, (err) => {
+            if(err){
+                console.log("Error creando tabla tableros:", err.message);
+                return callback(err);
+            }
+        });
+
+        db.run(`
+            CREATE TABLE IF NOT EXISTS casillas (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                tableroId TEXT,
+                casilla INTEGER,
+                jugador TEXT,
+                email TEXT,
+                tiempo TEXT,
+                estado TEXT,
+                expira INTEGER,
+                fecha INTEGER
+            )
+        `, (err) => {
+            if(err){
+                console.log("Error creando tabla casillas:", err.message);
+                return callback(err);
+            }
+        });
+
+        db.run(`
+            CREATE TABLE IF NOT EXISTS configuracion (
+                clave TEXT PRIMARY KEY,
+                valor TEXT,
+                fecha INTEGER
+            )
+        `, (err) => {
+            if(err){
+                console.log("Error creando tabla configuracion:", err.message);
+                return callback(err);
+            }
+
+            db.run(`
+                INSERT OR IGNORE INTO configuracion (clave, valor, fecha)
+                VALUES ('tipoCambioCobro', '20.00', strftime('%s','now') * 1000)
+            `, (err2) => {
+                if(err2){
+                    console.log("Error insertando tipoCambioCobro:", err2.message);
+                    return callback(err2);
+                }
+
+                db.run(`
+                    INSERT OR IGNORE INTO configuracion (clave, valor, fecha)
+                    VALUES ('tipoCambioPremio', '19.50', strftime('%s','now') * 1000)
+                `, (err3) => {
+                    if(err3){
+                        console.log("Error insertando tipoCambioPremio:", err3.message);
+                        return callback(err3);
+                    }
+
+                    db.run(`ALTER TABLE casillas ADD COLUMN expira INTEGER`, (err4) => {
+                        if(err4 && !String(err4.message).includes("duplicate column name")){
+                            console.log("Error agregando columna expira:", err4.message);
+                            return callback(err4);
+                        }
+
+                        callback(null);
+                    });
+                });
+            });
+        });
+
     });
-
+}
 // ============================
-// TABLEROS
+// OBTENER CONFIGURACION
 // ============================
-
-db.serialize(() => {
-
-    db.run(`
-        CREATE TABLE IF NOT EXISTS tableros (
-
-            id TEXT PRIMARY KEY,
-            completo INTEGER DEFAULT 0,
-            fechaCreacion INTEGER
-
-        )
-    `);
-
-    db.run(`
-        CREATE TABLE IF NOT EXISTS casillas (
-
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            tableroId TEXT,
-            casilla INTEGER,
-            jugador TEXT,
-            email TEXT,
-            tiempo TEXT,
-            estado TEXT,
-            expira INTEGER,
-            fecha INTEGER
-
-        )
-    `);
-
-});
-db.run(`
-CREATE TABLE IF NOT EXISTS configuracion (
-    clave TEXT PRIMARY KEY,
-    valor TEXT,
-    fecha INTEGER
-)
-`);
-
-db.run(`
-INSERT OR IGNORE INTO configuracion (clave, valor, fecha)
-VALUES ('tipoCambioCobro', '20.00', strftime('%s','now') * 1000)
-`);
-
-db.run(`
-INSERT OR IGNORE INTO configuracion (clave, valor, fecha)
-VALUES ('tipoCambioPremio', '19.50', strftime('%s','now') * 1000)
-`);
 function obtenerConfiguracion(clave){
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         db.get(
             `SELECT valor FROM configuracion WHERE clave = ?`,
             [clave],
             (err, row) => {
-                if(err) return reject(err);
+                if(err){
+                    console.log("Error leyendo configuracion:", err);
+                    return resolve(null);
+                }
+
                 resolve(row ? row.valor : null);
             }
         );
@@ -1420,6 +1450,12 @@ app.post("/api/admin/tipo-cambio", (req, res) => {
         }
     );
 });
-app.listen(PORT, () => {
-    console.log(`Servidor corriendo en http://localhost:${PORT}`);
+inicializarConfiguracion((err) => {
+    if(err){
+        process.exit(1);
+    }
+
+    app.listen(PORT, () => {
+        console.log(`Servidor corriendo en http://localhost:${PORT}`);
+    });
 });
