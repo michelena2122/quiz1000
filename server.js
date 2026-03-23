@@ -1169,7 +1169,7 @@ console.log("Reservas liberadas:", this.changes);
 }
 
 // ejecutar cada minuto
-setInterval(limpiarReservasAutomatico,60000);
+setInterval(limpiarReservasAutomatico,120000);
 app.post("/webhook/mercadopago", (req,res)=>{
 
 try{
