@@ -621,11 +621,12 @@ casillas:rows
 // OCUPAR CASILLA
 // =============================
 
+
 app.post("/api/ocupar-casilla", (req, res) => {
 
 const casilla = req.body.casilla;
 const jugador = req.body.jugador;
-const email = req.body.email.toLowerCase();
+const email = (req.body.email || "pendiente").toLowerCase();
 const tiempo = req.body.tiempo;
 
 console.log("POST ocupar casilla:", casilla, jugador);
@@ -636,77 +637,78 @@ try {
 
     const data = fs.readFileSync(filePath, "utf8");
     const tablero = JSON.parse(data);
+
     if(tablero.completo){
-    return res.json({ ok:false, mensaje:"Tablero cerrado" });
-}
-
-    // verificar si ya está ocupada
-    const ocupada = tablero.casillas.find(c => c.casilla === casilla);
-
-    if (ocupada) {
-        return res.json({ ok:false, mensaje:"Casilla ya ocupada" });
+        return res.json({ ok:false, mensaje:"Tablero cerrado" });
     }
 
-    // guardar casilla con tiempo
-    tablero.casillas.push({
-        casilla: casilla,
-        jugador: jugador,
-        email: email,
-        tiempo: tiempo,
-        fecha: Date.now()
-    });
-// guardar también en base de datos
-db.run(
-`INSERT INTO casillas
-(tableroId,casilla,jugador,email,tiempo,estado,expira,fecha)
-VALUES (?,?,?,?,?,?,?,?)`,
-[
-"TAB-1001",
-casilla,
-jugador,
-email,
-tiempo,
-"reservada",
-Date.now() + 300000,
-Date.now()
-],
-function(err){
+    const ahora = Date.now();
+    const expiraReserva = ahora + 300000;
 
-if(err){
-console.error("ERROR INSERTANDO RESERVA:", err.message);
-}else{
-console.log("RESERVA GUARDADA EN DB:", casilla);
-}
+    db.get(
+    `SELECT id
+     FROM casillas
+     WHERE casilla = ?
+     AND (
+          estado = 'pagada'
+          OR estado = 'ocupada'
+          OR (estado = 'reservada' AND expira > ?)
+     )`,
+    [casilla, ahora],
+    (err, ocupada) => {
 
-}
-);
+        if(err){
+            console.error("ERROR VALIDANDO CASILLA:", err.message);
+            return res.status(500).json({ ok:false });
+        }
 
-    // detectar tablero completo
-    if(tablero.casillas.length === 50){
+        if(ocupada){
+            return res.json({ ok:false, mensaje:"Casilla ya ocupada o reservada" });
+        }
 
-    console.log("TABLERO COMPLETO");
+        db.run(
+        `INSERT INTO casillas
+        (tableroId,casilla,jugador,email,tiempo,estado,expira,fecha)
+        VALUES (?,?,?,?,?,?,?,?)`,
+        [
+        "TAB-1001",
+        casilla,
+        jugador,
+        email,
+        tiempo,
+        "reservada",
+        expiraReserva,
+        ahora
+        ],
+        function(err){
 
-    tablero.completo = true;
+            if(err){
+                console.error("ERROR INSERTANDO RESERVA:", err.message);
+                return res.status(500).json({ ok:false });
+            }
 
-    fs.writeFileSync(filePath, JSON.stringify(tablero, null, 2));
+            console.log("RESERVA GUARDADA EN DB:", casilla);
 
-    calcularGanador(tablero.casillas);
+            res.json({
+                ok:true,
+                expira: expiraReserva
+            });
 
-}
+        }
+        );
 
-    fs.writeFileSync(filePath, JSON.stringify(tablero, null, 2));
-
-    res.json({ ok:true });
+    }
+    );
 
 } catch(error){
 
     console.error("ERROR OCUPANDO CASILLA:", error);
-
     res.status(500).json({ ok:false });
 
 }
 
 });
+
 // =============================
 // ADMIN - ESTADO DEL TABLERO
 // =============================
@@ -1050,48 +1052,47 @@ reservas:rows
 );
 
 });
+
 // =============================
 // VALIDAR RESPUESTA
 // =============================
 
 app.post("/api/responder", (req,res)=>{
 
-    const { id, respuesta, jugador } = req.body;
-    const clave = jugador + "_" + id;
+const { id, respuesta, jugador } = req.body;
+const clave = jugador + "_" + id;
 
 const inicio = preguntasAbiertas[clave];
 
 if(!inicio){
-    return res.json({ ok:false });
+return res.json({ ok:false });
 }
 
 const tiempoReal = Date.now() - inicio;
 
 delete preguntasAbiertas[clave];
 
-    const filePath = path.join(__dirname, "public", "data", "preguntas.json");
+const filePath = path.join(__dirname, "public", "data", "preguntas.json");
+const data = fs.readFileSync(filePath,"utf8");
+const preguntas = JSON.parse(data);
+const pregunta = preguntas[Number(id)];
 
-    const data = fs.readFileSync(filePath,"utf8");
+if(!pregunta){
+return res.json({ ok:false });
+}
 
-    const preguntas = JSON.parse(data);
-
-    const pregunta = preguntas[Number(id)];
-
-    if(!pregunta){
-        return res.json({ ok:false });
-    }
-
-    if(Number(respuesta) === Number(pregunta.resultado)){
-        res.json({
-            ok:true,
-            resultado: pregunta.resultado,
-            tiempoReal: tiempoReal
-        });
-    }else{
-        res.json({ ok:false });
-    }
+if(Number(respuesta) === Number(pregunta.resultado)){
+res.json({
+ok:true,
+resultado: pregunta.resultado,
+tiempoReal: tiempoReal
+});
+}else{
+res.json({ ok:false });
+}
 
 });
+
 // =============================
 // LIMPIAR RESERVAS EXPIRADAS
 // =============================
@@ -1100,49 +1101,15 @@ app.post("/api/limpiar-reservas", (req,res)=>{
 
 const ahora = Date.now();
 
-db.all(
-`SELECT casilla
- FROM casillas
- WHERE estado = 'reservada'
- AND expira <= ?`,
-[ahora],
-(err, rows)=>{
-
-if(err){
-return res.json({ ok:false });
-}
-
-const casillasExpiradas = rows.map(r => r.casilla);
-
 db.run(
 `DELETE FROM casillas
  WHERE estado = 'reservada'
  AND expira <= ?`,
 [ahora],
-function(deleteErr){
+function(err){
 
-if(deleteErr){
+if(err){
 return res.json({ ok:false });
-}
-
-if(casillasExpiradas.length > 0){
-
-const filePath = path.join(__dirname, "public", "data", "tablero.json");
-
-try{
-
-const data = fs.readFileSync(filePath, "utf8");
-const tablero = JSON.parse(data);
-
-tablero.casillas = tablero.casillas.filter(c => !casillasExpiradas.includes(c.casilla));
-tablero.completo = false;
-
-fs.writeFileSync(filePath, JSON.stringify(tablero, null, 2));
-
-}catch(error){
-console.log("Error limpiando tablero.json:", error);
-}
-
 }
 
 res.json({
@@ -1152,64 +1119,26 @@ eliminadas:this.changes
 
 });
 
-}
-
-);
-
 });
+
 // =============================
-// LIMPIEZA AUTOMATICA RESERVAS
+// LIMPIEZA AUTOMATICA
 // =============================
 
 function limpiarReservasAutomatico(){
 
 const ahora = Date.now();
 
-db.all(
-`SELECT casilla
- FROM casillas
- WHERE estado = 'reservada'
- AND expira <= ?`,
-[ahora],
-(err, rows)=>{
-
-if(err){
-console.log("Error consultando reservas expiradas");
-return;
-}
-
-const casillasExpiradas = rows.map(r => r.casilla);
-
 db.run(
 `DELETE FROM casillas
  WHERE estado = 'reservada'
  AND expira <= ?`,
 [ahora],
-function(deleteErr){
+function(err){
 
-if(deleteErr){
+if(err){
 console.log("Error limpiando reservas");
 return;
-}
-
-if(casillasExpiradas.length > 0){
-
-const filePath = path.join(__dirname, "public", "data", "tablero.json");
-
-try{
-
-const data = fs.readFileSync(filePath, "utf8");
-const tablero = JSON.parse(data);
-
-tablero.casillas = tablero.casillas.filter(c => !casillasExpiradas.includes(c.casilla));
-tablero.completo = false;
-
-fs.writeFileSync(filePath, JSON.stringify(tablero, null, 2));
-
-}catch(error){
-console.log("Error actualizando tablero.json:", error);
-}
-
 }
 
 if(this.changes > 0){
@@ -1220,11 +1149,12 @@ console.log("Reservas liberadas:", this.changes);
 
 }
 
-);
-
-}
-// ejecutar cada minuto
 setInterval(limpiarReservasAutomatico,60000);
+
+// =============================
+// WEBHOOK MERCADO PAGO
+// =============================
+
 app.post("/webhook/mercadopago", (req,res)=>{
 
 try{
@@ -1232,7 +1162,7 @@ try{
 console.log("🔥 WEBHOOK RECIBIDO");
 console.log(req.body);
 
-// responder inmediato (clave)
+// responder inmediato
 res.sendStatus(200);
 
 // procesar en segundo plano
@@ -1246,21 +1176,26 @@ res.sendStatus(200);
 }
 
 });
+
+// =============================
+// PROCESAR PAGO (MULTICASILLA)
+// =============================
+
 async function procesarPago(webhookData){
 
 try{
 
 let paymentId = null;
 
-// Caso 1: webhook moderno
+// webhook moderno
 if (webhookData.type === "payment" && webhookData.data?.id) {
-    paymentId = webhookData.data.id;
+paymentId = webhookData.data.id;
 }
 
-// Caso 2: webhook antiguo
+// webhook antiguo
 if (webhookData.topic === "payment" && webhookData.resource) {
-    const parts = webhookData.resource.split("/");
-    paymentId = parts[parts.length - 1];
+const parts = webhookData.resource.split("/");
+paymentId = parts[parts.length - 1];
 }
 
 if (!paymentId) return;
@@ -1268,24 +1203,32 @@ if (!paymentId) return;
 const payment = new Payment(client);
 
 const pago = await payment.get({
-    id: paymentId
+id: paymentId
 });
 
 const data = pago.body || pago;
 
 if(data.status === "approved"){
 
-const casilla = data.metadata?.casilla;
+const casillas = data.metadata?.casillas || [];
 
-if(!casilla) return;
+if(casillas.length === 0){
+console.log("⚠️ Pago sin casillas");
+return;
+}
+
+casillas.forEach(casilla => {
 
 db.run(
-`UPDATE casillas SET estado = 'pagada' WHERE casilla = ?`,
+`UPDATE casillas
+ SET estado = 'pagada',
+ expira = NULL
+ WHERE casilla = ?`,
 [casilla],
 function(err){
 
 if(err){
-console.log("Error actualizando pago");
+console.log("Error actualizando pago:", casilla);
 return;
 }
 
@@ -1294,6 +1237,8 @@ console.log("✅ CASILLA PAGADA:",casilla);
 }
 );
 
+});
+
 }
 
 }catch(error){
@@ -1301,49 +1246,64 @@ console.log("✅ CASILLA PAGADA:",casilla);
 console.log("❌ ERROR PROCESANDO PAGO:",error);
 
 }
+
 }
 
+// =============================
+// CREAR PAGO (MULTICASILLA)
+// =============================
+
 app.post("/crear-pago", async (req, res) => {
-    try {
-        const { casilla } = req.body;
 
-        console.log("🧾 Crear pago SDK para casilla:", casilla);
+try {
 
-        const preference = {
-            items: [
-                {
-                    title: `Casilla ${casilla}`,
-                    quantity: 1,
-                    unit_price: Number(casilla),
-                    currency_id: "MXN"
-                }
-            ],
-            metadata: {
-                casilla: casilla
-            },
-            back_urls: {
-                success: "https://quiz1000.onrender.com/pago",
-                failure: "https://quiz1000.onrender.com/pago",
-                pending: "https://quiz1000.onrender.com/pago"
-            },
-            auto_return: "approved",
-            notification_url: "https://quiz1000.onrender.com/webhook/mercadopago"
-        };
+const { items } = req.body;
 
-        const preferenceClient = new Preference(client);
+console.log("🧾 Crear pago múltiples casillas:", items);
+
+if(!items || items.length === 0){
+return res.status(400).json({ error: "Carrito vacío" });
+}
+
+const preference = {
+
+items: items.map(item => ({
+title: `Casilla ${item.numero}`,
+quantity: 1,
+unit_price: Number(item.numero),
+currency_id: "MXN"
+})),
+
+metadata: {
+casillas: items.map(item => item.numero)
+},
+
+back_urls: {
+success: "https://quiz1000.onrender.com/pago",
+failure: "https://quiz1000.onrender.com/pago",
+pending: "https://quiz1000.onrender.com/pago"
+},
+
+auto_return: "approved",
+notification_url: "https://quiz1000.onrender.com/webhook/mercadopago"
+
+};
+
+const preferenceClient = new Preference(client);
 
 const response = await preferenceClient.create({
-    body: preference
+body: preference
 });
 
 res.json({
-    link: response.init_point
+link: response.init_point
 });
 
-    } catch (error) {
-        console.log("❌ ERROR SDK:", error);
-        res.status(500).json({ error: "Error creando pago" });
-    }
+} catch (error) {
+
+console.log("❌ ERROR SDK:", error);
+res.status(500).json({ error: "Error creando pago" });
+
+}
+
 });
-
-

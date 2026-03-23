@@ -578,104 +578,113 @@ fetch("/api/pregunta/" + cell.dataset.id)
 
     }, 10);
 
-    boton.onclick = () => {
+   boton.onclick = () => {
 
     clearInterval(intervalo);
 
-const respuestaUsuario = Number(input.value);
+    const respuestaUsuario = Number(input.value);
 
-// validar que el usuario haya escrito algo
-if (isNaN(respuestaUsuario)) {
-    alert("Escribe tu respuesta.");
-    return;
-}
+    if (isNaN(respuestaUsuario)) {
+        alert("Escribe tu respuesta.");
+        return;
+    }
 
-// ==========================
-// VALIDAR RESPUESTA EN BACKEND
-// ==========================
+    fetch("/api/responder",{
+    method:"POST",
+    headers:{
+    "Content-Type":"application/json"
+    },
+    body:JSON.stringify({
+        id: cell.dataset.id,
+        respuesta: respuestaUsuario,
+        jugador: jugadorActual.nombre || "Invitado"
+    })
+    })
+    .then(res => res.json())
+    .then(data => {
 
-fetch("/api/responder",{
-method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-    id: cell.dataset.id,
-    respuesta: respuestaUsuario,
-    jugador: jugadorActual.nombre || "Invitado"
-})
-})
-.then(res=>res.json())
-.then(data=>{
+        if(!data.ok){
+            alert("❌ Incorrecto");
+            modal.classList.add("hidden");
+            mezclarCeldas();
+            return;
+        }
 
-if(!data.ok){
-    alert("❌ Incorrecto");
-    modal.classList.add("hidden");
-    mezclarCeldas();
-    return;
-}
+        const numeroPagado = data.resultado;
 
-// RESPUESTA CORRECTA
-const numeroPagado = data.resultado;
+        modal.classList.add("hidden");
 
-modal.classList.add("hidden");
+        if (!localStorage.getItem("fechaApertura")) {
+            localStorage.setItem("fechaApertura", Date.now());
+        }
 
-if (!localStorage.getItem("fechaApertura")) {
-    localStorage.setItem("fechaApertura", Date.now());
-}
+        const tiempoFormateado = contador.textContent;
 
-const tiempoFormateado = contador.textContent;
+        fetch("/api/ocupar-casilla", {
+        method: "POST",
+        headers: {
+        "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+        casilla: numeroPagado,
+        jugador: jugadorActual.nombre || "Invitado",
+        email: jugadorActual.email || "pendiente",
+        tiempo: tiempoFormateado
+        })
+        })
+        .then(res => res.json())
+        .then(dataReserva => {
 
-fetch("/api/ocupar-casilla", {
-method: "POST",
-headers: {
-"Content-Type": "application/json"
-},
-body: JSON.stringify({
-casilla: numeroPagado,
-jugador: jugadorActual.nombre || "Invitado",
-email: jugadorActual.email || "pendiente",
-tiempo: tiempoFormateado
-})
-});
+            if(!dataReserva.ok){
+                alert("Esta casilla ya está reservada o pagada.");
+                return;
+            }
 
-cell.classList.add("resuelta");
-cell.style.backgroundColor = "transparent";
+            const tiempoRestante = dataReserva.expira - Date.now();
+            const segundos = Math.max(0, Math.floor(tiempoRestante / 1000));
+            const minutos = Math.floor(segundos / 60);
+            const seg = segundos % 60;
 
-const robot = document.createElement("img");
-robot.src = "/assets/images/robot2.png";
-robot.classList.add("robot-mini");
+            const texto =
+            `${minutos.toString().padStart(2,"0")}:${seg.toString().padStart(2,"0")}`;
 
-cell.innerHTML = "";
-cell.appendChild(robot);
+            cell.classList.add("resuelta");
+            cell.style.backgroundColor = "white";
+            cell.innerHTML = `<span class="contador-reserva">${texto}</span>`;
 
-const folioCarrito = localStorage.getItem("folioTablero");
+            const folioCarrito = localStorage.getItem("folioTablero");
 
-let carrito = JSON.parse(localStorage.getItem("carrito_" + folioCarrito)) || { items: [] };
+            let carrito = JSON.parse(localStorage.getItem("carrito_" + folioCarrito)) || { items: [] };
 
-const yaExiste = carrito.items.some(item => item.numero === numeroPagado);
+            const yaExiste = carrito.items.some(item => item.numero === numeroPagado);
 
-if (!yaExiste) {
+            if (!yaExiste) {
+                carrito.items.push({
+                    numero: numeroPagado,
+                    tiempo: tiempoFormateado
+                });
+                localStorage.setItem("carrito_" + folioCarrito, JSON.stringify(carrito));
+            }
 
-carrito.items.push({
-numero: numeroPagado,
-tiempo: tiempoFormateado
-});
+            localStorage.setItem("numeroSeleccionado", numeroPagado);
 
-localStorage.setItem("carrito_" + folioCarrito, JSON.stringify(carrito));
+            window.location.href = "carrito.html?folio=" + folioCarrito;
 
-}
+        })
+        .catch(error => {
+            console.error("Error reservando casilla:", error);
+            alert("Error al reservar la casilla");
+        });
 
-localStorage.setItem("numeroSeleccionado", numeroPagado);
+    })
+    .catch(error => {
+        console.error("Error validando respuesta:", error);
+        alert("Error al validar la respuesta");
+    });
 
-// ir al carrito
-window.location.href = "carrito.html?folio=" + folioCarrito;
+}; // cierre boton.onclick
 
-});
-
-};   // cierre boton.onclick
-
-}   // cierre abrirPregunta
+} // cierre abrirPregunta
 
 function responder(opcion){
 
