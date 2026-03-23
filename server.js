@@ -594,9 +594,13 @@ app.post("/api/preguntas", (req, res) => {
 app.get("/api/tablero", (req, res) => {
 
 db.all(
-`SELECT casilla, estado, expira
- FROM casillas`,
+
+`SELECT casilla
+FROM casillas
+WHERE estado = 'pagada'`,
+
 [],
+
 (err,rows)=>{
 
 if(err){
@@ -604,10 +608,12 @@ return res.json({ casillas:[] });
 }
 
 res.json({
+completo:false,
 casillas:rows
 });
 
 }
+
 );
 
 });
@@ -649,12 +655,7 @@ try {
         tiempo: tiempo,
         fecha: Date.now()
     });
-const ahora = Date.now();
-const expira = ahora + 300000;
-
-console.log("AHORA:", ahora);
-console.log("EXPIRA:", expira);
-    // guardar también en base de datos
+// guardar también en base de datos
 db.run(
 `INSERT INTO casillas
 (tableroId,casilla,jugador,email,tiempo,estado,expira,fecha)
@@ -666,8 +667,8 @@ jugador,
 email,
 tiempo,
 "reservada",
-expira,
-ahora
+Date.now() + 300000,
+Date.now()
 ],
 function(err){
 
@@ -1097,23 +1098,58 @@ delete preguntasAbiertas[clave];
 
 app.post("/api/limpiar-reservas", (req,res)=>{
 
-db.run(
+const ahora = Date.now();
 
-`DELETE FROM casillas
+db.all(
+`SELECT casilla
+ FROM casillas
  WHERE estado = 'reservada'
- AND expira < ?`,
-
-[Date.now()],
-
-function(err){
+ AND expira <= ?`,
+[ahora],
+(err, rows)=>{
 
 if(err){
 return res.json({ ok:false });
 }
 
+const casillasExpiradas = rows.map(r => r.casilla);
+
+db.run(
+`DELETE FROM casillas
+ WHERE estado = 'reservada'
+ AND expira <= ?`,
+[ahora],
+function(deleteErr){
+
+if(deleteErr){
+return res.json({ ok:false });
+}
+
+if(casillasExpiradas.length > 0){
+
+const filePath = path.join(__dirname, "public", "data", "tablero.json");
+
+try{
+
+const data = fs.readFileSync(filePath, "utf8");
+const tablero = JSON.parse(data);
+
+tablero.casillas = tablero.casillas.filter(c => !casillasExpiradas.includes(c.casilla));
+tablero.completo = false;
+
+fs.writeFileSync(filePath, JSON.stringify(tablero, null, 2));
+
+}catch(error){
+console.log("Error limpiando tablero.json:", error);
+}
+
+}
+
 res.json({
 ok:true,
 eliminadas:this.changes
+});
+
 });
 
 }
@@ -1127,33 +1163,68 @@ eliminadas:this.changes
 
 function limpiarReservasAutomatico(){
 
-db.run(
+const ahora = Date.now();
 
-`DELETE FROM casillas
+db.all(
+`SELECT casilla
+ FROM casillas
  WHERE estado = 'reservada'
- AND expira < ?`,
-
-[Date.now()],
-
-function(err){
+ AND expira <= ?`,
+[ahora],
+(err, rows)=>{
 
 if(err){
+console.log("Error consultando reservas expiradas");
+return;
+}
+
+const casillasExpiradas = rows.map(r => r.casilla);
+
+db.run(
+`DELETE FROM casillas
+ WHERE estado = 'reservada'
+ AND expira <= ?`,
+[ahora],
+function(deleteErr){
+
+if(deleteErr){
 console.log("Error limpiando reservas");
 return;
+}
+
+if(casillasExpiradas.length > 0){
+
+const filePath = path.join(__dirname, "public", "data", "tablero.json");
+
+try{
+
+const data = fs.readFileSync(filePath, "utf8");
+const tablero = JSON.parse(data);
+
+tablero.casillas = tablero.casillas.filter(c => !casillasExpiradas.includes(c.casilla));
+tablero.completo = false;
+
+fs.writeFileSync(filePath, JSON.stringify(tablero, null, 2));
+
+}catch(error){
+console.log("Error actualizando tablero.json:", error);
+}
+
 }
 
 if(this.changes > 0){
 console.log("Reservas liberadas:", this.changes);
 }
 
+});
+
 }
 
 );
 
 }
-
 // ejecutar cada minuto
-setInterval(limpiarReservasAutomatico,120000);
+setInterval(limpiarReservasAutomatico,60000);
 app.post("/webhook/mercadopago", (req,res)=>{
 
 try{
