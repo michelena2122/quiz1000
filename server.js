@@ -181,7 +181,35 @@ db.serialize(() => {
     `);
 
 });
+db.run(`
+CREATE TABLE IF NOT EXISTS configuracion (
+    clave TEXT PRIMARY KEY,
+    valor TEXT,
+    fecha INTEGER
+)
+`);
 
+db.run(`
+INSERT OR IGNORE INTO configuracion (clave, valor, fecha)
+VALUES ('tipoCambioCobro', '20.00', strftime('%s','now') * 1000)
+`);
+
+db.run(`
+INSERT OR IGNORE INTO configuracion (clave, valor, fecha)
+VALUES ('tipoCambioPremio', '19.50', strftime('%s','now') * 1000)
+`);
+function obtenerConfiguracion(clave){
+    return new Promise((resolve, reject) => {
+        db.get(
+            `SELECT valor FROM configuracion WHERE clave = ?`,
+            [clave],
+            (err, row) => {
+                if(err) return reject(err);
+                resolve(row ? row.valor : null);
+            }
+        );
+    });
+}
 // ============================
 // CONFIGURAR EMAIL OUTLOOK
 // ============================
@@ -758,9 +786,6 @@ app.post("/admin/reset", (req,res)=>{
     res.json({ ok:true, mensaje:"Sistema reiniciado" });
 
 });
-app.listen(PORT, () => {
-    console.log(`Servidor corriendo en http://localhost:${PORT}`);
-});
 // ============================
 // CREAR TABLEROS INICIALES
 // ============================
@@ -1255,55 +1280,146 @@ console.log("❌ ERROR PROCESANDO PAGO:",error);
 
 app.post("/crear-pago", async (req, res) => {
 
-try {
+    try {
 
-const { items } = req.body;
+        const { items } = req.body;
 
-console.log("🧾 Crear pago múltiples casillas:", items);
+        console.log("🧾 Crear pago múltiples casillas:", items);
 
-if(!items || items.length === 0){
-return res.status(400).json({ error: "Carrito vacío" });
-}
+        if(!items || items.length === 0){
+            return res.status(400).json({ error: "Carrito vacío" });
+        }
 
-const preference = {
+        const tipoCambioCobroRaw = await obtenerConfiguracion("tipoCambioCobro");
+        const tipoCambioCobro = Number(tipoCambioCobroRaw || 20);
 
-items: items.map(item => ({
-title: `Casilla ${item.numero}`,
-quantity: 1,
-unit_price: Number(item.numero),
-currency_id: "MXN"
-})),
+        const preference = {
+            items: items.map(item => ({
+                title: `Casilla ${item.numero}`,
+                quantity: 1,
+                unit_price: Number((Number(item.numero) * tipoCambioCobro).toFixed(2)),
+                currency_id: "MXN"
+            })),
 
-metadata: {
-casillas: items.map(item => item.numero)
-},
+            metadata: {
+                casillas: items.map(item => item.numero),
+                tipoCambioCobro: tipoCambioCobro
+            },
 
-back_urls: {
-success: "https://quiz1000.onrender.com/pago",
-failure: "https://quiz1000.onrender.com/pago",
-pending: "https://quiz1000.onrender.com/pago"
-},
+            back_urls: {
+                success: "https://quiz1000.onrender.com/pago",
+                failure: "https://quiz1000.onrender.com/pago",
+                pending: "https://quiz1000.onrender.com/pago"
+            },
 
-auto_return: "approved",
-notification_url: "https://quiz1000.onrender.com/webhook/mercadopago"
+            auto_return: "approved",
+            notification_url: "https://quiz1000.onrender.com/webhook/mercadopago"
+        };
 
-};
+        const preferenceClient = new Preference(client);
 
-const preferenceClient = new Preference(client);
+        const response = await preferenceClient.create({
+            body: preference
+        });
 
-const response = await preferenceClient.create({
-body: preference
+        res.json({
+            link: response.init_point
+        });
+
+    } catch (error) {
+
+        console.log("❌ ERROR SDK:", error);
+        res.status(500).json({ error: "Error creando pago" });
+
+    }
+
+});// =============================
+// ADMIN - OBTENER TIPO DE CAMBIO
+// =============================
+app.get("/api/admin/tipo-cambio", (req, res) => {
+    db.all(
+        `SELECT clave, valor FROM configuracion
+         WHERE clave IN ('tipoCambioCobro','tipoCambioPremio')`,
+        [],
+        (err, rows) => {
+            if(err){
+                console.log("Error leyendo tipo de cambio:", err);
+                return res.status(500).json({ ok:false });
+            }
+
+            const data = {
+                tipoCambioCobro: "20.00",
+                tipoCambioPremio: "19.50"
+            };
+
+            rows.forEach(r => {
+                data[r.clave] = r.valor;
+            });
+
+            res.json({
+                ok: true,
+                ...data
+            });
+        }
+    );
 });
 
-res.json({
-link: response.init_point
+// =============================
+// ADMIN - GUARDAR TIPO DE CAMBIO
+// =============================
+app.post("/api/admin/tipo-cambio", (req, res) => {
+
+    const tipoCambioCobro = Number(req.body.tipoCambioCobro);
+    const tipoCambioPremio = Number(req.body.tipoCambioPremio);
+
+    if(
+        !tipoCambioCobro || tipoCambioCobro <= 0 ||
+        !tipoCambioPremio || tipoCambioPremio <= 0
+    ){
+        return res.status(400).json({
+            ok:false,
+            mensaje:"Valores inválidos"
+        });
+    }
+
+    const ahora = Date.now();
+
+    db.run(
+        `INSERT INTO configuracion (clave, valor, fecha)
+         VALUES ('tipoCambioCobro', ?, ?)
+         ON CONFLICT(clave) DO UPDATE SET
+         valor = excluded.valor,
+         fecha = excluded.fecha`,
+        [tipoCambioCobro.toFixed(2), ahora],
+        function(err){
+            if(err){
+                console.log("Error guardando tipoCambioCobro:", err);
+                return res.status(500).json({ ok:false });
+            }
+
+            db.run(
+                `INSERT INTO configuracion (clave, valor, fecha)
+                 VALUES ('tipoCambioPremio', ?, ?)
+                 ON CONFLICT(clave) DO UPDATE SET
+                 valor = excluded.valor,
+                 fecha = excluded.fecha`,
+                [tipoCambioPremio.toFixed(2), ahora],
+                function(err2){
+                    if(err2){
+                        console.log("Error guardando tipoCambioPremio:", err2);
+                        return res.status(500).json({ ok:false });
+                    }
+
+                    res.json({
+                        ok:true,
+                        tipoCambioCobro: tipoCambioCobro.toFixed(2),
+                        tipoCambioPremio: tipoCambioPremio.toFixed(2)
+                    });
+                }
+            );
+        }
+    );
 });
-
-} catch (error) {
-
-console.log("❌ ERROR SDK:", error);
-res.status(500).json({ error: "Error creando pago" });
-
-}
-
+app.listen(PORT, () => {
+    console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
