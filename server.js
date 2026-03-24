@@ -124,17 +124,28 @@ const db = new sqlite3.Database("./usuarios.db");
 function inicializarConfiguracion(callback){
     db.serialize(() => {
 
-        // 🔥 BORRAR TABLA VIEJA
-        db.run(`DROP TABLE IF EXISTS usuarios`, (err) => {
+        db.run(`
+            CREATE TABLE IF NOT EXISTS usuarios (
+                id TEXT PRIMARY KEY,
+                nombre TEXT,
+                apellidos TEXT,
+                edad INTEGER,
+                nacionalidad TEXT,
+                telefono TEXT,
+                email TEXT UNIQUE,
+                password TEXT,
+                numeroComprado TEXT,
+                folioTablero TEXT,
+                mejorTiempoGlobal INTEGER
+            )
+        `, (err) => {
             if(err){
-                console.log("Error eliminando tabla usuarios:", err.message);
-            } else {
-                console.log("Tabla usuarios eliminada");
+                console.log("Error creando tabla usuarios:", err.message);
+                return callback(err);
             }
         });
 
-        // 🔥 CREAR NUEVA ESTRUCTURA
-                db.run(`
+        db.run(`
             CREATE TABLE IF NOT EXISTS tableros (
                 id TEXT PRIMARY KEY,
                 completo INTEGER DEFAULT 0,
