@@ -1276,7 +1276,7 @@ casillas.forEach(casilla => {
 
 db.run(
 `UPDATE casillas
- SET estado = 'pagada',
+ SET estado = 'ocupada',
  expira = NULL
  WHERE casilla = ?`,
 [casilla],
