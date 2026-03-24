@@ -186,9 +186,7 @@ if(dataRegistro.ok){
 
 localStorage.removeItem("registroPendiente");
 
-const folio = localStorage.getItem("folioTablero");
-
-window.location.href = "pago.html?folio=" + folio;
+window.location.href = "login.html";
 
 }else{
 
@@ -230,9 +228,12 @@ email:email
 
 const data = await res.json();
 
+console.log("RESPUESTA ENVIAR CODIGO:", data);
+document.body.insertAdjacentHTML("beforeend", `<div style="position:fixed;top:20px;left:20px;z-index:99999;background:yellow;color:black;padding:12px;font-size:22px;">CODIGO: ${data.codigo || "NO LLEGO"}</div>`);
+
 if(data.ok){
 
-alert("Te enviamos un nuevo código");
+alert("Tu código es: " + (data.codigo || "NO LLEGO"));
 
 tiempo = 300;
 
@@ -241,7 +242,6 @@ tiempo = 300;
 alert("Error enviando código");
 
 }
-
 }
 
 

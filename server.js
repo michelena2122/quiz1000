@@ -240,17 +240,23 @@ function obtenerConfiguracion(clave){
         );
     });
 }
+const dns = require("dns");
+dns.setDefaultResultOrder("ipv4first");
 // ============================
 // CONFIGURAR EMAIL OUTLOOK
 // ============================
 
 const transporter = nodemailer.createTransport({
-    host: "smtp.office365.com",
+    host: "smtp-mail.outlook.com",
     port: 587,
     secure: false,
+    family: 4,
     auth: {
-        user: "juanjmichelena@outlook.com",
-        pass: "xndzynqcazodcfjw"
+    user: "juanjmichelena@outlook.com",
+    pass: process.env.OUTLOOK_PASS
+},
+    tls: {
+        ciphers: "SSLv3"
     }
 });
 
@@ -263,7 +269,6 @@ app.post("/enviar-codigo", async (req, res) => {
     const { email } = req.body;
 
     const codigo = Math.floor(100000 + Math.random() * 900000);
-
     const expiracion = Date.now() + (5 * 60 * 1000);
 
     codigosEmail[email] = {
@@ -285,47 +290,24 @@ app.post("/enviar-codigo", async (req, res) => {
         `
     };
 
-    // ✅ RESPONDER INMEDIATO
-    res.json({ 
-        ok: true,
-        codigo: codigo
-    });
+    try {
+        await transporter.sendMail(mailOptions);
 
-    // ✅ ENVIAR EMAIL SIN BLOQUEAR
-    transporter.sendMail(mailOptions)
-        .then(() => {
-            console.log("Código enviado:", codigo);
-        })
-        .catch((error) => {
-            console.error("ERROR ENVIANDO EMAIL:", error);
+        console.log("Código enviado:", codigo);
+
+        res.json({
+            ok: true,
+            codigo: codigo
         });
 
-});
-// ============================
-// VALIDAR CODIGO
-// ============================
+    } catch (error) {
+        console.error("ERROR ENVIANDO EMAIL:", error);
 
-app.post("/enviar-codigo", (req, res) => {
-
-    const { email } = req.body;
-
-    const codigo = Math.floor(100000 + Math.random() * 900000);
-
-    const expiracion = Date.now() + (5 * 60 * 1000);
-
-    codigosEmail[email] = {
-        codigo,
-        expira: expiracion,
-        intentos: 0
-    };
-
-    console.log("📧 Código generado:", codigo);
-
-    // 🔥 RESPUESTA DIRECTA (SIN EMAIL)
-    res.json({ 
-        ok: true,
-        codigo: codigo
-    });
+        res.json({
+            ok: false,
+            mensaje: "No se pudo enviar el correo"
+        });
+    }
 
 });
 // ============================
@@ -396,6 +378,43 @@ id:id
 res.json({ ok:false });
 
 }
+
+});
+// ============================
+// VALIDAR CODIGO
+// ============================
+
+app.post("/validar-codigo", (req, res) => {
+
+    const { email, codigo } = req.body;
+
+    if(!codigosEmail[email]){
+        return res.json({
+            ok: false,
+            mensaje: "No hay código para este correo"
+        });
+    }
+
+    const registro = codigosEmail[email];
+
+    if(Date.now() > registro.expira){
+        return res.json({
+            ok: false,
+            mensaje: "El código expiró"
+        });
+    }
+
+    if(String(registro.codigo) !== String(codigo)){
+        return res.json({
+            ok: false,
+            mensaje: "Código incorrecto"
+        });
+    }
+
+    return res.json({
+        ok: true,
+        mensaje: "Código validado correctamente"
+    });
 
 });
 // ============================
@@ -1242,13 +1261,18 @@ try{
 
 let paymentId = null;
 
-// webhook moderno
-if (webhookData.type === "payment" && webhookData.data?.id) {
+// webhook con body moderno: action + data.id
+if (webhookData.data?.id && typeof webhookData.action === "string" && webhookData.action.startsWith("payment.")) {
 paymentId = webhookData.data.id;
 }
 
-// webhook antiguo
-if (webhookData.topic === "payment" && webhookData.resource) {
+// webhook con type=payment
+if (!paymentId && webhookData.type === "payment" && webhookData.data?.id) {
+paymentId = webhookData.data.id;
+}
+
+// webhook antiguo con resource
+if (!paymentId && webhookData.topic === "payment" && webhookData.resource) {
 const parts = webhookData.resource.split("/");
 paymentId = parts[parts.length - 1];
 }
@@ -1344,6 +1368,8 @@ app.post("/crear-pago", async (req, res) => {
                 unit_price: Number((Number(item.numero) * tipoCambioCobro).toFixed(2)),
                 currency_id: "MXN"
             })),
+
+            external_reference: folio,
 
             metadata: {
     folio: folio,

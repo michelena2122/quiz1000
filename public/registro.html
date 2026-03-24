@@ -106,10 +106,57 @@ button{
         Términos Legales y Aviso de Privacidad
     </a>
 </div>
-<button class="payBtn" id="pagarBtn">Continuar al Pago</button>
+<button id="btnContinuar" type="button" onclick="continuarRegistro()">Continuar</button>
 
 </div>
+async function continuarRegistro(){
 
+    const nombre = document.getElementById("nombre").value.trim();
+    const apellidos = document.getElementById("apellidos").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
+
+    if(!nombre || !apellidos || !email || !password){
+        alert("Completa todos los campos");
+        return;
+    }
+
+    const registroPendiente = {
+        nombre,
+        apellidos,
+        email,
+        password
+    };
+
+    localStorage.setItem("registroPendiente", JSON.stringify(registroPendiente));
+    localStorage.setItem("emailRegistro", email);
+
+    try{
+
+        const res = await fetch("/enviar-codigo", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ email })
+        });
+
+        const data = await res.json();
+
+        console.log("RESPUESTA ENVIAR CODIGO:", data);
+
+        if(data.ok){
+            window.location.href = "validar.html";
+        }else{
+            alert(data.mensaje || "No se pudo enviar el código");
+        }
+
+    }catch(error){
+        console.error("ERROR ENVIANDO CODIGO:", error);
+        alert("Error al enviar el código");
+    }
+
+}
 <script>
 
 // ============================
