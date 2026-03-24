@@ -240,23 +240,17 @@ function obtenerConfiguracion(clave){
         );
     });
 }
-const dns = require("dns");
-dns.setDefaultResultOrder("ipv4first");
 // ============================
 // CONFIGURAR EMAIL OUTLOOK
 // ============================
 
 const transporter = nodemailer.createTransport({
-    host: "smtp-mail.outlook.com",
+    host: "smtp.office365.com",
     port: 587,
     secure: false,
-    family: 4,
     auth: {
-    user: "juanjmichelena@outlook.com",
-    pass: process.env.OUTLOOK_PASS
-},
-    tls: {
-        ciphers: "SSLv3"
+        user: "juanjmichelena@outlook.com",
+        pass: "xndzynqcazodcfjw"
     }
 });
 
@@ -269,6 +263,7 @@ app.post("/enviar-codigo", async (req, res) => {
     const { email } = req.body;
 
     const codigo = Math.floor(100000 + Math.random() * 900000);
+
     const expiracion = Date.now() + (5 * 60 * 1000);
 
     codigosEmail[email] = {
@@ -290,24 +285,47 @@ app.post("/enviar-codigo", async (req, res) => {
         `
     };
 
-    try {
-        await transporter.sendMail(mailOptions);
+    // ✅ RESPONDER INMEDIATO
+    res.json({ 
+        ok: true,
+        codigo: codigo
+    });
 
-        console.log("Código enviado:", codigo);
-
-        res.json({
-            ok: true,
-            codigo: codigo
+    // ✅ ENVIAR EMAIL SIN BLOQUEAR
+    transporter.sendMail(mailOptions)
+        .then(() => {
+            console.log("Código enviado:", codigo);
+        })
+        .catch((error) => {
+            console.error("ERROR ENVIANDO EMAIL:", error);
         });
 
-    } catch (error) {
-        console.error("ERROR ENVIANDO EMAIL:", error);
+});
+// ============================
+// VALIDAR CODIGO
+// ============================
 
-        res.json({
-            ok: false,
-            mensaje: "No se pudo enviar el correo"
-        });
-    }
+app.post("/enviar-codigo", (req, res) => {
+
+    const { email } = req.body;
+
+    const codigo = Math.floor(100000 + Math.random() * 900000);
+
+    const expiracion = Date.now() + (5 * 60 * 1000);
+
+    codigosEmail[email] = {
+        codigo,
+        expira: expiracion,
+        intentos: 0
+    };
+
+    console.log("📧 Código generado:", codigo);
+
+    // 🔥 RESPUESTA DIRECTA (SIN EMAIL)
+    res.json({ 
+        ok: true,
+        codigo: codigo
+    });
 
 });
 // ============================
@@ -388,33 +406,42 @@ app.post("/validar-codigo", (req, res) => {
 
     const { email, codigo } = req.body;
 
-    if(!codigosEmail[email]){
-        return res.json({
-            ok: false,
-            mensaje: "No hay código para este correo"
-        });
-    }
-
     const registro = codigosEmail[email];
 
+    if(!registro){
+        return res.json({ ok:false, mensaje:"No existe código para este email" });
+    }
+
     if(Date.now() > registro.expira){
-        return res.json({
-            ok: false,
-            mensaje: "El código expiró"
-        });
+        delete codigosEmail[email];
+        return res.json({ ok:false, mensaje:"El código expiró" });
     }
 
-    if(String(registro.codigo) !== String(codigo)){
+    if(registro.codigo != codigo){
+
+        registro.intentos++;
+
+        if(registro.intentos >= 3){
+
+            delete codigosEmail[email];
+
+            return res.json({
+                ok:false,
+                mensaje:"Demasiados intentos. Solicita un nuevo código."
+            });
+
+        }
+
         return res.json({
-            ok: false,
-            mensaje: "Código incorrecto"
+            ok:false,
+            mensaje:"Código incorrecto"
         });
+
     }
 
-    return res.json({
-        ok: true,
-        mensaje: "Código validado correctamente"
-    });
+    delete codigosEmail[email];
+
+    res.json({ ok:true });
 
 });
 // ============================
@@ -697,7 +724,6 @@ casillas:rows
 // =============================
 // OCUPAR CASILLA
 // =============================
-
 
 app.post("/api/ocupar-casilla", (req, res) => {
 
@@ -1504,3 +1530,4 @@ inicializarConfiguracion((err) => {
         console.log(`Servidor corriendo en http://localhost:${PORT}`);
     });
 });
+

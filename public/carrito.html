@@ -7,7 +7,6 @@
 
 <link rel="stylesheet" href="css/styles.css?v=2">
 
-
 <style>
 body{
     margin:0;
@@ -21,7 +20,6 @@ body{
 /* ========================= */
 /* HOME ICON */
 /* ========================= */
-
 
 .home-icon img{
     width:120px !important;
@@ -260,12 +258,12 @@ document.getElementById("pagar").addEventListener("click",()=>{
     console.log("jugadorActual:", jugadorActual);
 
     if(!jugadorActual){
-    console.log("IR A REGISTRO");
-    window.location.href = "registro.html?folio=" + folio;
-}else{
-    console.log("IR A LOGIN");
-    window.location.href = "login.html?folio=" + folio;
-}
+        console.log("IR A REGISTRO");
+        window.location.href = "registro.html?folio=" + folio;
+    }else{
+        console.log("IR A PAGO");
+        window.location.href = "pago.html?folio=" + folio;
+    }
 
 });
 
@@ -275,3 +273,4 @@ render();
 
 </body>
 </html>
+

@@ -116,7 +116,6 @@ inputs[index - 1].focus();
 
 });
 
-
 // ============================
 // OBTENER CODIGO
 // ============================
@@ -132,7 +131,6 @@ codigo += input.value;
 return codigo;
 
 }
-
 
 // ============================
 // VERIFICAR CODIGO
@@ -186,7 +184,9 @@ if(dataRegistro.ok){
 
 localStorage.removeItem("registroPendiente");
 
-window.location.href = "login.html";
+const folio = localStorage.getItem("folioTablero");
+
+window.location.href = "pago.html?folio=" + folio;
 
 }else{
 
@@ -202,7 +202,6 @@ document.getElementById("error").innerText = data.mensaje;
 }
 
 }
-
 
 // ============================
 // REENVIAR CODIGO
@@ -228,12 +227,9 @@ email:email
 
 const data = await res.json();
 
-console.log("RESPUESTA ENVIAR CODIGO:", data);
-document.body.insertAdjacentHTML("beforeend", `<div style="position:fixed;top:20px;left:20px;z-index:99999;background:yellow;color:black;padding:12px;font-size:22px;">CODIGO: ${data.codigo || "NO LLEGO"}</div>`);
-
 if(data.ok){
 
-alert("Tu código es: " + (data.codigo || "NO LLEGO"));
+alert("Tu código es: " + data.codigo);
 
 tiempo = 300;
 
@@ -243,7 +239,6 @@ alert("Error enviando código");
 
 }
 }
-
 
 // ============================
 // CONTADOR
@@ -280,3 +275,4 @@ contador.innerText = "El código expiró. Solicita uno nuevo.";
 
 </body>
 </html>
+
