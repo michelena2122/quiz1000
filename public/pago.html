@@ -314,14 +314,15 @@ document.getElementById("btnPagarTodo").addEventListener("click", function(){
     }
 
     fetch("/crear-pago", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            items: carritoActual.items
-        })
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+        folio: folioCarrito,
+        items: carritoActual.items
     })
+})
     .then(res => res.json())
     .then(data => {
         if(data.link){

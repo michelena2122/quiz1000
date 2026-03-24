@@ -1262,10 +1262,17 @@ id: paymentId
 });
 
 const data = pago.body || pago;
+const folio = data.metadata?.folio;
+const tiempos = data.metadata?.tiempos || [];
 
 if(data.status === "approved"){
 
 const casillas = data.metadata?.casillas || [];
+
+if(!folio){
+    console.log("⚠️ Pago sin folio");
+    return;
+}
 
 if(casillas.length === 0){
 console.log("⚠️ Pago sin casillas");
@@ -1274,23 +1281,30 @@ return;
 
 casillas.forEach(casilla => {
 
-db.run(
-`UPDATE casillas
- SET estado = 'ocupada',
- expira = NULL
- WHERE casilla = ?`,
-[casilla],
-function(err){
+    const infoTiempo = tiempos.find(t => t.numero === casilla);
 
-if(err){
-console.log("Error actualizando pago:", casilla);
-return;
-}
+    db.run(
+        `UPDATE casillas
+         SET estado = 'ocupada',
+             expira = NULL,
+             tiempo = ?
+         WHERE tableroId = ? AND casilla = ?`,
+        [
+            infoTiempo ? infoTiempo.tiempo : null,
+            folio,
+            casilla
+        ],
+        function(err){
 
-console.log("✅ CASILLA PAGADA:",casilla);
+            if(err){
+                console.log("Error actualizando pago:", casilla);
+                return;
+            }
 
-}
-);
+            console.log("✅ CASILLA PAGADA:", casilla);
+
+        }
+    );
 
 });
 
@@ -1312,7 +1326,7 @@ app.post("/crear-pago", async (req, res) => {
 
     try {
 
-        const { items } = req.body;
+        const { folio, items } = req.body;
 
         console.log("🧾 Crear pago múltiples casillas:", items);
 
@@ -1332,9 +1346,14 @@ app.post("/crear-pago", async (req, res) => {
             })),
 
             metadata: {
-                casillas: items.map(item => item.numero),
-                tipoCambioCobro: tipoCambioCobro
-            },
+    folio: folio,
+    casillas: items.map(item => item.numero),
+    tiempos: items.map(item => ({
+        numero: item.numero,
+        tiempo: item.tiempo
+    })),
+    tipoCambioCobro: tipoCambioCobro
+},
 
             back_urls: {
                 success: "https://quiz1000.onrender.com/pago",
