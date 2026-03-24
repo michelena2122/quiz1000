@@ -124,53 +124,54 @@ const db = new sqlite3.Database("./usuarios.db");
 function inicializarConfiguracion(callback){
     db.serialize(() => {
 
-        db.run(`
-            CREATE TABLE IF NOT EXISTS usuarios (
-                id TEXT PRIMARY KEY,
-                nombre TEXT,
-                apellidos TEXT,
-                edad INTEGER,
-                nacionalidad TEXT,
-                telefono TEXT,
-                email TEXT UNIQUE,
-                password TEXT,
-                numeroComprado TEXT,
-                folioTablero TEXT,
-                mejorTiempoGlobal INTEGER
-            )
-        `, (err) => {
+        db.run(`DROP TABLE IF EXISTS usuarios`, (err) => {
             if(err){
-                console.log("Error creando tabla usuarios:", err.message);
-                return callback(err);
+                console.log("Error eliminando tabla usuarios:", err.message);
+                if(callback) return callback(err);
             }
-        });
 
-        db.run(`
-            CREATE TABLE IF NOT EXISTS tableros (
-                id TEXT PRIMARY KEY,
-                completo INTEGER DEFAULT 0,
-                fechaCreacion INTEGER
-            )
-        `, (err) => {
-            if(err){
-                console.log("Error creando tabla tableros:", err.message);
-                return callback(err);
-            }
-        });
+            console.log("Tabla usuarios eliminada");
 
-        db.run(`
-            CREATE TABLE IF NOT EXISTS configuracion (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                tipoCambio REAL DEFAULT 1
-            )
-        `, (err) => {
-            if(err){
-                console.log("Error creando tabla configuracion:", err.message);
-                return callback(err);
-            }
-        });
+            db.run(`
+                CREATE TABLE IF NOT EXISTS usuarios (
+                    id TEXT PRIMARY KEY,
+                    nombre TEXT,
+                    apellidos TEXT,
+                    edad INTEGER,
+                    nacionalidad TEXT,
+                    telefono TEXT,
+                    email TEXT UNIQUE,
+                    password TEXT,
+                    numeroComprado TEXT,
+                    folioTablero TEXT,
+                    mejorTiempoGlobal INTEGER
+                )
+            `, (err) => {
+                if(err){
+                    console.log("Error creando tabla usuarios:", err.message);
+                    if(callback) return callback(err);
+                }
 
-        if(callback) callback(null);
+                console.log("Tabla usuarios creada correctamente");
+
+                db.run(`
+                    CREATE TABLE IF NOT EXISTS tableros (
+                        id TEXT PRIMARY KEY,
+                        completo INTEGER DEFAULT 0,
+                        fechaCreacion INTEGER
+                    )
+                `, (err) => {
+                    if(err){
+                        console.log("Error creando tabla tableros:", err.message);
+                        if(callback) return callback(err);
+                    }
+
+                    console.log("Tabla tableros creada correctamente");
+
+                    if(callback) callback(null);
+                });
+            });
+        });
     });
 }
 // ============================
