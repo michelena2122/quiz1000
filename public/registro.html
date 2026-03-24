@@ -111,7 +111,7 @@ button{
 </div>
 
 <script>
-
+ console.log("SCRIPT REGISTRO CARGADO");   
 // ============================
 // OBTENER PARÁMETROS URL
 // ============================
@@ -119,16 +119,17 @@ button{
 const params = new URLSearchParams(window.location.search);
 let numero = params.get("numero");
 
-if(!numero){
+if (!numero) {
     numero = localStorage.getItem("numeroSeleccionado") || "0";
 }
+
 const pagoLink = params.get("pago") || "#";
 
-// Cambiar mensaje superior (psicología correcta)
+// Cambiar mensaje superior
 document.getElementById("amountText").innerHTML =
     "<strong>Continúa, vas en serio por los 1,000 USD 💰</strong>";
 
-// Cambiar texto del botón dinámicamente
+// Cambiar texto del botón
 const pagarBtn = document.getElementById("pagarBtn");
 pagarBtn.textContent =
     `Tu número es ${numero} — págalo y sigue rumbo a los 1,000 USD`;
@@ -139,8 +140,8 @@ const errorMsg = document.getElementById("errorMsg");
 // BOTÓN REGISTRO
 // ============================
 
-pagarBtn.addEventListener("click", function(){
-
+pagarBtn.addEventListener("click", async function () {
+    console.log("CLICK REGISTRO"); 
     const nombre = document.getElementById("nombre").value.trim();
     const apellidos = document.getElementById("apellidos").value.trim();
     const edad = document.getElementById("edad").value.trim();
@@ -148,103 +149,82 @@ pagarBtn.addEventListener("click", function(){
     const telefono = document.getElementById("telefono").value.trim();
     const codigoPais = document.getElementById("codigoPais").value;
     const email = document.getElementById("email").value.trim();
-const password = document.getElementById("password").value.trim();
-
+    const password = document.getElementById("password").value.trim();
     const aceptaTerminos = document.getElementById("aceptaTerminos").checked;
 
-if(!aceptaTerminos){
-    errorMsg.textContent = "Debes aceptar los Términos Legales para continuar.";
-    return;
-}
-    if(!nombre || !apellidos || !edad || !nacionalidad || !telefono || !email || !password){
+    if (!aceptaTerminos) {
+        errorMsg.textContent = "Debes aceptar los Términos Legales para continuar.";
+        return;
+    }
+
+    if (!nombre || !apellidos || !edad || !nacionalidad || !telefono || !email || !password) {
         errorMsg.textContent = "Todos los campos son obligatorios.";
         return;
     }
 
-    if(isNaN(edad) || edad <= 0){
+    if (isNaN(edad) || parseInt(edad) <= 0) {
         errorMsg.textContent = "Ingresa una edad válida.";
         return;
     }
 
-    if(parseInt(edad) < 18){
+    if (parseInt(edad) < 18) {
         errorMsg.textContent = "Debes ser mayor de 18 años para participar.";
         return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if(!emailRegex.test(email)){
+    if (!emailRegex.test(email)) {
         errorMsg.textContent = "Correo electrónico inválido.";
         return;
     }
 
-   errorMsg.textContent = "";
+    errorMsg.textContent = "";
 
-// generar código
-const codigoVerificacion = Math.floor(100000 + Math.random() * 900000);
-
-localStorage.setItem("codigoEmail", codigoVerificacion);
-localStorage.setItem("emailRegistro", email);
-
-// enviar correo al backend
-fetch("http://localhost:3000/enviar-codigo", {
-
-    method:"POST",
-
-    headers:{
-        "Content-Type":"application/json"
-    },
-
-    body: JSON.stringify({
-        email: email,
-        codigo: codigoVerificacion
-    })
-
-})
-.then(res => res.json())
-.then(data => {
-
-    if(data.ok){
-
-        alert("📧 Te enviamos un código de verificación");
-
-        window.location.href = "validar.html";
-
-    }else{
-
-        errorMsg.textContent = "Error enviando el correo";
-
-    }
-
-})
-.catch(err => {
-
-    errorMsg.textContent = "No se pudo conectar con el servidor.";
-
-});
     // ============================
-    // GENERAR ID INTERNO
+    // GUARDAR REGISTRO PENDIENTE
     // ============================
 
     const jugadorID = "JUG-" + Date.now();
     const folioTablero = localStorage.getItem("folioTablero");
 
     const jugadorData = {
-    id: jugadorID,
-    nombre,
-    apellidos,
-    edad,
-    nacionalidad,
-    telefono: codigoPais + telefono,
-    email,
-    password,
-    folioTablero,
-    numeroComprado: numero,
-    mejorTiempoGlobal: null
-};
-localStorage.setItem("registroPendiente", JSON.stringify(jugadorData));
-   
-window.location.href = "validar.html";
+        id: jugadorID,
+        nombre,
+        apellidos,
+        edad,
+        nacionalidad,
+        telefono: codigoPais + telefono,
+        email,
+        password,
+        folioTablero,
+        numeroComprado: numero,
+        mejorTiempoGlobal: null
+    };
 
+    localStorage.setItem("registroPendiente", JSON.stringify(jugadorData));
+    localStorage.setItem("emailRegistro", email);
+
+    try {
+        const res = await fetch("/enviar-codigo", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ email })
+        });
+
+        const data = await res.json();
+
+        if (data.ok) {
+            alert("📧 Te enviamos un código de verificación");
+            window.location.href = "validar.html";
+        } else {
+            errorMsg.textContent = data.mensaje || "Error enviando el correo";
+        }
+    } catch (err) {
+        console.error(err);
+        errorMsg.textContent = "No se pudo conectar con el servidor.";
+    }
 });
 </script>
 

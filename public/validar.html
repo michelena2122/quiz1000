@@ -229,7 +229,10 @@ const data = await res.json();
 
 if(data.ok){
 
-alert("Tu código es: " + data.codigo);
+const msg = document.getElementById("mensajeCodigo");
+if(msg){
+    msg.textContent = "Te enviamos un nuevo código a tu correo.";
+}
 
 tiempo = 300;
 

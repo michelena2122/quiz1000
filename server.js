@@ -124,6 +124,16 @@ const db = new sqlite3.Database("./usuarios.db");
 function inicializarConfiguracion(callback){
     db.serialize(() => {
 
+        // 🔥 BORRAR TABLA VIEJA
+        db.run(`DROP TABLE IF EXISTS usuarios`, (err) => {
+            if(err){
+                console.log("Error eliminando tabla usuarios:", err.message);
+            } else {
+                console.log("Tabla usuarios eliminada");
+            }
+        });
+
+        // 🔥 CREAR NUEVA ESTRUCTURA
         db.run(`
             CREATE TABLE IF NOT EXISTS usuarios (
                 id TEXT PRIMARY KEY,
@@ -158,67 +168,7 @@ function inicializarConfiguracion(callback){
             }
         });
 
-        db.run(`
-            CREATE TABLE IF NOT EXISTS casillas (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                tableroId TEXT,
-                casilla INTEGER,
-                jugador TEXT,
-                email TEXT,
-                tiempo TEXT,
-                estado TEXT,
-                expira INTEGER,
-                fecha INTEGER
-            )
-        `, (err) => {
-            if(err){
-                console.log("Error creando tabla casillas:", err.message);
-                return callback(err);
-            }
-        });
-
-        db.run(`
-            CREATE TABLE IF NOT EXISTS configuracion (
-                clave TEXT PRIMARY KEY,
-                valor TEXT,
-                fecha INTEGER
-            )
-        `, (err) => {
-            if(err){
-                console.log("Error creando tabla configuracion:", err.message);
-                return callback(err);
-            }
-
-            db.run(`
-                INSERT OR IGNORE INTO configuracion (clave, valor, fecha)
-                VALUES ('tipoCambioCobro', '20.00', strftime('%s','now') * 1000)
-            `, (err2) => {
-                if(err2){
-                    console.log("Error insertando tipoCambioCobro:", err2.message);
-                    return callback(err2);
-                }
-
-                db.run(`
-                    INSERT OR IGNORE INTO configuracion (clave, valor, fecha)
-                    VALUES ('tipoCambioPremio', '19.50', strftime('%s','now') * 1000)
-                `, (err3) => {
-                    if(err3){
-                        console.log("Error insertando tipoCambioPremio:", err3.message);
-                        return callback(err3);
-                    }
-
-                    db.run(`ALTER TABLE casillas ADD COLUMN expira INTEGER`, (err4) => {
-                        if(err4 && !String(err4.message).includes("duplicate column name")){
-                            console.log("Error agregando columna expira:", err4.message);
-                            return callback(err4);
-                        }
-
-                        callback(null);
-                    });
-                });
-            });
-        });
-
+        if(callback) callback(null);
     });
 }
 // ============================
@@ -259,11 +209,13 @@ const transporter = nodemailer.createTransport({
 // ============================
 
 app.post("/enviar-codigo", async (req, res) => {
-
     const { email } = req.body;
 
-    const codigo = Math.floor(100000 + Math.random() * 900000);
+    if (!email) {
+        return res.json({ ok: false, mensaje: "Email requerido" });
+    }
 
+    const codigo = Math.floor(100000 + Math.random() * 900000);
     const expiracion = Date.now() + (5 * 60 * 1000);
 
     codigosEmail[email] = {
@@ -280,53 +232,23 @@ app.post("/enviar-codigo", async (req, res) => {
         to: email,
         subject: "Código de verificación",
         html: `
-        <h2>Tu código es: ${codigo}</h2>
-        <p>Este código expira en 5 minutos.</p>
+            <h2>Tu código es: ${codigo}</h2>
+            <p>Este código expira en 5 minutos.</p>
         `
     };
 
-    // ✅ RESPONDER INMEDIATO
-    res.json({ 
+    res.json({
         ok: true,
-        codigo: codigo
+        mensaje: "Código enviado"
     });
 
-    // ✅ ENVIAR EMAIL SIN BLOQUEAR
     transporter.sendMail(mailOptions)
         .then(() => {
-            console.log("Código enviado:", codigo);
+            console.log("Código enviado por email:", codigo);
         })
         .catch((error) => {
             console.error("ERROR ENVIANDO EMAIL:", error);
         });
-
-});
-// ============================
-// VALIDAR CODIGO
-// ============================
-
-app.post("/enviar-codigo", (req, res) => {
-
-    const { email } = req.body;
-
-    const codigo = Math.floor(100000 + Math.random() * 900000);
-
-    const expiracion = Date.now() + (5 * 60 * 1000);
-
-    codigosEmail[email] = {
-        codigo,
-        expira: expiracion,
-        intentos: 0
-    };
-
-    console.log("📧 Código generado:", codigo);
-
-    // 🔥 RESPUESTA DIRECTA (SIN EMAIL)
-    res.json({ 
-        ok: true,
-        codigo: codigo
-    });
-
 });
 // ============================
 // REGISTRO DE USUARIO
