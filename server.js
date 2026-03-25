@@ -1245,16 +1245,31 @@ if (!paymentId) return;
 const payment = new Payment(client);
 
 const pago = await payment.get({
-id: paymentId
+    id: paymentId
 });
 
+console.log("PAYMENT GET EJECUTADO");
+
 const data = pago.body || pago;
-const folio = data.metadata?.folio;
-const tiempos = data.metadata?.tiempos || [];
+console.log("DATA COMPLETA MP:", JSON.stringify(data, null, 2));
+console.log("🧪 METADATA CRUDA MP:", data.metadata);
+const metadata = data.metadata || {};
+
+const folio = metadata.folio;
+const jugadorId = metadata.jugadorId;
+const casillasMetadata = metadata.casillas || [];
+const tiempos = metadata.tiempos || [];
+
+console.log("📦 METADATA RECIBIDA:", {
+    folio,
+    jugadorId,
+    casillas: casillasMetadata,
+    tiempos
+});
 
 if(data.status === "approved"){
 
-const casillas = data.metadata?.casillas || [];
+const casillas = casillasMetadata;
 
 if(!folio){
     console.log("⚠️ Pago sin folio");
@@ -1271,16 +1286,18 @@ casillas.forEach(casilla => {
     const infoTiempo = tiempos.find(t => t.numero === casilla);
 
     db.run(
-        `UPDATE casillas
-         SET estado = 'ocupada',
-             expira = NULL,
-             tiempo = ?
-         WHERE tableroId = ? AND casilla = ?`,
-        [
-            infoTiempo ? infoTiempo.tiempo : null,
-            folio,
-            casilla
-        ],
+    `UPDATE casillas
+     SET estado = 'ocupada',
+         expira = NULL,
+         tiempo = ?,
+         jugadorId = ?
+     WHERE tableroId = ? AND casilla = ?`,
+    [
+        infoTiempo ? infoTiempo.tiempo : null,
+        jugadorId,
+        folio,
+        casilla
+    ],
         function(err){
 
             if(err){
@@ -1288,7 +1305,12 @@ casillas.forEach(casilla => {
                 return;
             }
 
-            console.log("✅ CASILLA PAGADA:", casilla);
+            console.log("✅ CASILLA PAGADA NUEVA VERSION:", {
+    folio: folio,
+    casilla: casilla,
+    jugadorId: jugadorId,
+    tiempo: infoTiempo ? infoTiempo.tiempo : null
+});
 
         }
     );
@@ -1313,7 +1335,7 @@ app.post("/crear-pago", async (req, res) => {
 
     try {
 
-        const { folio, items } = req.body;
+        const { folio, items, jugadorId } = req.body;
 
         console.log("🧾 Crear pago múltiples casillas:", items);
 
@@ -1336,6 +1358,7 @@ app.post("/crear-pago", async (req, res) => {
 
             metadata: {
     folio: folio,
+    jugadorId: jugadorId,
     casillas: items.map(item => item.numero),
     tiempos: items.map(item => ({
         numero: item.numero,
