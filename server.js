@@ -1256,7 +1256,7 @@ console.log("🧪 METADATA CRUDA MP:", data.metadata);
 const metadata = data.metadata || {};
 
 const folio = metadata.folio;
-const jugadorId = metadata.jugadorId;
+const jugadorId = metadata.jugador_id;
 const casillasMetadata = metadata.casillas || [];
 const tiempos = metadata.tiempos || [];
 
