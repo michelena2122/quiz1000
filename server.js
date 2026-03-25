@@ -167,6 +167,18 @@ function inicializarConfiguracion(callback){
                     }
 
                     console.log("Tabla tableros creada correctamente");
+                    db.run(`
+    CREATE TABLE IF NOT EXISTS configuracion (
+        clave TEXT PRIMARY KEY,
+        valor TEXT
+    )
+`, (err) => {
+    if(err){
+        console.log("Error creando tabla configuracion:", err.message);
+    } else {
+        console.log("Tabla configuracion creada correctamente");
+    }
+});
 
                     if(callback) callback(null);
                 });
