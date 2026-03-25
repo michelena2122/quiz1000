@@ -124,66 +124,62 @@ const db = new sqlite3.Database("./usuarios.db");
 function inicializarConfiguracion(callback){
     db.serialize(() => {
 
-        db.run(`DROP TABLE IF EXISTS usuarios`, (err) => {
+        db.run(`
+            CREATE TABLE IF NOT EXISTS usuarios (
+                id TEXT PRIMARY KEY,
+                nombre TEXT,
+                apellidos TEXT,
+                edad INTEGER,
+                nacionalidad TEXT,
+                telefono TEXT,
+                email TEXT UNIQUE,
+                password TEXT,
+                numeroComprado TEXT,
+                folioTablero TEXT,
+                mejorTiempoGlobal INTEGER
+            )
+        `, (err) => {
             if(err){
-                console.log("Error eliminando tabla usuarios:", err.message);
+                console.log("Error creando tabla usuarios:", err.message);
                 if(callback) return callback(err);
             }
 
-            console.log("Tabla usuarios eliminada");
+            console.log("Tabla usuarios creada correctamente");
 
             db.run(`
-                CREATE TABLE IF NOT EXISTS usuarios (
+                CREATE TABLE IF NOT EXISTS tableros (
                     id TEXT PRIMARY KEY,
-                    nombre TEXT,
-                    apellidos TEXT,
-                    edad INTEGER,
-                    nacionalidad TEXT,
-                    telefono TEXT,
-                    email TEXT UNIQUE,
-                    password TEXT,
-                    numeroComprado TEXT,
-                    folioTablero TEXT,
-                    mejorTiempoGlobal INTEGER
+                    completo INTEGER DEFAULT 0,
+                    fechaCreacion INTEGER
                 )
             `, (err) => {
                 if(err){
-                    console.log("Error creando tabla usuarios:", err.message);
+                    console.log("Error creando tabla tableros:", err.message);
                     if(callback) return callback(err);
                 }
 
-                console.log("Tabla usuarios creada correctamente");
+                console.log("Tabla tableros creada correctamente");
 
                 db.run(`
-                    CREATE TABLE IF NOT EXISTS tableros (
-                        id TEXT PRIMARY KEY,
-                        completo INTEGER DEFAULT 0,
-                        fechaCreacion INTEGER
+                    CREATE TABLE IF NOT EXISTS configuracion (
+                        clave TEXT PRIMARY KEY,
+                        valor TEXT
                     )
                 `, (err) => {
                     if(err){
-                        console.log("Error creando tabla tableros:", err.message);
+                        console.log("Error creando tabla configuracion:", err.message);
                         if(callback) return callback(err);
                     }
 
-                    console.log("Tabla tableros creada correctamente");
-                    db.run(`
-    CREATE TABLE IF NOT EXISTS configuracion (
-        clave TEXT PRIMARY KEY,
-        valor TEXT
-    )
-`, (err) => {
-    if(err){
-        console.log("Error creando tabla configuracion:", err.message);
-    } else {
-        console.log("Tabla configuracion creada correctamente");
-    }
-});
+                    console.log("Tabla configuracion creada correctamente");
 
                     if(callback) callback(null);
                 });
+
             });
+
         });
+
     });
 }
 // ============================
@@ -283,11 +279,15 @@ numeroComprado,
 folioTablero
 } = req.body;
 
+console.log("BODY /registro:", req.body);
+
 try{
 
 const hash = await bcrypt.hash(password,10);
 
 const id = "JUG-" + Date.now();
+
+console.log("ID GENERADO /registro:", id);
 
 db.run(
 
@@ -312,12 +312,12 @@ null
 function(err){
 
 if(err){
-
-console.log(err);
-
+console.log("ERROR INSERTANDO USUARIO:", err);
 return res.json({ ok:false, mensaje:"Usuario o email ya existen" });
-
 }
+
+console.log("USUARIO INSERTADO OK:", id);
+console.log("CHANGES /registro:", this.changes);
 
 res.json({
 ok:true,
@@ -330,12 +330,12 @@ id:id
 
 }catch(error){
 
+console.log("ERROR GENERAL /registro:", error);
 res.json({ ok:false });
 
 }
 
-});
-// ============================
+});// ============================
 // VALIDAR CODIGO
 // ============================
 
@@ -1301,10 +1301,9 @@ casillas.forEach(casilla => {
         function(err){
 
             if(err){
-                console.log("Error actualizando pago:", casilla);
-                return;
-            }
-
+    console.log("Error actualizando pago:", casilla, err.message);
+    return;
+}
             console.log("✅ CASILLA PAGADA NUEVA VERSION:", {
     folio: folio,
     casilla: casilla,

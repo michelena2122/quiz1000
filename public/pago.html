@@ -312,16 +312,18 @@ document.getElementById("btnPagarTodo").addEventListener("click", function(){
         alert("No hay casillas en el carrito");
         return;
     }
-
+    console.log("JUGADOR ID ENVIADO:", localStorage.getItem("jugadorId"));
+    console.log("LOCALSTORAGE COMPLETO:", localStorage);
     fetch("/crear-pago", {
     method: "POST",
     headers: {
         "Content-Type": "application/json"
     },
-    body: JSON.stringify({
-        folio: folioCarrito,
-        items: carritoActual.items
-    })
+   body: JSON.stringify({
+    folio: folioCarrito,
+    items: carritoActual.items,
+    jugadorId: localStorage.getItem("jugadorId")
+})
 })
     .then(res => res.json())
     .then(data => {

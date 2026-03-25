@@ -165,6 +165,7 @@ alert("Correo verificado correctamente");
 
 // obtener datos del registro
 const registroPendiente = JSON.parse(localStorage.getItem("registroPendiente"));
+console.log("REGISTRO PENDIENTE:", registroPendiente);
 
 const resRegistro = await fetch("/registro",{
 
@@ -180,8 +181,10 @@ body: JSON.stringify(registroPendiente)
 
 const dataRegistro = await resRegistro.json();
 
+console.log("RESPUESTA /registro:", dataRegistro);
+console.log("ID DEVUELTO:", dataRegistro.id);
 if(dataRegistro.ok){
-
+localStorage.setItem("jugadorId", dataRegistro.id);
 localStorage.removeItem("registroPendiente");
 
 const folio = localStorage.getItem("folioTablero");
