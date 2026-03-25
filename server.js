@@ -1290,7 +1290,7 @@ casillas.forEach(casilla => {
      SET estado = 'ocupada',
          expira = NULL,
          tiempo = ?,
-         jugadorId = ?
+         jugador = ?
      WHERE tableroId = ? AND casilla = ?`,
     [
         infoTiempo ? infoTiempo.tiempo : null,
