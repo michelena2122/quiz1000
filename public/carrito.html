@@ -194,7 +194,7 @@ www.Quiz1000.llc
 <script>
 console.log("CARRITO CARGADO");
 const params = new URLSearchParams(window.location.search);
-const folio = params.get("folio") || localStorage.getItem("folioTablero");
+const folio = params.get("folio") || localStorage.getItem("folioTableroActual");
 let carrito = JSON.parse(localStorage.getItem("carrito_" + folio)) || { items: [] };
 const lista = document.getElementById("lista");
 const totalSpan = document.getElementById("total");
@@ -245,8 +245,22 @@ function eliminar(index){
     render();
 }
 
-document.getElementById("seguir").addEventListener("click",()=>{
-    window.location.href = "tablero.html";
+document.getElementById("seguir").addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const params = new URLSearchParams(window.location.search);
+    const folio = params.get("folio") || localStorage.getItem("folioTableroActual");
+
+    console.log("CLICK SEGUIR | folio:", folio);
+
+    if (!folio) {
+        alert("No se encontró el folio del tablero");
+        return;
+    }
+
+    localStorage.setItem("folioTableroActual", folio);
+    window.location.href = "/tablero?folio=" + folio;
 });
 
 document.getElementById("pagar").addEventListener("click",()=>{

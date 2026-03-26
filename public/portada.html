@@ -26,9 +26,9 @@
         </p>
 
         <!-- Botón -->
-        <a href="tablero" class="portada-boton">
-            ¡Sí, quiero los 1,000!
-        </a>
+        <button class="portada-boton" onclick="crearTablero()">
+    ¡Sí, quiero los 1,000!
+    </button>
         <div class="portada-header">
     <a href="index" class="home-icon-portada">
         <img src="assets/images/home-icon.png" alt="Home">
@@ -44,6 +44,23 @@
 
     </div>
 <img src="assets/images/robot.png" class="robot-flotante" alt="Robot">
+ <script>
+    async function crearTablero(){
+
+        const res = await fetch("/api/crear-tablero",{
+            method:"POST"
+        });
+
+        const data = await res.json();
+
+        if(!data.ok){
+            alert("Error creando tablero");
+            return;
+        }
+
+        window.location.href = "/tablero?folio=" + data.folio;
+    }
+    </script>
 </body>
 </html>
 

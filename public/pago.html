@@ -212,7 +212,7 @@ www.Quiz1000.llc
 <script>
 const TOTAL_NUMEROS_TABLERO = 50;
 const params = new URLSearchParams(window.location.search);
-const folio = params.get("folio") || localStorage.getItem("folioTablero");
+const folio = params.get("folio") || localStorage.getItem("folioTableroActual");
 
 let tableroEstado = JSON.parse(localStorage.getItem("tableroEstado_" + folio)) || {
     casillasResueltas: []

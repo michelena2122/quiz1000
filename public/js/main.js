@@ -50,18 +50,19 @@ if(document.body.classList.contains("tablero")){
 
 const folioSpan = document.getElementById("folio");
 
-let folio = folioURL || localStorage.getItem("folioTablero");
+let folio = folioURL || localStorage.getItem("folioTableroActual");
 let fechaApertura = localStorage.getItem("fechaApertura");
 
 if (!folio) {
-    folio = "TAB-" + Math.floor(100000 + Math.random() * 900000);
+    alert("No se encontró folio del tablero");
+    throw new Error("Folio no encontrado");
 }
 
-localStorage.setItem("folioTablero", folio);
+localStorage.setItem("folioTableroActual", folio);
+
 let tablerosGlobal = JSON.parse(localStorage.getItem("tableros")) || {};
 
 if (!tablerosGlobal[folio]) {
-
     tablerosGlobal[folio] = {
         fechaCreacion: new Date().toLocaleString(),
         casillasResueltas: [],
@@ -433,6 +434,8 @@ document.querySelectorAll(".cell").forEach(cell => {
 
 const numero = parseInt(cell.dataset.id) + 1;
 
+console.log("CHECK:", numero, ocupadas, ocupadas.includes(numero));
+
 const reserva = reservas.find(r => r.casilla === numero);
 
 // ==========================
@@ -477,12 +480,18 @@ if(!cell.querySelector(".robot-mini")){
 
 cell.classList.add("resuelta");
 cell.style.backgroundColor = "transparent";
+cell.style.pointerEvents = "none";
+
+const numeroTexto = document.createElement("div");
+numeroTexto.classList.add("numero-casilla-pagada");
+numeroTexto.textContent = numero;
 
 const robot = document.createElement("img");
 robot.src = "/assets/images/robot2.png";
 robot.classList.add("robot-mini");
 
 cell.innerHTML = "";
+cell.appendChild(numeroTexto);
 cell.appendChild(robot);
 
 }
@@ -490,7 +499,6 @@ cell.appendChild(robot);
 return;
 
 }
-
 // ==========================
 // CASILLA LIBRE
 // ==========================
@@ -620,6 +628,8 @@ fetch("/api/pregunta/" + cell.dataset.id)
 
         const tiempoFormateado = contador.textContent;
 
+        const folioCarrito = folioURL || localStorage.getItem("folioTableroActual");
+
         fetch("/api/ocupar-casilla", {
         method: "POST",
         headers: {
@@ -629,7 +639,8 @@ fetch("/api/pregunta/" + cell.dataset.id)
         casilla: numeroPagado,
         jugador: jugadorActual.nombre || "Invitado",
         email: jugadorActual.email || "pendiente",
-        tiempo: tiempoFormateado
+        tiempo: tiempoFormateado,
+        folio: folioCarrito 
         })
         })
         .then(res => res.json())
@@ -652,7 +663,7 @@ fetch("/api/pregunta/" + cell.dataset.id)
             cell.style.backgroundColor = "white";
             cell.innerHTML = `<span class="contador-reserva">${texto}</span>`;
 
-            const folioCarrito = localStorage.getItem("folioTablero");
+            const folioCarrito = folioURL || localStorage.getItem("folioTableroActual");
 
             let carrito = JSON.parse(localStorage.getItem("carrito_" + folioCarrito)) || { items: [] };
 

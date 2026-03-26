@@ -115,10 +115,11 @@ footer{
 <div class="container">
 
 <h2>Tableros Disponibles</h2>
+<button onclick="abrirTableroEnCurso('TAB-657891')">Jugar tablero en curso</button>
 
 <div id="listaTableros"></div>
 
-<button class="btn-crear" id="crearTablero">
+<button onclick="crearNuevoTablero()">Nuevo tablero</button>
     Crear Nuevo Tablero
 </button>
 
@@ -181,7 +182,6 @@ function renderTableros(){
 function entrar(folio){
     window.location.href = "tablero.html?folio=" + folio;
 }
-
 document.getElementById("crearTablero").addEventListener("click", function(){
 
     const nuevoFolio = "TAB-" + Math.floor(100000 + Math.random() * 900000);
@@ -192,25 +192,25 @@ document.getElementById("crearTablero").addEventListener("click", function(){
         completo: false
     };
     // ============================
-// ASOCIAR TABLERO AL JUGADOR
-// ============================
+    // ASOCIAR TABLERO AL JUGADOR
+    // ============================
 
-let jugadorActual = JSON.parse(localStorage.getItem("jugadorActual"));
+    let jugadorActual = JSON.parse(localStorage.getItem("jugadorActual"));
 
-if(jugadorActual){
+    if(jugadorActual){
 
-    if(!jugadorActual.tableros){
-        jugadorActual.tableros = {};
+        if(!jugadorActual.tableros){
+            jugadorActual.tableros = {};
+        }
+
+        jugadorActual.tableros[nuevoFolio] = {
+            numeros: [],
+            mejorTiempo: null,
+            estado: "activo"
+        };
+
+        localStorage.setItem("jugadorActual", JSON.stringify(jugadorActual));
     }
-
-    jugadorActual.tableros[nuevoFolio] = {
-        numeros: [],
-        mejorTiempo: null,
-        estado: "activo"
-    };
-
-    localStorage.setItem("jugadorActual", JSON.stringify(jugadorActual));
-}
 
     localStorage.setItem("tableros", JSON.stringify(tableros));
 
@@ -237,7 +237,48 @@ function cargarEstadoRapido(){
 }
 
 cargarEstadoRapido();
+async function crearNuevoTablero() {
+    try {
+        const res = await fetch("/api/crear-tablero", {
+            method: "POST"
+        });
 
+        const data = await res.json();
+
+        if (!data.ok || !data.folio) {
+            alert("Error creando tablero");
+            return;
+        }
+
+        localStorage.setItem("folioTableroActual", data.folio);
+
+        const carritoKey = "carrito_" + data.folio;
+        if (!localStorage.getItem(carritoKey)) {
+            localStorage.setItem(carritoKey, JSON.stringify({
+                items: [],
+                total: 0
+            }));
+        }
+
+        window.location.href = "/tablero?folio=" + data.folio;
+    } catch (error) {
+        console.error("Error creando tablero desde lobby:", error);
+        alert("Error creando tablero");
+    }
+}
+function abrirTableroEnCurso(folio) {
+    localStorage.setItem("folioTableroActual", folio);
+
+    const carritoKey = "carrito_" + folio;
+    if (!localStorage.getItem(carritoKey)) {
+        localStorage.setItem(carritoKey, JSON.stringify({
+            items: [],
+            total: 0
+        }));
+    }
+
+    window.location.href = "/tablero?folio=" + folio;
+}
 </script>
 
 </body>
