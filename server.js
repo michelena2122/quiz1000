@@ -638,7 +638,7 @@ db.all(
 
 `SELECT casilla
 FROM casillas
-WHERE estado = 'pagada'`,
+WHERE estado = 'ocupada'`,
 
 [],
 
@@ -1227,124 +1227,107 @@ async function procesarPago(webhookData){
 
 try{
 
-  const pago = webhookData;
-  const data = pago.body || pago;
-  const metadata = data.metadata || {};
+let paymentId = null;
 
-  const folio = metadata.folio;
-  const jugadorId = metadata.jugador_id;
-  const casillasMetadata = metadata.casillas || [];
-  const tiempos = metadata.tiempos || [];
+// webhook con body moderno: action + data.id
+if (webhookData.data?.id && typeof webhookData.action === "string" && webhookData.action.startsWith("payment.")) {
+paymentId = webhookData.data.id;
+}
 
-  console.log("📦 METADATA RECIBIDA:", {
+// webhook con type=payment
+if (!paymentId && webhookData.type === "payment" && webhookData.data?.id) {
+paymentId = webhookData.data.id;
+}
+
+// webhook antiguo con resource
+if (!paymentId && webhookData.topic === "payment" && webhookData.resource) {
+const parts = webhookData.resource.split("/");
+paymentId = parts[parts.length - 1];
+}
+
+if (!paymentId) return;
+
+const payment = new Payment(client);
+
+const pago = await payment.get({
+    id: paymentId
+});
+
+console.log("PAYMENT GET EJECUTADO");
+
+const data = pago.body || pago;
+console.log("DATA COMPLETA MP:", JSON.stringify(data, null, 2));
+console.log("🧪 METADATA CRUDA MP:", data.metadata);
+const metadata = data.metadata || {};
+
+const folio = metadata.folio;
+const jugadorId = metadata.jugadorId;
+const casillasMetadata = metadata.casillas || [];
+const tiempos = metadata.tiempos || [];
+
+console.log("📦 METADATA RECIBIDA:", {
     folio,
     jugadorId,
     casillas: casillasMetadata,
     tiempos
-  });
+});
 
-  if(data.status === "approved"){
+if(data.status === "approved"){
 
-    const casillas = casillasMetadata;
+const casillas = casillasMetadata;
 
-    if(!folio){
-      console.log("⚠️ Pago sin folio");
-      return;
+if(!folio){
+    console.log("⚠️ Pago sin folio");
+    return;
+}
+
+if(casillas.length === 0){
+console.log("⚠️ Pago sin casillas");
+return;
+}
+
+casillas.forEach(casilla => {
+
+    const infoTiempo = tiempos.find(t => t.numero === casilla);
+
+    db.run(
+`UPDATE casillas
+ SET estado = 'pagada',
+     expira = NULL,
+     tiempo = ?,
+     jugador = ?
+ WHERE tableroId = ?
+   AND casilla = ?
+   AND estado = 'reservada'`,
+[
+    infoTiempo ? infoTiempo.tiempo : null,
+    jugadorId,
+    folio,
+    casilla
+],
+function(err){
+    if(err){
+        console.log("Error actualizando pago:", casilla, err.message);
+        return;
     }
 
-    if(casillas.length === 0){
-      console.log("⚠️ Pago sin casillas");
-      return;
-    }
-
-    casillas.forEach(casilla => {
-
-      const infoTiempo = tiempos.find(t => t.numero === casilla);
-
-      // 🔎 VERIFICAR ANTES
-      db.get(
-        `SELECT tableroId, casilla, estado, jugador, tiempo, expira
-         FROM casillas
-         WHERE tableroId = ? AND casilla = ?`,
-        [folio, casilla],
-        (err, filaAntes) => {
-
-          if(err){
-            console.log("Error consultando antes del UPDATE:", casilla, err.message);
-            return;
-          }
-
-          console.log("🔎 ANTES DEL UPDATE:", {
-            folio,
-            casilla,
-            fila: filaAntes || null
-          });
-
-          // 🔄 UPDATE
-          db.run(
-            `UPDATE casillas
-             SET estado = 'ocupada',
-                 expira = NULL,
-                 tiempo = ?,
-                 jugador = ?
-             WHERE tableroId = ? AND casilla = ?`,
-            [
-              infoTiempo ? infoTiempo.tiempo : null,
-              jugadorId,
-              folio,
-              casilla
-            ],
-            function(err){
-
-              if(err){
-                console.log("Error actualizando pago:", casilla, err.message);
-                return;
-              }
-
-              console.log("📌 FILAS AFECTADAS:", this.changes);
-
-              // 🔎 VERIFICAR DESPUÉS
-              db.get(
-                `SELECT tableroId, casilla, estado, jugador, tiempo, expira
-                 FROM casillas
-                 WHERE tableroId = ? AND casilla = ?`,
-                [folio, casilla],
-                (err2, filaDespues) => {
-
-                  if(err2){
-                    console.log("Error consultando después del UPDATE:", casilla, err2.message);
-                    return;
-                  }
-
-                  console.log("🔎 DESPUÉS DEL UPDATE:", {
-                    folio,
-                    casilla,
-                    fila: filaDespues || null
-                  });
-
-                  console.log("✅ CASILLA PAGADA NUEVA VERSION:", {
-                    folio,
-                    casilla,
-                    jugadorId,
-                    tiempo: infoTiempo ? infoTiempo.tiempo : null
-                  });
-
-                }
-              );
-
-            }
-          );
-
-        }
-      );
-
+    console.log("FILAS AFECTADAS:", this.changes);
+    console.log("✅ CASILLA PAGADA NUEVA VERSION:", {
+        folio,
+        casilla,
+        jugadorId,
+        tiempo: infoTiempo ? infoTiempo.tiempo : null
     });
+}
+);
 
-  }
+});
+
+}
 
 }catch(error){
 
-  console.log("❌ ERROR PROCESANDO PAGO:", error);
+console.log("❌ ERROR PROCESANDO PAGO:",error);
 
 }
 
@@ -1552,11 +1535,71 @@ app.get("/api/tableros", (req, res) => {
         });
     });
 });
+app.get("/api/estado-casillas", (req, res) => {
 
+    const folio = req.query.folio;
 
+    if(!folio){
+        return res.json({ ok:false, mensaje:"Folio requerido", casillas:[] });
+    }
+
+    const ahora = Date.now();
+
+    db.all(
+    `SELECT casilla, estado, expira, jugador, tiempo
+     FROM casillas
+     WHERE tableroId = ?
+     AND (
+         estado = 'pagada'
+         OR (estado = 'reservada' AND expira > ?)
+     )`,
+    [folio, ahora],
+    (err, rows) => {
+
+        if(err){
+            console.log("Error leyendo estado de casillas:", err.message);
+            return res.json({ ok:false, casillas:[] });
+        }
+
+        const mapa = {};
+
+        rows.forEach(row => {
+            const numero = row.casilla;
+
+            if(row.estado === "pagada"){
+                mapa[numero] = {
+                    casilla: numero,
+                    estado: "pagada",
+                    jugador: row.jugador || null,
+                    tiempo: row.tiempo || null,
+                    expira: null
+                };
+                return;
+            }
+
+            if(!mapa[numero] && row.estado === "reservada"){
+                mapa[numero] = {
+                    casilla: numero,
+                    estado: "reservada",
+                    jugador: row.jugador || null,
+                    tiempo: row.tiempo || null,
+                    expira: row.expira
+                };
+            }
+        });
+
+        res.json({
+            ok:true,
+            folio,
+            casillas: Object.values(mapa)
+        });
+    });
+
+});
 
 
 app.listen(PORT, () => {
         console.log(`Servidor corriendo en http://localhost:${PORT}`);
     });
 });
+

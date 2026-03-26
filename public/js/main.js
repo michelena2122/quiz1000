@@ -379,15 +379,12 @@ if (tableroEstado.casillasResueltas.includes(numero)) {
 // ==========================
 // ACTUALIZAR TABLERO AUTOMATICAMENTE
 // ==========================
-function actualizarContadorHeader(reservas, ocupadas){
+function actualizarContadorHeader(estados){
 
 const TOTAL = 50;
 
-const reservadas =
-reservas.filter(r => r.expira > Date.now()).length;
-
-const resueltas = ocupadas.length;
-
+const resueltas = estados.filter(c => c.estado === "pagada").length;
+const reservadas = estados.filter(c => c.estado === "reservada" && c.expira > Date.now()).length;
 const faltantes = TOTAL - resueltas - reservadas;
 
 const estado = document.getElementById("estadoTablero");
@@ -417,14 +414,11 @@ try{
 // 1️⃣ OBTENER RESERVAS
 // ==========================
 
-const resReservas = await fetch("/api/reservas");
-const dataReservas = await resReservas.json();
-const reservas = dataReservas.ok ? dataReservas.reservas : [];
+const resEstado = await fetch("/api/estado-casillas?folio=" + encodeURIComponent(folio));
+const dataEstado = await resEstado.json();
+const estados = dataEstado.ok ? dataEstado.casillas : [];
 
-const resTablero = await fetch("/api/tablero");
-const dataTablero = await resTablero.json();
-const ocupadas = dataTablero.casillas.map(c => c.casilla);
-actualizarContadorHeader(reservas, ocupadas);
+actualizarContadorHeader(estados);
 
 // ==========================
 // 3️⃣ RECORRER CELDAS
@@ -433,83 +427,68 @@ actualizarContadorHeader(reservas, ocupadas);
 document.querySelectorAll(".cell").forEach(cell => {
 
 const numero = parseInt(cell.dataset.id) + 1;
-
-console.log("CHECK:", numero, ocupadas, ocupadas.includes(numero));
-
-const reserva = reservas.find(r => r.casilla === numero);
-
-// ==========================
-// CASILLA RESERVADA
-// ==========================
-
-if(reserva){
-
-const tiempoRestante = reserva.expira - Date.now();
-
-if(tiempoRestante <= 0){
-
-// ignorar reserva expirada
-reserva = null;
-
-}else{
-
-const segundos = Math.floor(tiempoRestante / 1000);
-const minutos = Math.floor(segundos / 60);
-const seg = segundos % 60;
-
-const texto =
-`${minutos.toString().padStart(2,"0")}:${seg.toString().padStart(2,"0")}`;
-
-cell.classList.add("resuelta");
-cell.style.backgroundColor = "white";
-cell.innerHTML = `<span class="contador-reserva">${texto}</span>`;
-
-return;
-
-}
-
-}
+const estadoCasilla = estados.find(c => c.casilla === numero);
 
 // ==========================
 // CASILLA PAGADA
 // ==========================
 
-if(ocupadas.includes(numero)){
+if(estadoCasilla && estadoCasilla.estado === "pagada"){
 
-if(!cell.querySelector(".robot-mini")){
+    if(!cell.querySelector(".robot-mini")){
 
-cell.classList.add("resuelta");
-cell.style.backgroundColor = "transparent";
-cell.style.pointerEvents = "none";
+        cell.classList.add("resuelta");
+        cell.style.backgroundColor = "transparent";
+        cell.style.pointerEvents = "none";
 
-const numeroTexto = document.createElement("div");
-numeroTexto.classList.add("numero-casilla-pagada");
-numeroTexto.textContent = numero;
+        const robot = document.createElement("img");
+        robot.src = "/assets/images/robot2.png";
+        robot.classList.add("robot-mini");
 
-const robot = document.createElement("img");
-robot.src = "/assets/images/robot2.png";
-robot.classList.add("robot-mini");
+        cell.innerHTML = "";
+        cell.appendChild(robot);
+    }
 
-cell.innerHTML = "";
-cell.appendChild(numeroTexto);
-cell.appendChild(robot);
-
+    return;
 }
 
-return;
+// ==========================
+// CASILLA RESERVADA
+// ==========================
 
+if(estadoCasilla && estadoCasilla.estado === "reservada"){
+
+    const tiempoRestante = estadoCasilla.expira - Date.now();
+
+    if(tiempoRestante > 0){
+
+        const segundos = Math.floor(tiempoRestante / 1000);
+        const minutos = Math.floor(segundos / 60);
+        const seg = segundos % 60;
+
+        const texto =
+        `${minutos.toString().padStart(2,"0")}:${seg.toString().padStart(2,"0")}`;
+
+        cell.classList.add("resuelta");
+        cell.style.backgroundColor = "white";
+        cell.style.pointerEvents = "none";
+        cell.innerHTML = `<span class="contador-reserva">${texto}</span>`;
+
+        return;
+    }
 }
+
 // ==========================
 // CASILLA LIBRE
 // ==========================
 
 if(cell.classList.contains("resuelta")){
+    cell.classList.remove("resuelta");
+}
 
-cell.classList.remove("resuelta");
 cell.innerHTML = "";
 cell.style.backgroundColor = cell.dataset.color;
-
-}
+cell.style.pointerEvents = "";
 
 });
 
