@@ -1290,6 +1290,12 @@ casillas.forEach(casilla => {
 
     const infoTiempo = tiempos.find(t => t.numero === casilla);
 
+console.log("🧪 INTENTO UPDATE WEBHOOK:", {
+    folio: folio,
+    casilla: casilla,
+    jugadorId: jugadorId,
+    infoTiempo: infoTiempo ? infoTiempo.tiempo : null
+});
     db.run(
 `UPDATE casillas
  SET estado = 'pagada',
@@ -1312,6 +1318,9 @@ function(err){
     }
 
     console.log("FILAS AFECTADAS:", this.changes);
+    
+     console.log("FILAS AFECTADAS UPDATE PAGO:", this.changes);
+
     console.log("✅ CASILLA PAGADA NUEVA VERSION:", {
         folio,
         casilla,
@@ -1596,8 +1605,6 @@ app.get("/api/estado-casillas", (req, res) => {
     });
 
 });
-
-
 app.listen(PORT, () => {
         console.log(`Servidor corriendo en http://localhost:${PORT}`);
     });
