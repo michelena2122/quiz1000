@@ -329,7 +329,6 @@ const colores = [
             cell.style.backgroundColor = colorOriginal;
             cell.dataset.color = colorOriginal;
             cell.dataset.id = data.indexOf(item);
-            cell.dataset.numero = item.resultado;
             
 
             // estado guardado en localStorage

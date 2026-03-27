@@ -1318,7 +1318,7 @@ function(err){
     }
 
     console.log("FILAS AFECTADAS:", this.changes);
-    
+
      console.log("FILAS AFECTADAS UPDATE PAGO:", this.changes);
 
     console.log("✅ CASILLA PAGADA NUEVA VERSION:", {
@@ -1363,7 +1363,7 @@ app.post("/crear-pago", async (req, res) => {
 
         const preference = {
             items: items.map(item => ({
-                title: `Casilla ${item.numero}`,
+                title: `SKU${item.numero}`,
                 quantity: 1,
                 unit_price: Number((Number(item.numero) * tipoCambioCobro).toFixed(2)),
                 currency_id: "MXN"
