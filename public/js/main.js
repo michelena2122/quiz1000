@@ -303,7 +303,7 @@ estadoTableroEl.innerHTML = `
 <span class="estado-label">RESUELTOS</span>
 
 <span class="estado-celda estado-reservadas">${reservadas}</span>
-<span class="estado-label">RESERVADAS</span>
+<span class="estado-label">EN PROCESO</span>
 
 <span class="estado-celda estado-faltantes">${faltantes}</span>
 <span class="estado-label">POR COMPLETAR</span>
