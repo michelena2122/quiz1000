@@ -1613,3 +1613,9 @@ body.tablero *{
   bottom: 88px;
 }
 }
+@media (max-width: 768px){
+  .estado-tablero-tablero{
+    transform: scale(0.85);
+    transform-origin: center;
+  }
+}
