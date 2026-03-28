@@ -1265,10 +1265,10 @@ body.tablero *{
 /* Robot flotante izquierdo */
 .robot-tablero{
   position: fixed;
-  left: 12px;
-  bottom: 90px;
-  width: 90px;
-  max-width: 18vw;
+  left: 10px;
+  bottom: 105px;
+  width: 110px;
+  max-width: 22vw;
   height: auto;
   z-index: 20;
   pointer-events: none;
@@ -1325,18 +1325,6 @@ body.tablero *{
 
 /* Estado tablero */
 .estado-tablero-tablero{
-  width: min(1000px, 94%);
-  margin: 0 auto 16px auto;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
-  text-align: center;
-}
-
-.estado-tablero-tablero > *{
-  flex: 1 1 180px;
-  min-width: 140px;
 }
 
 /* Mensaje */
@@ -1357,7 +1345,34 @@ body.tablero *{
   gap: 8px;
   justify-content: center;
 }
+/* Ajuste visual de números del resumen */
+.estado-tablero-tablero .numero-estado,
+.estado-tablero-tablero .contador-estado,
+.estado-tablero-tablero .estado-numero,
+.estado-tablero-tablero strong,
+.estado-tablero-tablero span:first-child{
+  min-width: 28px;
+  height: 40px;
+  padding: 0 6px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(18px, 2.2vw, 26px);
+  line-height: 1;
+}
 
+/* Ajuste visual de textos del resumen */
+.estado-tablero-tablero .texto-estado,
+.estado-tablero-tablero .estado-texto,
+.estado-tablero-tablero span:last-child{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(11px, 1.6vw, 16px);
+  line-height: 1.15;
+  text-align: center;
+}
 /* Casillas */
 .tablero-grid > div,
 .tablero-grid .casilla,
@@ -1386,18 +1401,23 @@ body.tablero *{
 
 /* Home */
 .home-wrapper{
-  position: fixed;
-  right: 12px;
-  bottom: 14px;
+  position: static;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 8px 0 14px 0;
   z-index: 30;
 }
 
-.home-icon-tablero{
-  display: inline-flex;
-  align-items: center;
+.home-wrapper{
+  position: static;
+  width: 100%;
+  display: flex;
   justify-content: center;
-  width: 50px;
-  height: 50px;
+  align-items: center;
+  margin: 8px 0 14px 0;
+  z-index: 30;
 }
 
 .home-icon-tablero img{
@@ -1440,10 +1460,10 @@ body.tablero *{
   }
 
   .robot-tablero{
-    width: 76px;
-    left: 8px;
-    bottom: 84px;
-  }
+  width: 92px;
+  left: 8px;
+  bottom: 92px;
+}
 }
 
 /* =========================
@@ -1519,20 +1539,19 @@ body.tablero *{
   }
 
   .robot-tablero{
-    width: 58px;
-    left: 6px;
-    bottom: 76px;
-  }
+  width: 74px;
+  left: 6px;
+  bottom: 92px;
+}
 
   .home-wrapper{
-    right: 10px;
-    bottom: 10px;
-  }
+  margin: 6px 0 12px 0;
+}
 
-  .home-icon-tablero{
-    width: 44px;
-    height: 44px;
-  }
+.home-icon-tablero{
+  width: 68px;
+  height: 68px;
+}
 
   .tablero-footer{
     font-size: 11px;
@@ -1589,8 +1608,8 @@ body.tablero *{
   }
 
   .robot-tablero{
-    width: 46px;
-    left: 4px;
-    bottom: 74px;
-  }
+  width: 60px;
+  left: 4px;
+  bottom: 88px;
+}
 }
