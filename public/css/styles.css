@@ -1613,3 +1613,39 @@ body.tablero *{
   bottom: 88px;
 }
 }
+/* =========================================
+   AJUSTE FINAL TEXTO ESTADO TABLERO
+   ========================================= */
+
+.estado-tablero-tablero{
+  gap: 6px 10px;
+}
+
+/* Contenedor de cada bloque */
+.estado-tablero-tablero > *{
+  flex: 1 1 100px;
+  min-width: 100px;
+  max-width: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Número (el cuadrito vertical) */
+.estado-tablero-tablero strong,
+.estado-tablero-tablero span:first-child{
+  font-size: clamp(16px, 4vw, 22px);
+  height: 34px;
+  min-width: 26px;
+  border-radius: 10px;
+  margin-bottom: 2px;
+}
+
+/* Texto debajo del número */
+.estado-tablero-tablero span:last-child{
+  font-size: clamp(10px, 2.8vw, 13px);
+  line-height: 1.1;
+  text-align: center;
+  word-break: break-word;
+}
