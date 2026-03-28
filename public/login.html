@@ -1,69 +1,175 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Login QUIZ1000</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login QUIZ1000</title>
+
+  <style>
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+    }
+
+    body{
+      font-family: Arial, sans-serif;
+      background: linear-gradient(180deg, #0f172a, #111827);
+      min-height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      padding:20px;
+      color:white;
+    }
+
+    .login-card{
+      width:100%;
+      max-width:420px;
+      background:rgba(255,255,255,0.08);
+      border:1px solid rgba(255,255,255,0.12);
+      border-radius:20px;
+      padding:28px 20px;
+      box-shadow:0 10px 30px rgba(0,0,0,0.35);
+      backdrop-filter:blur(10px);
+    }
+
+    h2{
+      text-align:center;
+      font-size:32px;
+      margin-bottom:24px;
+      color:#22c55e;
+    }
+
+    .campo{
+      margin-bottom:14px;
+    }
+
+    input{
+      width:100%;
+      padding:14px 16px;
+      border:none;
+      border-radius:12px;
+      font-size:16px;
+      outline:none;
+      background:white;
+      color:#111827;
+    }
+
+    button{
+      width:100%;
+      padding:14px;
+      border:none;
+      border-radius:12px;
+      font-size:16px;
+      font-weight:bold;
+      background:#22c55e;
+      color:white;
+      cursor:pointer;
+      transition:0.2s ease;
+      margin-top:4px;
+    }
+
+    button:hover{
+      opacity:0.95;
+      transform:translateY(-1px);
+    }
+
+    #msg{
+      min-height:22px;
+      margin-top:14px;
+      text-align:center;
+      font-size:14px;
+      color:#facc15;
+    }
+
+    .link-recuperar{
+      margin-top:12px;
+      text-align:center;
+    }
+
+    .link-recuperar a{
+      color:#93c5fd;
+      text-decoration:none;
+      font-size:15px;
+    }
+
+    .link-recuperar a:hover{
+      text-decoration:underline;
+    }
+
+    @media (max-width:480px){
+      .login-card{
+        padding:22px 16px;
+        border-radius:16px;
+      }
+
+      h2{
+        font-size:28px;
+      }
+    }
+  </style>
 </head>
 
 <body>
 
-<h2>Iniciar sesión</h2>
+  <div class="login-card">
+    <h2>Iniciar sesión</h2>
 
-<input type="email" id="email" placeholder="Correo electrónico">
-<br><br>
+    <div class="campo">
+      <input type="email" id="email" placeholder="Correo electrónico">
+    </div>
 
-<input type="password" id="password" placeholder="Contraseña">
-<br><br>
+    <div class="campo">
+      <input type="password" id="password" placeholder="Contraseña">
+    </div>
 
-<button onclick="login()">Entrar</button>
+    <button onclick="login()">Entrar</button>
 
-<p id="msg"></p>
-<p>
-<a href="recuperar.html">¿Olvidaste tu contraseña?</a>
-</p>
+    <p id="msg"></p>
 
-<script>
+    <p class="link-recuperar">
+      <a href="recuperar.html">¿Olvidaste tu contraseña?</a>
+    </p>
+  </div>
 
-function login(){
+  <script>
+    function login(){
 
-const email = document.getElementById("email").value.trim();
-const password = document.getElementById("password").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
 
-fetch("/login",{
+      fetch("/login",{
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json"
+        },
+        body: JSON.stringify({
+          email,
+          password
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
 
-method:"POST",
+        if(data.ok){
 
-headers:{
-"Content-Type":"application/json"
-},
+          localStorage.setItem("usuarioLogueado", JSON.stringify(data.usuario));
+          window.location.href = "perfil.html";
 
-body: JSON.stringify({
-email,
-password
-})
+        }else{
 
-})
-.then(res=>res.json())
-.then(data=>{
+          document.getElementById("msg").innerText = data.mensaje;
 
-if(data.ok){
+        }
 
-localStorage.setItem("usuarioLogueado", JSON.stringify(data.usuario));
+      })
+      .catch(() => {
+        document.getElementById("msg").innerText = "Error de conexión";
+      });
 
-window.location.href = "perfil.html";
-
-}else{
-
-document.getElementById("msg").innerText = data.mensaje;
-
-}
-
-});
-
-}
-
-</script>
+    }
+  </script>
 
 </body>
 </html>
-
