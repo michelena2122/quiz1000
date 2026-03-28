@@ -1649,3 +1649,39 @@ body.tablero *{
   text-align: center;
   word-break: break-word;
 }
+/* =========================================
+   AJUSTE FINO HEADER (SIN CAMBIAR ESTRUCTURA)
+   ========================================= */
+
+.estado-tablero-tablero{
+  gap: 6px 12px;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Mantener horizontal, solo ajustar tamaño */
+.estado-tablero-tablero > *{
+  flex: 0 1 auto;
+  min-width: unset;
+  max-width: unset;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+/* Números (pastillas de color) */
+.estado-tablero-tablero strong,
+.estado-tablero-tablero span:first-child{
+  font-size: clamp(14px, 3.5vw, 20px);
+  height: 32px;
+  padding: 0 8px;
+  border-radius: 12px;
+}
+
+/* Texto: RESUELTOS / EN PROCESO / POR COMPLETAR */
+.estado-tablero-tablero span:last-child{
+  font-size: clamp(10px, 2.5vw, 14px);
+  line-height: 1.1;
+  white-space: nowrap;
+}
