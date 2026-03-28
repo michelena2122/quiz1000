@@ -62,14 +62,13 @@ EL PREMIO SE PAGA HASTA QUE SE COMPLETA EL TABLERO,<br>
 All rights reserved. QUIZ1000 is a trademark of Quiz1000 LLC.
 www.Quiz1000.llc
 </footer>
+
+<script src="js/main.js"></script>
 // PROTEGER TABLERO
 const usuario = localStorage.getItem("usuarioLogueado");
 
 if(!usuario){
     window.location.href = "login.html";
-}
-<script src="js/main.js"></script>
-
 <!-- MODAL -->
 <div id="modalPregunta" class="modal hidden">
 <div class="modal-contenido">
