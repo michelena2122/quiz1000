@@ -1354,3 +1354,88 @@ header p {
     white-space: nowrap;
   }
 }
+/* =========================================
+   AJUSTE FINO SOLO PARA UNIFICAR TAMAÑOS
+   no cambia posicion ni estructura
+   ========================================= */
+
+.estado-tablero-tablero > *{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+/* TODOS los recuadros numéricos iguales */
+.estado-tablero-tablero .numero-estado,
+.estado-tablero-tablero .contador-estado,
+.estado-tablero-tablero .estado-numero,
+.estado-tablero-tablero strong,
+.estado-tablero-tablero span:first-child{
+  width: 58px !important;
+  min-width: 58px !important;
+  max-width: 58px !important;
+  height: 58px !important;
+  padding: 0 !important;
+  border-radius: 14px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+  font-size: 22px !important;
+  line-height: 1 !important;
+  font-weight: 700 !important;
+}
+
+/* TODOS los textos iguales */
+.estado-tablero-tablero .texto-estado,
+.estado-tablero-tablero .estado-texto,
+.estado-tablero-tablero span:last-child{
+  font-size: 13px !important;
+  line-height: 1.1 !important;
+  font-weight: 700 !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+}
+
+/* TABLET */
+@media (max-width: 768px){
+  .estado-tablero-tablero .numero-estado,
+  .estado-tablero-tablero .contador-estado,
+  .estado-tablero-tablero .estado-numero,
+  .estado-tablero-tablero strong,
+  .estado-tablero-tablero span:first-child{
+    width: 52px !important;
+    min-width: 52px !important;
+    max-width: 52px !important;
+    height: 52px !important;
+    font-size: 18px !important;
+  }
+
+  .estado-tablero-tablero .texto-estado,
+  .estado-tablero-tablero .estado-texto,
+  .estado-tablero-tablero span:last-child{
+    font-size: 11px !important;
+  }
+}
+
+/* MOVIL */
+@media (max-width: 480px){
+  .estado-tablero-tablero .numero-estado,
+  .estado-tablero-tablero .contador-estado,
+  .estado-tablero-tablero .estado-numero,
+  .estado-tablero-tablero strong,
+  .estado-tablero-tablero span:first-child{
+    width: 48px !important;
+    min-width: 48px !important;
+    max-width: 48px !important;
+    height: 48px !important;
+    font-size: 17px !important;
+  }
+
+  .estado-tablero-tablero .texto-estado,
+  .estado-tablero-tablero .estado-texto,
+  .estado-tablero-tablero span:last-child{
+    font-size: 10px !important;
+  }
+}
