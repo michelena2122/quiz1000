@@ -1237,78 +1237,64 @@ header p {
   }
 }
 /* =========================================
-   RESUMEN TABLERO - FORZAR VERTICAL REAL
+   RESUMEN TABLERO EN LA MISMA LINEA
    ========================================= */
 
-/* contenedor principal: cubre varias versiones del resumen */
-.estado-tablero-tablero,
-.estado-tablero-ui,
-.estado-tablero{
+.estado-tablero-tablero{
   display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
+  flex-direction: row !important;
   justify-content: center !important;
-  gap: 8px !important;
+  align-items: center !important;
+  gap: 14px !important;
+  flex-wrap: wrap !important;
   width: 100% !important;
   margin: 10px auto !important;
 }
 
-/* cada fila */
-.estado-tablero-tablero > *,
-.estado-tablero-ui > *,
-.estado-tablero > *,
 .estado-linea{
   display: flex !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  gap: 10px !important;
-  width: 100% !important;
-  max-width: 260px !important;
-  margin: 0 auto !important;
-}
-
-/* cuadros de números: todos iguales */
-.estado-tablero-tablero strong,
-.estado-tablero-tablero span:first-child,
-.mini-cell,
-.estado-celda,
-.numero-resuelto,
-.numero-faltante{
-  width: 36px !important;
-  height: 36px !important;
-  min-width: 36px !important;
-  max-width: 36px !important;
-  padding: 0 !important;
-  border-radius: 8px !important;
-  display: flex !important;
+  flex-direction: row !important;
   align-items: center !important;
   justify-content: center !important;
-  box-sizing: border-box !important;
-  font-size: 16px !important;
-  line-height: 1 !important;
-  text-align: center !important;
-}
-
-/* textos: mismo tamaño para todos */
-.estado-tablero-tablero span:last-child,
-.estado-texto,
-.estado-label,
-.texto-resuelto,
-.texto-faltante{
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  background: transparent !important;
-  padding: 0 !important;
-  border-radius: 0 !important;
-  font-size: 12px !important;
-  line-height: 1.1 !important;
-  color: #003366 !important;
-  text-align: left !important;
+  gap: 8px !important;
+  margin: 6px 0 !important;
   white-space: nowrap !important;
 }
 
-/* si hay separadores viejos, ocultarlos */
+.numero-resuelto,
+.numero-faltante,
+.estado-celda,
+.mini-cell{
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px !important;
+  max-width: 38px !important;
+  padding: 0 !important;
+  border-radius: 10px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+  font-size: 18px !important;
+  line-height: 1 !important;
+}
+
+.texto-resuelto,
+.texto-faltante,
+.estado-label,
+.estado-texto{
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 13px !important;
+  line-height: 1.1 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+  white-space: nowrap !important;
+}
+
 .separador,
 .estado-separador{
   display: none !important;
