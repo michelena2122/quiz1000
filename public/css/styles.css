@@ -1237,177 +1237,79 @@ header p {
   }
 }
 /* =========================================
-   ESTADO DEL TABLERO (RESUMEN)
-   cuadrados iguales + textos del mismo tamaño
+   RESUMEN TABLERO - FORZAR VERTICAL REAL
    ========================================= */
 
-.estado-tablero-tablero{
-  width: min(900px, 94%);
-  margin: 0 auto 18px auto;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 22px;
-  text-align: center;
-}
-
-.estado-tablero-tablero > *{
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-width: 0;
-}
-
-/* NÚMEROS: todos iguales y cuadrados */
-.estado-tablero-tablero .numero-estado,
-.estado-tablero-tablero .contador-estado,
-.estado-tablero-tablero .estado-numero,
-.estado-tablero-tablero strong,
-.estado-tablero-tablero span:first-child{
-  width: 40px;
-  height: 40px;
-  min-width: 40px;
-  padding: 0;
-  border-radius: 14px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  font-size: clamp(18px, 2.2vw, 26px);
-  line-height: 1;
-}
-
-/* TEXTOS: todos con la misma proporción */
-.estado-tablero-tablero .texto-estado,
-.estado-tablero-tablero .estado-texto,
-.estado-tablero-tablero span:last-child{
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: clamp(11px, 1.6vw, 16px);
-  line-height: 1.1;
-  text-align: center;
-  white-space: nowrap;
-}
-
-/* =========================
-   TABLET / MOVIL
-   ========================= */
-@media (max-width: 768px){
-
-  .estado-tablero-tablero{
-    width: 96%;
-    margin: 0 auto 16px auto;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    padding: 0 6px;
-  }
-
-  .estado-tablero-tablero > *{
-    min-width: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-  }
-
-  .estado-tablero-tablero .numero-estado,
-  .estado-tablero-tablero .contador-estado,
-  .estado-tablero-tablero .estado-numero,
-  .estado-tablero-tablero strong,
-  .estado-tablero-tablero span:first-child{
-    width: 34px;
-    height: 34px;
-    min-width: 34px;
-    padding: 0;
-    border-radius: 12px;
-    font-size: 14px;
-    line-height: 1;
-  }
-
-  .estado-tablero-tablero .texto-estado,
-  .estado-tablero-tablero .estado-texto,
-  .estado-tablero-tablero span:last-child{
-    font-size: 11px !important;
-    line-height: 1.1;
-    white-space: nowrap;
-  }
-}
-
-/* =========================
-   MOVIL PEQUEÑO
-   ========================= */
-@media (max-width: 480px){
-
-  .estado-tablero-tablero{
-    gap: 6px;
-  }
-
-  .estado-tablero-tablero > *{
-    gap: 3px;
-  }
-
-  .estado-tablero-tablero .numero-estado,
-  .estado-tablero-tablero .contador-estado,
-  .estado-tablero-tablero .estado-numero,
-  .estado-tablero-tablero strong,
-  .estado-tablero-tablero span:first-child{
-    width: 32px;
-    height: 32px;
-    min-width: 32px;
-    padding: 0;
-    border-radius: 10px;
-    font-size: 14px;
-  }
-
-  .estado-tablero-tablero .texto-estado,
-  .estado-tablero-tablero .estado-texto,
-  .estado-tablero-tablero span:last-child{
-    font-size: 10px !important;
-    line-height: 1.1;
-    white-space: nowrap;
-  }
-}
-/* =========================================
-   RESUMEN TABLERO EN VERTICAL (ESTABLE)
-   ========================================= */
-
-.estado-tablero-tablero{
+/* contenedor principal: cubre varias versiones del resumen */
+.estado-tablero-tablero,
+.estado-tablero-ui,
+.estado-tablero{
   display: flex !important;
   flex-direction: column !important;
-  align-items: center;
-  gap: 8px;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  width: 100% !important;
+  margin: 10px auto !important;
 }
 
 /* cada fila */
-.estado-tablero-tablero > *{
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 10px;
-  width: 100%;
-  max-width: 260px;
+.estado-tablero-tablero > *,
+.estado-tablero-ui > *,
+.estado-tablero > *,
+.estado-linea{
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 10px !important;
+  width: 100% !important;
+  max-width: 260px !important;
+  margin: 0 auto !important;
 }
 
-/* números cuadrados iguales */
+/* cuadros de números: todos iguales */
 .estado-tablero-tablero strong,
-.estado-tablero-tablero span:first-child{
-  width: 36px;
-  height: 36px;
-  min-width: 36px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  line-height: 1;
+.estado-tablero-tablero span:first-child,
+.mini-cell,
+.estado-celda,
+.numero-resuelto,
+.numero-faltante{
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  max-width: 36px !important;
+  padding: 0 !important;
+  border-radius: 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+  font-size: 16px !important;
+  line-height: 1 !important;
+  text-align: center !important;
 }
 
-/* textos alineados */
-.estado-tablero-tablero span:last-child{
-  font-size: 12px;
-  line-height: 1.1;
+/* textos: mismo tamaño para todos */
+.estado-tablero-tablero span:last-child,
+.estado-texto,
+.estado-label,
+.texto-resuelto,
+.texto-faltante{
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  background: transparent !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  font-size: 12px !important;
+  line-height: 1.1 !important;
+  color: #003366 !important;
+  text-align: left !important;
+  white-space: nowrap !important;
+}
+
+/* si hay separadores viejos, ocultarlos */
+.separador,
+.estado-separador{
+  display: none !important;
 }
