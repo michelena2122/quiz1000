@@ -1243,20 +1243,22 @@ header p {
 .estado-tablero-tablero{
   width: min(900px, 94%);
   margin: 0 auto 18px auto;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 22px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  align-items: start;
   text-align: center;
 }
 
-/* cada bloque: número + texto */
+/* cada bloque */
 .estado-tablero-tablero > *{
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+  width: 100%;
   min-width: 0;
+  display: grid;
+  grid-template-rows: auto auto;
+  justify-items: center;
+  align-items: center;
+  row-gap: 6px;
 }
 
 /* NÚMEROS */
@@ -1265,14 +1267,14 @@ header p {
 .estado-tablero-tablero .estado-numero,
 .estado-tablero-tablero strong,
 .estado-tablero-tablero span:first-child{
-  min-width: 28px;
-  height: 40px;
-  padding: 0 8px;
+  min-width: 52px;
+  height: 46px;
+  padding: 0 10px;
   border-radius: 14px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: clamp(18px, 2.2vw, 26px);
+  font-size: clamp(18px, 2.2vw, 24px);
   line-height: 1;
 }
 
@@ -1280,12 +1282,13 @@ header p {
 .estado-tablero-tablero .texto-estado,
 .estado-tablero-tablero .estado-texto,
 .estado-tablero-tablero span:last-child{
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: clamp(11px, 1.6vw, 16px);
-  line-height: 1.1;
+  display: block;
+  width: 100%;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.15;
   text-align: center;
+  white-space: nowrap;
 }
 
 /* =========================
@@ -1296,32 +1299,25 @@ header p {
   .estado-tablero-tablero{
     width: 96%;
     margin: 0 auto 16px auto;
-    display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px;
-    align-items: center;
   }
 
   .estado-tablero-tablero > *{
-    width: 100%;
-    min-width: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
+    row-gap: 5px;
   }
 
   .estado-tablero-tablero strong,
   .estado-tablero-tablero span:first-child{
-    min-width: 24px;
-    height: 34px;
-    padding: 0 6px;
+    min-width: 46px;
+    height: 40px;
+    padding: 0 8px;
     font-size: 15px;
   }
 
   .estado-tablero-tablero span:last-child{
     font-size: 11px;
-    line-height: 1.05;
+    line-height: 1.1;
   }
 }
 
@@ -1334,19 +1330,16 @@ header p {
     gap: 6px;
   }
 
-  .estado-tablero-tablero > *{
-    gap: 3px;
-  }
-
   .estado-tablero-tablero strong,
   .estado-tablero-tablero span:first-child{
-    min-width: 22px;
-    height: 32px;
-    padding: 0 5px;
+    min-width: 42px;
+    height: 36px;
+    padding: 0 7px;
     font-size: 14px;
   }
 
   .estado-tablero-tablero span:last-child{
     font-size: 10px;
+    line-height: 1.1;
   }
 }
