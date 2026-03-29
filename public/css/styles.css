@@ -1241,12 +1241,22 @@ header p {
    ========================================= */
 
 .estado-tablero-tablero{
+  width: min(900px, 94%);
+  margin: 0 auto 18px auto;
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
+  gap: 22px;
   text-align: center;
+}
+
+/* cada bloque: número + texto */
+.estado-tablero-tablero > *{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
 }
 
 /* NÚMEROS */
@@ -1257,7 +1267,7 @@ header p {
 .estado-tablero-tablero span:first-child{
   min-width: 28px;
   height: 40px;
-  padding: 0 6px;
+  padding: 0 8px;
   border-radius: 14px;
   display: inline-flex;
   align-items: center;
@@ -1274,47 +1284,49 @@ header p {
   align-items: center;
   justify-content: center;
   font-size: clamp(11px, 1.6vw, 16px);
-  line-height: 1.15;
+  line-height: 1.1;
   text-align: center;
 }
 
 /* =========================
-   MÓVIL / TABLET
+   TABLET / MOVIL
    ========================= */
 @media (max-width: 768px){
 
   .estado-tablero-tablero{
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    width: 96%;
+    margin: 0 auto 16px auto;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px;
-    flex-wrap: nowrap;
+    align-items: center;
   }
 
   .estado-tablero-tablero > *{
+    width: 100%;
+    min-width: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 4px;
   }
 
-  /* números más compactos */
   .estado-tablero-tablero strong,
   .estado-tablero-tablero span:first-child{
-    font-size: 14px;
-    height: 32px;
+    min-width: 24px;
+    height: 34px;
     padding: 0 6px;
+    font-size: 15px;
   }
 
-  /* texto más pequeño */
   .estado-tablero-tablero span:last-child{
     font-size: 11px;
+    line-height: 1.05;
   }
-
 }
 
 /* =========================
-   MÓVIL PEQUEÑO
+   MOVIL PEQUEÑO
    ========================= */
 @media (max-width: 480px){
 
@@ -1322,4 +1334,19 @@ header p {
     gap: 6px;
   }
 
+  .estado-tablero-tablero > *{
+    gap: 3px;
+  }
+
+  .estado-tablero-tablero strong,
+  .estado-tablero-tablero span:first-child{
+    min-width: 22px;
+    height: 32px;
+    padding: 0 5px;
+    font-size: 14px;
+  }
+
+  .estado-tablero-tablero span:last-child{
+    font-size: 10px;
+  }
 }
