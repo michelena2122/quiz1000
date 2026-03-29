@@ -1237,65 +1237,116 @@ header p {
   }
 }
 /* =========================================
-   RESUMEN TABLERO EN LA MISMA LINEA
+   ESTADO DEL TABLERO (RESUMEN)
    ========================================= */
 
 .estado-tablero-tablero{
-  display: flex !important;
-  flex-direction: row !important;
-  justify-content: center !important;
-  align-items: center !important;
-  gap: 14px !important;
-  flex-wrap: wrap !important;
-  width: 100% !important;
-  margin: 10px auto !important;
+  width: min(900px, 94%);
+  margin: 0 auto 18px auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 22px;
+  text-align: center;
 }
 
-.estado-linea{
-  display: flex !important;
-  flex-direction: row !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 8px !important;
-  margin: 6px 0 !important;
-  white-space: nowrap !important;
+/* cada bloque: número + texto */
+.estado-tablero-tablero > *{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
 }
 
-.numero-resuelto,
-.numero-faltante,
-.estado-celda,
-.mini-cell{
-  width: 38px !important;
-  height: 38px !important;
-  min-width: 38px !important;
-  max-width: 38px !important;
-  padding: 0 !important;
-  border-radius: 10px !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  box-sizing: border-box !important;
-  font-size: 18px !important;
-  line-height: 1 !important;
+/* NÚMEROS */
+.estado-tablero-tablero .numero-estado,
+.estado-tablero-tablero .contador-estado,
+.estado-tablero-tablero .estado-numero,
+.estado-tablero-tablero strong,
+.estado-tablero-tablero span:first-child{
+  min-width: 28px;
+  height: 40px;
+  padding: 0 8px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(18px, 2.2vw, 26px);
+  line-height: 1;
 }
 
-.texto-resuelto,
-.texto-faltante,
-.estado-label,
-.estado-texto{
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  font-size: 13px !important;
-  line-height: 1.1 !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  background: transparent !important;
-  border-radius: 0 !important;
-  white-space: nowrap !important;
+/* TEXTOS */
+.estado-tablero-tablero .texto-estado,
+.estado-tablero-tablero .estado-texto,
+.estado-tablero-tablero span:last-child{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(11px, 1.6vw, 16px);
+  line-height: 1.1;
+  text-align: center;
 }
 
-.separador,
-.estado-separador{
-  display: none !important;
+/* =========================
+   TABLET / MOVIL
+   ========================= */
+@media (max-width: 768px){
+
+  .estado-tablero-tablero{
+    width: 96%;
+    margin: 0 auto 16px auto;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    align-items: center;
+  }
+
+  .estado-tablero-tablero > *{
+    width: 100%;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+
+  .estado-tablero-tablero strong,
+  .estado-tablero-tablero span:first-child{
+    min-width: 24px;
+    height: 34px;
+    padding: 0 6px;
+    font-size: 15px;
+  }
+
+  .estado-tablero-tablero span:last-child{
+    font-size: 11px;
+    line-height: 1.05;
+  }
+}
+
+/* =========================
+   MOVIL PEQUEÑO
+   ========================= */
+@media (max-width: 480px){
+
+  .estado-tablero-tablero{
+    gap: 6px;
+  }
+
+  .estado-tablero-tablero > *{
+    gap: 3px;
+  }
+
+  .estado-tablero-tablero strong,
+  .estado-tablero-tablero span:first-child{
+    min-width: 22px;
+    height: 32px;
+    padding: 0 5px;
+    font-size: 14px;
+  }
+
+  .estado-tablero-tablero span:last-child{
+    font-size: 10px;
+  }
 }
