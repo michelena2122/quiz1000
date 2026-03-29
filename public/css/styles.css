@@ -1405,3 +1405,64 @@ header p {
   }
 
 }
+/* =========================================
+   AJUSTE FINO RESUMEN TABLERO
+   cuadros cuadrados + tipografía uniforme
+   ========================================= */
+
+@media (max-width: 768px){
+
+  .estado-tablero-tablero{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 0 6px;
+  }
+
+  .estado-tablero-tablero > *{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+
+  /* cuadros de números: SIEMPRE cuadrados */
+  .estado-tablero-tablero .numero-estado,
+  .estado-tablero-tablero .contador-estado,
+  .estado-tablero-tablero .estado-numero,
+  .estado-tablero-tablero strong,
+  .estado-tablero-tablero span:first-child{
+    width: 44px !important;
+    min-width: 44px !important;
+    max-width: 44px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+    padding: 0 !important;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px !important;
+    line-height: 1 !important;
+    flex: 0 0 44px !important;
+  }
+
+  /* textos: mismo tamaño para todos */
+  .estado-tablero-tablero .texto-estado,
+  .estado-tablero-tablero .estado-texto,
+  .estado-tablero-tablero span:last-child{
+    font-size: 11px !important;
+    line-height: 1.05 !important;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    white-space: nowrap;
+  }
+}
