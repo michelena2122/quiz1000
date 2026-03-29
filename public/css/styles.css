@@ -1371,3 +1371,43 @@ header p {
     white-space: nowrap;
   }
 }
+/* =========================================
+   RESUMEN TABLERO EN VERTICAL (ESTABLE)
+   ========================================= */
+
+.estado-tablero-tablero{
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center;
+  gap: 8px;
+}
+
+/* cada fila */
+.estado-tablero-tablero > *{
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  width: 100%;
+  max-width: 260px;
+}
+
+/* números cuadrados iguales */
+.estado-tablero-tablero strong,
+.estado-tablero-tablero span:first-child{
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  line-height: 1;
+}
+
+/* textos alineados */
+.estado-tablero-tablero span:last-child{
+  font-size: 12px;
+  line-height: 1.1;
+}
