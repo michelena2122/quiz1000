@@ -1237,115 +1237,19 @@ header p {
   }
 }
 /* =========================================
-   QUIZ1000 TABLERO RESPONSIVE
-   versión con scroll horizontal en móvil
+   ESTADO DEL TABLERO (RESUMEN)
    ========================================= */
 
-body.tablero{
-  margin: 0;
-  padding: 0;
-  min-height: 100vh;
-  overflow-x: hidden;
-}
-
-body.tablero *{
-  box-sizing: border-box;
-}
-
-/* Contenedor principal */
-.tablero-container{
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 18px 16px 24px 16px;
-  position: relative;
-  z-index: 2;
-}
-
-/* Robot flotante izquierdo */
-.robot-tablero{
-  position: fixed;
-  left: 10px;
-  bottom: 105px;
-  width: 110px;
-  max-width: 22vw;
-  height: auto;
-  z-index: 20;
-  pointer-events: none;
-}
-
-/* Logo */
-.tablero-logo{
-  display: block;
-  width: min(260px, 72vw);
-  max-width: 260px;
-  height: auto;
-  margin: 10px auto 12px auto;
-}
-
-/* Instrucciones */
-.tablero-instrucciones{
-  width: min(900px, 94%);
-  margin: 0 auto 14px auto;
-  text-align: center;
-  line-height: 1.35;
-  font-size: clamp(16px, 2.2vw, 26px);
-}
-
-/* Folio */
-.tablero-folio{
-  width: min(900px, 94%);
-  margin: 0 auto 14px auto;
-  text-align: center;
-  font-size: clamp(14px, 2vw, 20px);
-  word-break: break-word;
-}
-
-/* Barra */
-.barra-tiempo-container{
-  width: min(1000px, 94%);
-  margin: 0 auto 10px auto;
-}
-
-.barra-tiempo{
-  width: 100%;
-  min-height: 18px;
-  border-radius: 999px;
-  overflow: hidden;
-}
-
-/* Texto tiempo */
-.texto-tiempo{
-  width: min(1000px, 94%);
-  margin: 0 auto 14px auto;
-  text-align: center;
-  font-size: clamp(13px, 2vw, 18px);
-  line-height: 1.3;
-}
-
-/* Estado tablero */
 .estado-tablero-tablero{
-}
-
-/* Mensaje */
-.mensaje-tablero{
-  width: min(900px, 94%);
-  margin: 0 auto 18px auto;
-  text-align: center;
-  line-height: 1.4;
-  font-size: clamp(13px, 1.8vw, 18px);
-}
-
-/* GRID */
-.tablero-grid{
-  width: min(1100px, 96%);
-  margin: 0 auto 26px auto;
-  display: grid;
-  grid-template-columns: repeat(10, 1fr);
-  gap: 8px;
+  display: flex;
   justify-content: center;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  text-align: center;
 }
-/* Ajuste visual de números del resumen */
+
+/* NÚMEROS */
 .estado-tablero-tablero .numero-estado,
 .estado-tablero-tablero .contador-estado,
 .estado-tablero-tablero .estado-numero,
@@ -1362,7 +1266,7 @@ body.tablero *{
   line-height: 1;
 }
 
-/* Ajuste visual de textos del resumen */
+/* TEXTOS */
 .estado-tablero-tablero .texto-estado,
 .estado-tablero-tablero .estado-texto,
 .estado-tablero-tablero span:last-child{
@@ -1373,190 +1277,40 @@ body.tablero *{
   line-height: 1.15;
   text-align: center;
 }
-/* Casillas */
-.tablero-grid > div,
-.tablero-grid .casilla,
-.tablero-grid .cell,
-.tablero-grid .celda{
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  min-width: 0;
-  border-radius: 12px;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px;
-  position: relative;
-  text-align: center;
-}
-
-/* Robot dentro de casilla */
-.robot-mini{
-  max-width: 72%;
-  max-height: 72%;
-  object-fit: contain;
-  pointer-events: none;
-}
-
-/* Home */
-.home-wrapper{
-  position: static;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 8px 0 14px 0;
-  z-index: 30;
-}
-
-.home-wrapper{
-  position: static;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 8px 0 14px 0;
-  z-index: 30;
-}
-
-.home-icon-tablero img{
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-/* Footer */
-.tablero-footer{
-  width: 100%;
-  text-align: center;
-  padding: 14px 12px 22px 12px;
-  line-height: 1.45;
-  font-size: clamp(11px, 1.7vw, 14px);
-}
-
-/* Modal */
-.modal-contenido{
-  width: min(92vw, 420px);
-  max-width: 420px;
-}
-
-#respuestaInput{
-  width: 100%;
-  max-width: 100%;
-}
 
 /* =========================
-   TABLET
-   ========================= */
-@media (max-width: 900px){
-
-  .tablero-container{
-    padding: 16px 12px 24px 12px;
-  }
-
-  .tablero-grid{
-    gap: 7px;
-  }
-
-  .robot-tablero{
-  width: 92px;
-  left: 8px;
-  bottom: 92px;
-}
-}
-
-/* =========================
-   MÓVIL CON SCROLL HORIZONTAL
-   Conserva 10 columnas
+   MÓVIL / TABLET
    ========================= */
 @media (max-width: 768px){
 
-  .tablero-container{
-    padding: 14px 10px 20px 10px;
+  .estado-tablero-tablero{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap;
   }
 
-  .tablero-logo{
-    width: min(180px, 60vw);
-    margin-top: 8px;
-    margin-bottom: 10px;
+  .estado-tablero-tablero > *{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
   }
 
-  .tablero-instrucciones{
-    width: 96%;
-    font-size: clamp(13px, 4.1vw, 18px);
-    margin-bottom: 12px;
+  /* números más compactos */
+  .estado-tablero-tablero strong,
+  .estado-tablero-tablero span:first-child{
+    font-size: 14px;
+    height: 32px;
+    padding: 0 6px;
   }
 
-  .tablero-folio{
-    width: 96%;
-    font-size: 13px;
-    margin-bottom: 12px;
-  }
-
-  .barra-tiempo-container,
-  .texto-tiempo,
-  .estado-tablero-tablero,
-  .mensaje-tablero{
-    width: 96%;
-  }
-
-  .texto-tiempo{
-    font-size: 13px;
-  }
-
-  .mensaje-tablero{
-    font-size: 12px;
-    margin-bottom: 14px;
-  }
-
-  /* Scroll horizontal del tablero */
-  .tablero-grid{
-    width: 100%;
-    max-width: none;
-    margin: 0 auto 20px auto;
-    overflow-x: auto;
-    overflow-y: hidden;
-    display: grid;
-    grid-template-columns: repeat(10, minmax(62px, 62px));
-    gap: 6px;
-    justify-content: start;
-    padding: 6px 8px 10px 8px;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .tablero-grid > div,
-  .tablero-grid .casilla,
-  .tablero-grid .cell,
-  .tablero-grid .celda{
-    width: 62px;
-    height: 62px;
-    min-width: 62px;
-    aspect-ratio: auto;
-    border-radius: 10px;
-    padding: 2px;
-    flex-shrink: 0;
-  }
-
-  .robot-tablero{
-  width: 74px;
-  left: 6px;
-  bottom: 92px;
-}
-
-  .home-wrapper{
-  margin: 6px 0 12px 0;
-}
-
-.home-icon-tablero{
-  width: 68px;
-  height: 68px;
-}
-
-  .tablero-footer{
+  /* texto más pequeño */
+  .estado-tablero-tablero span:last-child{
     font-size: 11px;
-    padding-bottom: 20px;
   }
+
 }
 
 /* =========================
@@ -1564,58 +1318,8 @@ body.tablero *{
    ========================= */
 @media (max-width: 480px){
 
-  .tablero-logo{
-    width: min(150px, 56vw);
-  }
-
-  .tablero-instrucciones{
-    font-size: 12px;
-    line-height: 1.3;
-  }
-
-  .tablero-folio,
-  .texto-tiempo{
-    font-size: 12px;
-  }
-
   .estado-tablero-tablero{
     gap: 6px;
   }
 
-  .estado-tablero-tablero > *{
-    flex: 1 1 100%;
-    min-width: 100%;
-  }
-
-  .mensaje-tablero{
-    font-size: 11px;
-  }
-
-  .tablero-grid{
-    grid-template-columns: repeat(10, minmax(56px, 56px));
-    gap: 5px;
-    padding-left: 6px;
-    padding-right: 6px;
-  }
-
-  .tablero-grid > div,
-  .tablero-grid .casilla,
-  .tablero-grid .cell,
-  .tablero-grid .celda{
-    width: 56px;
-    height: 56px;
-    min-width: 56px;
-  }
-
-  .robot-tablero{
-  width: 60px;
-  left: 4px;
-  bottom: 88px;
-}
-}
-@media (max-width: 768px){
-  .estado-tablero-tablero{
-    transform: scale(0.85);
-    transform-origin: center;
-  }
 }
