@@ -1,84 +1,88 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tablero</title>
-<link rel="stylesheet" href="css/styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tablero</title>
+  <link rel="stylesheet" href="css/styles.css">
 </head>
 
 <body class="tablero">
 
-<!-- ROBOT -->
-<img src="assets/images/robot.png" class="robot-tablero" alt="Robot">
+  <!-- ROBOT -->
+  <img src="assets/images/robot.png" class="robot-tablero" alt="Robot">
 
-<div class="tablero-container">
+  <div class="tablero-container">
 
-<!-- Logo -->
-<img src="assets/images/logotipo.png" class="tablero-logo" alt="Quiz 1000">
+    <!-- Logo -->
+    <img src="assets/images/logotipo.png" class="tablero-logo" alt="Quiz 1000">
 
-<!-- Instrucciones -->
-<h2 class="tablero-instrucciones">
-Selecciona una casilla y contesta la pregunta,<br>
-¡El jugador más rápido gana 1,000 USD!
-</h2>
+    <!-- Instrucciones -->
+    <h2 class="tablero-instrucciones">
+      Selecciona una casilla y contesta la pregunta,<br>
+      ¡El jugador más rápido gana 1,000 USD!
+    </h2>
 
-<!-- Folio -->
-<p class="tablero-folio">
-<span id="folio">---</span>
-</p>
+    <!-- Folio -->
+    <p class="tablero-folio">
+      <span id="folio">---</span>
+    </p>
 
-<!-- Barra progreso -->
-<div class="barra-tiempo-container">
-<div id="barraTiempo" class="barra-tiempo"></div>
-</div>
+    <!-- Barra progreso -->
+    <div class="barra-tiempo-container">
+      <div id="barraTiempo" class="barra-tiempo"></div>
+    </div>
 
-<div id="textoTiempo" class="texto-tiempo"></div>
+    <div id="textoTiempo" class="texto-tiempo"></div>
 
-<!-- Estado tablero -->
-<div id="estadoTablero" class="estado-tablero-tablero"></div>
+    <!-- Estado tablero -->
+    <div id="estadoTablero" class="estado-tablero-tablero"></div>
 
-<!-- Mensaje -->
-<p class="mensaje-tablero">
-EL PREMIO SE PAGA HASTA QUE SE COMPLETA EL TABLERO,<br>
-¡INVITA A TUS AMIGOS A JUGAR!
-</p>
+    <!-- Mensaje -->
+    <p class="mensaje-tablero">
+      EL PREMIO SE PAGA HASTA QUE SE COMPLETA EL TABLERO,<br>
+      ¡INVITA A TUS AMIGOS A JUGAR!
+    </p>
 
-<!-- GRID -->
-<div id="board" class="tablero-grid"></div>
+    <!-- GRID -->
+    <div id="board" class="tablero-grid"></div>
 
-</div>
+  </div>
 
-<!-- HOME -->
-<div class="home-wrapper">
-<a href="portada.html" class="home-icon-tablero">
-<img src="assets/images/home-icon.png" alt="Home">
-</a>
-</div>
+  <!-- HOME -->
+  <div class="home-wrapper">
+    <a href="portada.html" class="home-icon-tablero">
+      <img src="assets/images/home-icon.png" alt="Home">
+    </a>
+  </div>
 
-<!-- FOOTER -->
-<footer class="tablero-footer">
-© 2026 Quiz1000 LLC.
-All rights reserved. QUIZ1000 is a trademark of Quiz1000 LLC.
-www.Quiz1000.llc
-</footer>
+  <!-- FOOTER -->
+  <footer class="tablero-footer">
+    © 2026 Quiz1000 LLC.
+    All rights reserved. QUIZ1000 is a trademark of Quiz1000 LLC.
+    www.Quiz1000.llc
+  </footer>
 
-<script src="js/main.js"></script>
-// PROTEGER TABLERO
-const usuario = localStorage.getItem("usuarioLogueado");
+  <!-- MODAL -->
+  <div id="modalPregunta" class="modal hidden">
+    <div class="modal-contenido">
+      <h2 id="preguntaTexto"></h2>
+      <div id="contador" class="contador">00:00:00</div>
+      <input type="number" id="respuestaInput" placeholder="Tu respuesta">
+      <button id="btnResponder">Responder</button>
+    </div>
+  </div>
 
-if(!usuario){
-    window.location.href = "login.html";
-<!-- MODAL -->
-<div id="modalPregunta" class="modal hidden">
-<div class="modal-contenido">
-<h2 id="preguntaTexto"></h2>
-<div id="contador" class="contador">00:00:00</div>
-<input type="number" id="respuestaInput" placeholder="Tu respuesta">
-<button id="btnResponder">Responder</button>
-</div>
-</div>
+  <script>
+    // PROTEGER TABLERO
+    const usuario = localStorage.getItem("usuarioLogueado");
+
+    if(!usuario){
+      window.location.href = "login.html";
+    }
+  </script>
+
+  <script src="js/main.js"></script>
 
 </body>
 </html>
-
