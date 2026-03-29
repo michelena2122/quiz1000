@@ -1388,3 +1388,79 @@ header p {
 .verde{ background:#36c86b; }
 .azul{ background:#3ea2f0; }
 .naranja{ background:#f2a511; }
+/* =========================================
+   TABLERO CON SCROLL HORIZONTAL EN CELULAR
+   sin tocar resumen ni otros componentes
+   ========================================= */
+
+.tablero-container{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  width:100%;
+  max-width:100%;
+  padding:30px 12px;
+  box-sizing:border-box;
+  text-align:center;
+  overflow-x:hidden;
+}
+
+.tablero-scroll{
+  width:100%;
+  overflow-x:auto;
+  overflow-y:hidden;
+  display:flex;
+  justify-content:center;
+  -webkit-overflow-scrolling:touch;
+  padding:10px 0 18px 0;
+  box-sizing:border-box;
+}
+
+.tablero-grid{
+  display:grid;
+  grid-template-columns:repeat(10, 70px);
+  gap:10px;
+  width:max-content;
+  margin:0 auto 20px auto;
+  background-color:black;
+  border:4px solid white;
+  padding:20px;
+  border-radius:15px;
+  box-sizing:border-box;
+}
+
+@media (max-width: 768px){
+
+  .tablero-scroll{
+    justify-content:flex-start;
+    padding-left:8px;
+    padding-right:8px;
+  }
+
+  .tablero-grid{
+    grid-template-columns:repeat(10, 62px);
+    gap:8px;
+    padding:14px;
+  }
+
+  .cell{
+    width:62px;
+    height:62px;
+    font-size:16px;
+  }
+}
+
+@media (max-width: 480px){
+
+  .tablero-grid{
+    grid-template-columns:repeat(10, 58px);
+    gap:8px;
+    padding:12px;
+  }
+
+  .cell{
+    width:58px;
+    height:58px;
+    font-size:15px;
+  }
+}

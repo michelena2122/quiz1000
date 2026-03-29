@@ -303,7 +303,7 @@ estadoTableroEl.innerHTML = `
 <span class="estado-label">RESUELTOS</span>
 
 <span class="estado-celda estado-reservadas">${reservadas}</span>
-<span class="estado-label">EN PROCESO</span>
+<span class="estado-label">RESERVADAS</span>
 
 <span class="estado-celda estado-faltantes">${faltantes}</span>
 <span class="estado-label">POR COMPLETAR</span>
@@ -389,21 +389,21 @@ const faltantes = TOTAL - resueltas - reservadas;
 
 const estado = document.getElementById("estadoTablero");
 
+if(!estado) return;
+
 estado.innerHTML = `
-<div class="estado-item">
-  <div class="estado-numero verde">${resueltas}</div>
-  <div class="estado-texto">RESUELTOS</div>
-</div>
+<span class="estado-tablero">
 
-<div class="estado-item">
-  <div class="estado-numero azul">${reservadas}</div>
-  <div class="estado-texto">EN PROCESO</div>
-</div>
+<span class="estado-celda estado-resueltas">${resueltas}</span>
+<span class="estado-label">RESUELTOS</span>
 
-<div class="estado-item">
-  <div class="estado-numero naranja">${faltantes}</div>
-  <div class="estado-texto">POR COMPLETAR</div>
-</div>
+<span class="estado-celda estado-reservadas">${reservadas}</span>
+<span class="estado-label">RESERVADAS</span>
+
+<span class="estado-celda estado-faltantes">${faltantes}</span>
+<span class="estado-label">POR COMPLETAR</span>
+
+</span>
 `;
 }
 setInterval(async () => {
@@ -718,6 +718,7 @@ board.appendChild(c);
 }
 
 });
+
 
 
 

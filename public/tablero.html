@@ -44,8 +44,10 @@ EL PREMIO SE PAGA HASTA QUE SE COMPLETA EL TABLERO,<br>
 ¡INVITA A TUS AMIGOS A JUGAR!
 </p>
 
-<!-- GRID -->
-<div id="board" class="tablero-grid"></div>
+<!-- GRID (CORREGIDO CON SCROLL) -->
+<div class="tablero-scroll">
+  <div id="board" class="tablero-grid"></div>
+</div>
 
 </div>
 
@@ -62,12 +64,16 @@ EL PREMIO SE PAGA HASTA QUE SE COMPLETA EL TABLERO,<br>
 All rights reserved. QUIZ1000 is a trademark of Quiz1000 LLC.
 www.Quiz1000.llc
 </footer>
-// PROTEGER TABLERO
+
+<!-- SCRIPT PROTECCIÓN (CORREGIDO) -->
+<script>
 const usuario = localStorage.getItem("usuarioLogueado");
 
 if(!usuario){
     window.location.href = "login.html";
 }
+</script>
+
 <script src="js/main.js"></script>
 
 <!-- MODAL -->
@@ -82,5 +88,3 @@ if(!usuario){
 
 </body>
 </html>
-
-
