@@ -1238,6 +1238,7 @@ header p {
 }
 /* =========================================
    ESTADO DEL TABLERO (RESUMEN)
+   cuadrados iguales + textos del mismo tamaño
    ========================================= */
 
 .estado-tablero-tablero{
@@ -1250,7 +1251,6 @@ header p {
   text-align: center;
 }
 
-/* cada bloque: número + texto */
 .estado-tablero-tablero > *{
   display: flex;
   align-items: center;
@@ -1259,24 +1259,26 @@ header p {
   min-width: 0;
 }
 
-/* NÚMEROS */
+/* NÚMEROS: todos iguales y cuadrados */
 .estado-tablero-tablero .numero-estado,
 .estado-tablero-tablero .contador-estado,
 .estado-tablero-tablero .estado-numero,
 .estado-tablero-tablero strong,
 .estado-tablero-tablero span:first-child{
-  min-width: 28px;
+  width: 40px;
   height: 40px;
-  padding: 0 8px;
+  min-width: 40px;
+  padding: 0;
   border-radius: 14px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
   font-size: clamp(18px, 2.2vw, 26px);
   line-height: 1;
 }
 
-/* TEXTOS */
+/* TEXTOS: todos con la misma proporción */
 .estado-tablero-tablero .texto-estado,
 .estado-tablero-tablero .estado-texto,
 .estado-tablero-tablero span:last-child{
@@ -1286,6 +1288,7 @@ header p {
   font-size: clamp(11px, 1.6vw, 16px);
   line-height: 1.1;
   text-align: center;
+  white-space: nowrap;
 }
 
 /* =========================
@@ -1296,14 +1299,14 @@ header p {
   .estado-tablero-tablero{
     width: 96%;
     margin: 0 auto 16px auto;
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
+    display: flex;
+    justify-content: center;
     align-items: center;
+    gap: 8px;
+    padding: 0 6px;
   }
 
   .estado-tablero-tablero > *{
-    width: 100%;
     min-width: 0;
     display: flex;
     align-items: center;
@@ -1311,17 +1314,26 @@ header p {
     gap: 4px;
   }
 
+  .estado-tablero-tablero .numero-estado,
+  .estado-tablero-tablero .contador-estado,
+  .estado-tablero-tablero .estado-numero,
   .estado-tablero-tablero strong,
   .estado-tablero-tablero span:first-child{
-    min-width: 24px;
+    width: 34px;
     height: 34px;
-    padding: 0 6px;
-    font-size: 15px;
+    min-width: 34px;
+    padding: 0;
+    border-radius: 12px;
+    font-size: 14px;
+    line-height: 1;
   }
 
+  .estado-tablero-tablero .texto-estado,
+  .estado-tablero-tablero .estado-texto,
   .estado-tablero-tablero span:last-child{
-    font-size: 11px;
-    line-height: 1.05;
+    font-size: 11px !important;
+    line-height: 1.1;
+    white-space: nowrap;
   }
 }
 
@@ -1338,131 +1350,24 @@ header p {
     gap: 3px;
   }
 
-  .estado-tablero-tablero strong,
-  .estado-tablero-tablero span:first-child{
-    min-width: 22px;
-    height: 32px;
-    padding: 0 5px;
-    font-size: 14px;
-  }
-
-  .estado-tablero-tablero span:last-child{
-    font-size: 10px;
-  }
-}
-/* =========================================
-   FIX CENTRADO RESUMEN TABLERO (SIN ROMPER)
-   ========================================= */
-
-.estado-tablero-tablero{
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-}
-
-/* evita que se desborde */
-.estado-tablero-tablero > *{
-  flex: 0 1 auto;
-  min-width: 0;
-}
-
-/* =========================
-   MOVIL
-   ========================= */
-@media (max-width: 768px){
-
-  .estado-tablero-tablero{
-    justify-content: center;
-    gap: 6px;
-    padding: 0 6px;
-  }
-
-  /* números más pequeños */
-  .estado-tablero-tablero strong,
-  .estado-tablero-tablero span:first-child{
-    font-size: 14px;
-    height: 32px;
-    padding: 0 6px;
-  }
-
-  /* texto más compacto */
-  .estado-tablero-tablero span:last-child{
-    font-size: 11px;
-  }
-
-}
-/* =========================================
-   HOMOLOGAR TEXTOS RESUMEN
-   ========================================= */
-
-@media (max-width: 768px){
-
-  .estado-tablero-tablero span:last-child{
-    font-size: 11px !important;
-    white-space: nowrap;
-  }
-
-}
-/* =========================================
-   AJUSTE FINO RESUMEN TABLERO
-   cuadros cuadrados + tipografía uniforme
-   ========================================= */
-
-@media (max-width: 768px){
-
-  .estado-tablero-tablero{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    width: 100%;
-    padding: 0 6px;
-  }
-
-  .estado-tablero-tablero > *{
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    flex: 0 1 auto;
-    min-width: 0;
-  }
-
-  /* cuadros de números: SIEMPRE cuadrados */
   .estado-tablero-tablero .numero-estado,
   .estado-tablero-tablero .contador-estado,
   .estado-tablero-tablero .estado-numero,
   .estado-tablero-tablero strong,
   .estado-tablero-tablero span:first-child{
-    width: 44px !important;
-    min-width: 44px !important;
-    max-width: 44px !important;
-    height: 44px !important;
-    min-height: 44px !important;
-    max-height: 44px !important;
-    padding: 0 !important;
-    border-radius: 14px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px !important;
-    line-height: 1 !important;
-    flex: 0 0 44px !important;
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    padding: 0;
+    border-radius: 10px;
+    font-size: 14px;
   }
 
-  /* textos: mismo tamaño para todos */
   .estado-tablero-tablero .texto-estado,
   .estado-tablero-tablero .estado-texto,
   .estado-tablero-tablero span:last-child{
-    font-size: 11px !important;
-    line-height: 1.05 !important;
-    font-weight: 700;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
+    font-size: 10px !important;
+    line-height: 1.1;
     white-space: nowrap;
   }
 }
