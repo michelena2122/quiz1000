@@ -1350,3 +1350,46 @@ header p {
     font-size: 10px;
   }
 }
+/* =========================================
+   FIX CENTRADO RESUMEN TABLERO (SIN ROMPER)
+   ========================================= */
+
+.estado-tablero-tablero{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+/* evita que se desborde */
+.estado-tablero-tablero > *{
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+/* =========================
+   MOVIL
+   ========================= */
+@media (max-width: 768px){
+
+  .estado-tablero-tablero{
+    justify-content: center;
+    gap: 6px;
+    padding: 0 6px;
+  }
+
+  /* números más pequeños */
+  .estado-tablero-tablero strong,
+  .estado-tablero-tablero span:first-child{
+    font-size: 14px;
+    height: 32px;
+    padding: 0 6px;
+  }
+
+  /* texto más compacto */
+  .estado-tablero-tablero span:last-child{
+    font-size: 11px;
+  }
+
+}
