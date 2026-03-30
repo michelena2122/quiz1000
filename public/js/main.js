@@ -51,6 +51,10 @@ if(document.body.classList.contains("tablero")){
 const folioSpan = document.getElementById("folio");
 
 let folio = folioURL || localStorage.getItem("folioTableroActual");
+console.log("🧪 FOLIO URL:", folioURL);
+console.log("🧪 FOLIO LOCALSTORAGE:", localStorage.getItem("folioTableroActual"));
+console.log("🧪 FOLIO FINAL USADO:", folio);
+console.log("🧪 TIPO DE FOLIO:", typeof folio);
 let fechaApertura = localStorage.getItem("fechaApertura");
 
 if (!folio) {
@@ -74,19 +78,13 @@ if (!tablerosGlobal[folio]) {
 
 if (!fechaApertura) {
     fechaApertura = "Sin iniciar";
-if (!fechaApertura) {
-
-    fechaApertura = "Sin iniciar";
-
 } else {
-
     // convertir timestamp a fecha legible
     const fechaMostrar = new Date(parseInt(fechaApertura)).toLocaleString("es-MX");
-
     fechaApertura = fechaMostrar;
+}
 
-}
-}
+
 // ==========================
 // BARRA PROGRESO 10 DIAS
 // ==========================
