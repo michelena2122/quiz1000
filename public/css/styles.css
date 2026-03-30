@@ -1551,3 +1551,111 @@ header p {
     font-size: 15px;
   }
 }
+/* =========================================
+   RESUMEN DE CASILLAS 3 COLUMNAS X 2 FILAS
+   solo visual, no toca reservas ni pagos
+   ========================================= */
+
+#estadoTablero{
+    width: 100%;
+    margin: 18px auto 22px auto;
+    white-space: normal;
+}
+
+.resumen-casillas{
+    width: 100%;
+    max-width: 520px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    align-items: start;
+    justify-items: center;
+    text-align: center;
+}
+
+.resumen-item{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    min-width: 0;
+}
+
+.resumen-num{
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 22px;
+    line-height: 1;
+}
+
+.resumen-texto{
+    color: #003366;
+    font-weight: bold;
+    font-size: 15px;
+    line-height: 1.2;
+    text-align: center;
+}
+
+.resumen-verde{
+    background: #2ecc71;
+}
+
+.resumen-azul{
+    background: #3498db;
+}
+
+.resumen-naranja{
+    background: #f39c12;
+}
+
+/* movil */
+@media (max-width: 768px){
+
+    #estadoTablero{
+        margin: 16px auto 20px auto;
+        padding: 0 10px;
+        box-sizing: border-box;
+    }
+
+    .resumen-casillas{
+        max-width: 360px;
+        gap: 8px;
+    }
+
+    .resumen-num{
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        font-size: 18px;
+    }
+
+    .resumen-texto{
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 420px){
+
+    .resumen-casillas{
+        max-width: 330px;
+        gap: 6px;
+    }
+
+    .resumen-num{
+        width: 44px;
+        height: 44px;
+        font-size: 17px;
+    }
+
+    .resumen-texto{
+        font-size: 10px;
+    }
+}

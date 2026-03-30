@@ -392,18 +392,24 @@ const estado = document.getElementById("estadoTablero");
 if(!estado) return;
 
 estado.innerHTML = `
-<span class="estado-tablero">
+<div class="resumen-casillas">
 
-<span class="estado-celda estado-resueltas">${resueltas}</span>
-<span class="estado-label">RESUELTOS</span>
+  <div class="resumen-item">
+    <div class="resumen-num resumen-verde">${reservadas}</div>
+    <div class="resumen-texto">RESERVADAS</div>
+  </div>
 
-<span class="estado-celda estado-reservadas">${reservadas}</span>
-<span class="estado-label">RESERVADAS</span>
+  <div class="resumen-item">
+    <div class="resumen-num resumen-azul">${resueltas}</div>
+    <div class="resumen-texto">RESUELTOS</div>
+  </div>
 
-<span class="estado-celda estado-faltantes">${faltantes}</span>
-<span class="estado-label">POR COMPLETAR</span>
+  <div class="resumen-item">
+    <div class="resumen-num resumen-naranja">${faltantes}</div>
+    <div class="resumen-texto">POR COMPLETAR</div>
+  </div>
 
-</span>
+</div>
 `;
 }
 setInterval(async () => {
