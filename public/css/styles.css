@@ -1669,3 +1669,23 @@ header p {
   text-decoration: underline;
   color: #fff;
 }
+.whatsapp-invitacion{
+    display:flex;
+    align-items:center;
+    justify-content:flex-end; /* todo se va a la derecha */
+    gap:12px;
+    margin-top:15px;
+}
+
+/* BOTÓN AJUSTADO */
+.whatsapp-btn{
+    width:auto; /* 🔥 clave: ya no ocupa todo */
+    padding:10px 16px;
+    white-space:nowrap;
+}
+
+/* ROBOT */
+.robot-invitando{
+    width:70px;
+    height:auto;
+}
