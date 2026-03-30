@@ -290,28 +290,28 @@ function renderPagos(){
 }
 
 function calcularProbabilidad(){
-    const pagados = carrito.items.filter(i => i.pagado).length;
-    const seleccionados = carrito.items.length;
-
-    const probabilidadActual = (pagados / TOTAL_NUMEROS_TABLERO) * 100;
-    const probabilidadTotal = (seleccionados / TOTAL_NUMEROS_TABLERO) * 100;
-
-    porcentajeEl.textContent = probabilidadActual.toFixed(2) + "%";
-    barra.style.width = probabilidadActual + "%";
+    const seleccionados = carrito.items ? carrito.items.length : 0;
+    const probabilidad = (seleccionados / TOTAL_NUMEROS_TABLERO) * 100;
 
     if(seleccionados === 0){
+        porcentajeEl.textContent = "0.00%";
+        barra.style.width = "0%";
         mensaje.textContent = "Aún no has agregado números al carrito.";
         return;
     }
 
-    if(pagados < seleccionados){
+    porcentajeEl.textContent = probabilidad.toFixed(2) + "%";
+    barra.style.width = probabilidad + "%";
+
+    if(seleccionados === 1){
         mensaje.textContent =
-        `Actualmente tienes ${probabilidadActual.toFixed(2)}% de probabilidad. Si completas tus ${seleccionados} números, tu probabilidad aumenta a ${probabilidadTotal.toFixed(2)}%.`;
+        `Actualmente tienes ${probabilidad.toFixed(2)}% de probabilidad de ganar con 1 número seleccionado.`;
     } else {
         mensaje.textContent =
-        "Excelente. Has completado todos tus números seleccionados.";
+        `Actualmente tienes ${probabilidad.toFixed(2)}% de probabilidad de ganar con ${seleccionados} números seleccionados.`;
     }
 }
+  
 
 document.getElementById("btnPagarTodo").addEventListener("click", function(){
 
