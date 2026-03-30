@@ -75,7 +75,46 @@ www.Quiz1000.llc
 </script>
 
 <script src="js/main.js"></script>
+<audio id="vozIntro" src="/assets/audio/voz-quiz1000.mp3" preload="auto"></audio>
 
+<script>
+(function () {
+
+  function obtenerFolio() {
+    const el = document.getElementById("folio");
+    if (!el) return "general";
+
+    const folio = el.textContent.trim();
+    return folio && folio !== "---" ? folio : "general";
+  }
+
+  function reproducirIntro() {
+    const audio = document.getElementById("vozIntro");
+    if (!audio) return;
+
+    const folio = obtenerFolio();
+    const KEY = "vozIntroQuiz1000_" + folio;
+
+    // 🚫 si ya sonó para este folio, no repetir
+    if (localStorage.getItem(KEY) === "si") return;
+
+    audio.volume = 0.9;
+
+    audio.play()
+      .then(() => {
+        localStorage.setItem(KEY, "si");
+        console.log("🔊 Audio reproducido para folio:", folio);
+      })
+      .catch(() => {
+        console.log("Autoplay bloqueado o no permitido aún");
+      });
+  }
+
+  document.addEventListener("click", reproducirIntro, { once: true });
+  document.addEventListener("touchstart", reproducirIntro, { once: true });
+
+})();
+</script>
 <!-- MODAL -->
 <div id="modalPregunta" class="modal hidden">
 <div class="modal-contenido">
