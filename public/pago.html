@@ -169,13 +169,13 @@ body.pago .probabilidad-box p.nota-tipo-cambio-pago{
 <div class="container">
     
     <h2>¡Finaliza tu participación!</h2>
-    <div id="estadoTablero" class="estado-tablero"></div>
+    
 
     <div id="listaPagos"></div>
 
-    <button id="btnPagarTodo" class="pagarBtn" style="width:100%; margin-top:15px;">
-        Pagar todas las casillas
-    </button>
+    <button id="btnPagarTodo" class="pagarBtn" style="display:block; width:fit-content; margin:15px auto 0; padding:12px 22px;">
+    VOY POR TODAS LAS CASILLAS
+</button>
 
     <div class="probabilidad-box">
         <div class="probabilidad-porcentaje" id="porcentaje">0%</div>
@@ -246,7 +246,6 @@ let tableroEstado = JSON.parse(localStorage.getItem("tableroEstado_" + folio)) |
     casillasResueltas: []
 };
 
-const estadoTableroEl = document.getElementById("estadoTablero");
 const lista = document.getElementById("listaPagos");
 const porcentajeEl = document.getElementById("porcentaje");
 const barra = document.getElementById("barra");
@@ -254,21 +253,6 @@ const mensaje = document.getElementById("mensajeMotivacion");
 
 let carrito = JSON.parse(localStorage.getItem("carrito_" + folio)) || { items: [] };
 
-function actualizarEstadoTablero(){
-    const resueltas = tableroEstado.casillasResueltas.length;
-    const faltantes = TOTAL_NUMEROS_TABLERO - resueltas;
-
-    estadoTableroEl.innerHTML =
-    `Este tablero tiene ${resueltas} números resueltos.<br>
-    Faltan ${faltantes} para completarse<br>
-    <strong>¡INVITA A TUS AMIGOS! Si se completa el tablero, se entrega el premio</strong>`;
-
-    if(faltantes <= 5){
-        estadoTableroEl.style.color = "red";
-    }else{
-        estadoTableroEl.style.color = "#003366";
-    }
-}
 
 function renderPagos(){
     lista.innerHTML = "";
