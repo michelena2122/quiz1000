@@ -88,12 +88,14 @@ www.Quiz1000.llc
 (function () {
 
   function obtenerFolio() {
-    const el = document.getElementById("folio");
-    if (!el) return "general";
+  const el = document.getElementById("folio");
+  if (!el) return "general";
 
-    const folio = el.textContent.trim();
-    return folio && folio !== "---" ? folio : "general";
-  }
+  const texto = el.textContent.trim();
+  const match = texto.match(/TAB-\d+/);
+
+  return match ? match[0] : "general";
+}
 
   function iniciarMusica() {
     const musica = document.getElementById("musicaFondo");
