@@ -1659,3 +1659,13 @@ header p {
         font-size: 10px;
     }
 }
+.link-licencia{
+  color: #ccc;
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.link-licencia:hover{
+  text-decoration: underline;
+  color: #fff;
+}
