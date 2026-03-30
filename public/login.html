@@ -14,30 +14,70 @@
 
     body{
       font-family: Arial, sans-serif;
-      background: linear-gradient(180deg, #0f172a, #111827);
+      min-height:100vh;
+      padding:0;
+      color:white;
+      position:relative;
+      overflow-x:hidden;
+      background:#071b3a;
+    }
+
+    .fondo-rayos{
+      position:fixed;
+      inset:0;
+      z-index:0;
+      background:
+        radial-gradient(circle at top center, rgba(0,191,255,0.35), transparent 30%),
+        repeating-linear-gradient(
+          135deg,
+          rgba(0,153,255,0.18) 0px,
+          rgba(0,153,255,0.18) 2px,
+          transparent 2px,
+          transparent 18px
+        ),
+        linear-gradient(180deg, #02122b 0%, #06204a 45%, #0a2b5a 100%);
+    }
+
+    .pagina-login{
+      position:relative;
+      z-index:2;
+      width:100%;
       min-height:100vh;
       display:flex;
+      flex-direction:column;
       justify-content:center;
       align-items:center;
-      padding:20px;
-      color:white;
+      padding:20px 14px 24px;
+    }
+
+    .login-logo{
+      margin-bottom:18px;
+      text-align:center;
+    }
+
+    .login-logo img{
+      width:130px;
+      max-width:50vw;
+      height:auto;
+      display:block;
+      margin:0 auto;
     }
 
     .login-card{
       width:100%;
-      max-width:420px;
-      background:rgba(255,255,255,0.08);
-      border:1px solid rgba(255,255,255,0.12);
-      border-radius:20px;
-      padding:28px 20px;
+      max-width:360px;
+      background:rgba(255,255,255,0.10);
+      border:1px solid rgba(255,255,255,0.14);
+      border-radius:18px;
+      padding:22px 16px;
       box-shadow:0 10px 30px rgba(0,0,0,0.35);
-      backdrop-filter:blur(10px);
+      backdrop-filter:blur(8px);
     }
 
     h2{
       text-align:center;
-      font-size:32px;
-      margin-bottom:24px;
+      font-size:26px;
+      margin-bottom:20px;
       color:#22c55e;
     }
 
@@ -98,46 +138,84 @@
       text-decoration:underline;
     }
 
+    .footer-login{
+      margin-top:18px;
+      text-align:center;
+      color:#dbeafe;
+      font-size:12px;
+      line-height:1.5;
+      padding:0 10px 6px;
+      max-width:360px;
+    }
+
     @media (max-width:480px){
+      .login-logo img{
+        width:110px;
+        max-width:46vw;
+      }
+
       .login-card{
-        padding:22px 16px;
+        padding:20px 14px;
         border-radius:16px;
       }
 
       h2{
-        font-size:28px;
+        font-size:24px;
+      }
+
+      input{
+        padding:13px 14px;
+        font-size:16px;
+      }
+
+      button{
+        padding:13px;
+        font-size:16px;
+      }
+
+      .footer-login{
+        font-size:11px;
       }
     }
   </style>
 </head>
 
 <body>
-<div class="fondo-rayos"></div>
+
+  <div class="fondo-rayos"></div>
 
   <div class="pagina-login">
 
     <div class="login-logo">
       <img src="assets/images/portada.png" alt="QUIZ1000">
     </div>
-    
-  <div class="login-card">
-    <h2>Iniciar sesión</h2>
 
-    <div class="campo">
-      <input type="email" id="email" placeholder="Correo electrónico">
+    <div class="login-card">
+      <h2>Iniciar sesión</h2>
+
+      <div class="campo">
+        <input type="email" id="email" placeholder="Correo electrónico">
+      </div>
+
+      <div class="campo">
+        <input type="password" id="password" placeholder="Contraseña">
+      </div>
+
+      <button onclick="login()">Entrar</button>
+
+      <p id="msg"></p>
+
+      <p class="link-recuperar">
+        <a href="recuperar.html">¿Olvidaste tu contraseña?</a>
+      </p>
     </div>
 
-    <div class="campo">
-      <input type="password" id="password" placeholder="Contraseña">
-    </div>
+    <footer class="footer-login">
+      <p>© 2026 Quiz1000 LLC.<br>
+      All rights reserved. QUIZ1000 is a trademark of Quiz1000 LLC.<br>
+      www.Quiz1000.llc</p>
+    </footer>
 
-    <button onclick="login()">Entrar</button>
-
-    <p id="msg"></p>
-
-    <p class="link-recuperar">
-      <a href="recuperar.html">¿Olvidaste tu contraseña?</a>
-    </p>
   </div>
 
   <script>
@@ -176,13 +254,7 @@
       });
 
     }
-
   </script>
-  <footer class="footer-login">
-      <p>© QUIZ1000 · Todos los derechos reservados</p>
-    </footer>
-
-  </div>
 
 </body>
 </html>
