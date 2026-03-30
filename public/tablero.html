@@ -76,6 +76,7 @@ www.Quiz1000.llc
 
 <script src="js/main.js"></script>
 <audio id="vozIntro" src="/assets/audio/voz-quiz1000.mp3" preload="auto"></audio>
+<audio id="musicaFondo" src="/assets/audio/musica-quiz1000.mp3" preload="auto" loop></audio>
 
 <script>
 (function () {
@@ -88,19 +89,33 @@ www.Quiz1000.llc
     return folio && folio !== "---" ? folio : "general";
   }
 
+  function iniciarMusica() {
+    const musica = document.getElementById("musicaFondo");
+    if (!musica) return;
+
+    musica.volume = 0.25;
+
+    musica.play().catch(() => {
+      console.log("Música bloqueada por el navegador");
+    });
+  }
+
   function reproducirIntro() {
-    const audio = document.getElementById("vozIntro");
-    if (!audio) return;
+    const voz = document.getElementById("vozIntro");
+    if (!voz) return;
 
     const folio = obtenerFolio();
     const KEY = "vozIntroQuiz1000_" + folio;
 
-    // 🚫 si ya sonó para este folio, no repetir
-    if (localStorage.getItem(KEY) === "si") return;
+    if (localStorage.getItem(KEY) === "si") {
+      iniciarMusica();
+      return;
+    }
 
-    audio.volume = 0.9;
+    voz.volume = 0.9;
+    voz.currentTime = 0;
 
-    audio.play()
+    voz.play()
       .then(() => {
         localStorage.setItem(KEY, "si");
         console.log("🔊 Audio reproducido para folio:", folio);
@@ -110,10 +125,24 @@ www.Quiz1000.llc
       });
   }
 
-  document.addEventListener("click", reproducirIntro, { once: true });
-  document.addEventListener("touchstart", reproducirIntro, { once: true });
+  document.addEventListener("DOMContentLoaded", () => {
+    const voz = document.getElementById("vozIntro");
+    const musica = document.getElementById("musicaFondo");
+
+    if (voz) voz.load();
+    if (musica) musica.load();
+
+    if (voz) {
+      voz.addEventListener("ended", () => {
+        iniciarMusica();
+      });
+    }
+  });
+
+  document.addEventListener("pointerdown", reproducirIntro, { once: true });
 
 })();
+</script>
 </script>
 <!-- MODAL -->
 <div id="modalPregunta" class="modal hidden">

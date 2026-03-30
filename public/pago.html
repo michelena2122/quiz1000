@@ -208,6 +208,28 @@ body.pago .probabilidad-box p.nota-tipo-cambio-pago{
 All rights reserved. QUIZ1000 is a trademark of Quiz1000 LLC.
 www.Quiz1000.llc
 </footer>
+<audio id="musicaPago" src="/assets/audio/musica-quiz1000.mp3" preload="auto" loop></audio>
+
+<script>
+(function () {
+  const musica = document.getElementById("musicaPago");
+  if (!musica) return;
+
+  musica.volume = 0.25;
+
+  document.addEventListener("DOMContentLoaded", () => {
+    musica.load();
+  });
+
+  function reproducirMusicaPago() {
+    musica.play().catch(() => {
+      console.log("Música de pago bloqueada por el navegador");
+    });
+  }
+
+  document.addEventListener("pointerdown", reproducirMusicaPago, { once: true });
+})();
+</script>
 
 <script>
 const TOTAL_NUMEROS_TABLERO = 50;
