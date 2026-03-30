@@ -1324,25 +1324,24 @@ header p {
 /* =========================
    MOVIL PEQUEÑO
    ========================= */
-@media (max-width: 480px){
-
-  .estado-tablero-tablero{
-    gap: 6px;
-  }
-
-  .estado-tablero-tablero strong,
-  .estado-tablero-tablero span:first-child{
-    min-width: 42px;
-    height: 36px;
-    padding: 0 7px;
-    font-size: 14px;
-  }
-
-  .estado-tablero-tablero span:last-child{
-    font-size: 10px;
-    line-height: 1.1;
-  }
+.estado-tablero{
+display:flex;
+justify-content:center;
+align-items:center;
+gap:18px;
+margin-top:10px;
+margin-bottom:10px;
 }
+
+.estado-celda{
+width:42px;
+height:42px;
+border-radius:10px;
+display:flex;
+align-items:center;
+justify-content:center;
+  }
+
 /* ===== RESUMEN LIMPIO Y PROPORCIONAL ===== */
 
 .estado-tablero-tablero{
