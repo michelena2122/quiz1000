@@ -138,20 +138,36 @@ footer{
     margin-bottom:20px;
 }
 
-.whatsapp-btn{
+.whatsapp-invitacion{
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:12px;
     margin-top:15px;
-    width:100%;
-    padding:10px;
+}
+
+.whatsapp-btn{
+    margin-top:0;
+    width:auto;
+    display:inline-block;
+    padding:10px 16px;
     background:#25D366;
     color:white;
     border:none;
     border-radius:8px;
     font-weight:bold;
     cursor:pointer;
+    white-space:nowrap;
 }
 
 .whatsapp-btn:hover{
     opacity:0.9;
+}
+
+.robot-invitando{
+    width:70px;
+    height:auto;
+    display:block;
 }
 
 body.pago .probabilidad-box p.nota-tipo-cambio-pago{
@@ -194,7 +210,7 @@ body.pago .probabilidad-box p.nota-tipo-cambio-pago{
     <div class="mensaje-motivacion" id="mensajeMotivacion"></div>
 
     <div class="whatsapp-invitacion">
-        <img src="/assets/images/robot-invitando.png" class="robot-invitando" alt="Invitar amigos">
+        <img src="public/assets/images/robot.invitando.png" class="robot-invitando" alt="Invitar amigos">
 
         <button id="btnWhatsapp" class="whatsapp-btn">
             Compartir tablero por WhatsApp
