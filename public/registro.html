@@ -9,25 +9,39 @@
 body{
     margin:0;
     font-family:Arial, sans-serif;
-   background: url("assets/images/fondo-rayos.jpg") no-repeat center center fixed;
-background-size: cover;
+    background: url("assets/images/fondo-rayos.jpg") no-repeat center center fixed;
+    background-size: cover;
     display:flex;
+    flex-direction:column;
     justify-content:center;
     align-items:center;
-    height:100vh;
+    min-height:100vh;
+    padding:20px 15px 30px;
+    box-sizing:border-box;
     color:white;
+}
+
+.logo-registro{
+    display:block;
+    width:180px;
+    max-width:70%;
+    height:auto;
+    margin:0 auto 18px auto;
 }
 
 .container{
     background:#000;
     padding:40px;
     border-radius:15px;
-    width:400px;
+    width:100%;
+    max-width:400px;
     box-shadow:0 0 30px rgba(255,255,255,0.2);
+    box-sizing:border-box;
 }
 
 h2{
     text-align:center;
+    margin-top:0;
     margin-bottom:20px;
 }
 
@@ -37,6 +51,7 @@ input, select{
     margin-bottom:12px;
     border:none;
     border-radius:6px;
+    box-sizing:border-box;
 }
 
 button{
@@ -58,20 +73,34 @@ button{
     font-size:13px;
     margin-bottom:10px;
 }
-.logo-registro{
-    position: absolute;
-    top: 30px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 220px;
-    height: auto;
-    z-index: 10;
+
+@media (max-width: 480px){
+    .logo-registro{
+        width:150px;
+        margin-bottom:14px;
+    }
+
+    .container{
+        padding:25px 18px;
+        border-radius:12px;
+    }
+
+    h2{
+        font-size:22px;
+        margin-bottom:16px;
+    }
+
+    input, select, button{
+        font-size:16px;
+    }
 }
 </style>
 </head>
 
 <body class="registro">
+
 <img src="/assets/images/logotipo.png" class="logo-registro">
+
 <div class="container">
 
 <h2>Registro de Participante</h2>
@@ -99,6 +128,7 @@ button{
 
 <input type="email" id="email" placeholder="Correo electrónico">
 <input type="password" id="password" placeholder="Crea una contraseña">
+
 <div style="margin-bottom:15px; font-size:14px;">
     <input type="checkbox" id="aceptaTerminos">
     He leído y acepto los 
@@ -106,6 +136,7 @@ button{
         Términos Legales y Aviso de Privacidad
     </a>
 </div>
+
 <button class="payBtn" id="pagarBtn">Continuar al Pago</button>
 
 </div>
@@ -230,5 +261,3 @@ pagarBtn.addEventListener("click", async function () {
 
 </body>
 </html>
-
-
