@@ -1669,12 +1669,18 @@ header p {
   text-decoration: underline;
   color: #fff;
 }
-.whatsapp-invitacion{
-    display:flex;
-    align-items:center;
-    justify-content:flex-end; /* todo se va a la derecha */
-    gap:12px;
-    margin-top:15px;
+.whatsapp-btn{
+    margin-top:0;
+    width:auto;
+    display:inline-block;
+    padding:10px 16px;
+    background:#25D366;
+    color:white;
+    border:none;
+    border-radius:8px;
+    font-weight:bold;
+    cursor:pointer;
+    white-space:nowrap;
 }
 
 /* BOTÓN AJUSTADO */
@@ -1686,6 +1692,7 @@ header p {
 
 /* ROBOT */
 .robot-invitando{
-    width:70px;
+    width:120px;
     height:auto;
+    display:block;
 }
