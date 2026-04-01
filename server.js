@@ -1230,19 +1230,23 @@ try{
 let paymentId = null;
 
 // webhook con body moderno: action + data.id
-if (webhookData.data?.id && typeof webhookData.action === "string" && webhookData.action.startsWith("payment.")) {
-paymentId = webhookData.data.id;
+if (
+    webhookData.data?.id &&
+    typeof webhookData.action === "string" &&
+    webhookData.action.startsWith("payment.")
+) {
+    paymentId = webhookData.data.id;
 }
 
 // webhook con type=payment
 if (!paymentId && webhookData.type === "payment" && webhookData.data?.id) {
-paymentId = webhookData.data.id;
+    paymentId = webhookData.data.id;
 }
 
 // webhook antiguo con resource
 if (!paymentId && webhookData.topic === "payment" && webhookData.resource) {
-const parts = webhookData.resource.split("/");
-paymentId = parts[parts.length - 1];
+    const parts = webhookData.resource.split("/");
+    paymentId = parts[parts.length - 1];
 }
 
 if (!paymentId) return;
@@ -1258,10 +1262,11 @@ console.log("PAYMENT GET EJECUTADO");
 const data = pago.body || pago;
 console.log("DATA COMPLETA MP:", JSON.stringify(data, null, 2));
 console.log("🧪 METADATA CRUDA MP:", data.metadata);
+
 const metadata = data.metadata || {};
 
 const folio = metadata.folio;
-const jugadorId = metadata.jugadorId;
+const jugadorId = metadata.jugador_id || metadata.jugadorId || null;
 const casillasMetadata = metadata.casillas || [];
 const tiempos = metadata.tiempos || [];
 
@@ -1274,69 +1279,126 @@ console.log("📦 METADATA RECIBIDA:", {
 
 if(data.status === "approved"){
 
-const casillas = casillasMetadata;
+    const casillas = casillasMetadata;
 
-if(!folio){
-    console.log("⚠️ Pago sin folio");
-    return;
-}
-
-if(casillas.length === 0){
-console.log("⚠️ Pago sin casillas");
-return;
-}
-
-casillas.forEach(casilla => {
-
-    const infoTiempo = tiempos.find(t => t.numero === casilla);
-
-console.log("🧪 INTENTO UPDATE WEBHOOK:", {
-    folio: folio,
-    casilla: casilla,
-    jugadorId: jugadorId,
-    infoTiempo: infoTiempo ? infoTiempo.tiempo : null
-});
-    db.run(
-`UPDATE casillas
- SET estado = 'pagada',
-     expira = NULL,
-     tiempo = ?,
-     jugador = ?
- WHERE tableroId = ?
-   AND casilla = ?
-   AND estado = 'reservada'`,
-[
-    infoTiempo ? infoTiempo.tiempo : null,
-    jugadorId,
-    folio,
-    casilla
-],
-function(err){
-    if(err){
-        console.log("Error actualizando pago:", casilla, err.message);
+    if(!folio){
+        console.log("⚠️ Pago sin folio");
         return;
     }
 
-    console.log("FILAS AFECTADAS:", this.changes);
+    if(casillas.length === 0){
+        console.log("⚠️ Pago sin casillas");
+        return;
+    }
 
-     console.log("FILAS AFECTADAS UPDATE PAGO:", this.changes);
+    casillas.forEach(casilla => {
 
-    console.log("✅ CASILLA PAGADA NUEVA VERSION:", {
-        folio,
-        casilla,
-        jugadorId,
-        tiempo: infoTiempo ? infoTiempo.tiempo : null
+        const infoTiempo = tiempos.find(t => t.numero === casilla);
+
+        console.log("🧪 INTENTO UPDATE WEBHOOK:", {
+            folio: folio,
+            casilla: casilla,
+            jugadorId: jugadorId,
+            infoTiempo: infoTiempo ? infoTiempo.tiempo : null
+        });
+
+        db.run(
+        `UPDATE casillas
+         SET estado = 'pagada',
+             expira = NULL,
+             tiempo = ?,
+             jugador = ?
+         WHERE tableroId = ?
+           AND casilla = ?
+           AND estado = 'reservada'`,
+        [
+            infoTiempo ? infoTiempo.tiempo : null,
+            jugadorId,
+            folio,
+            casilla
+        ],
+        function(err){
+            if(err){
+                console.log("Error actualizando pago:", casilla, err.message);
+                return;
+            }
+
+            console.log("FILAS AFECTADAS:", this.changes);
+            console.log("FILAS AFECTADAS UPDATE PAGO:", this.changes);
+
+            console.log("✅ CASILLA PAGADA NUEVA VERSION:", {
+                folio,
+                casilla,
+                jugadorId,
+                tiempo: infoTiempo ? infoTiempo.tiempo : null
+            });
+        }
+        );
+
     });
-}
-);
 
-});
+    if(jugadorId){
+
+        db.get(
+        `SELECT nombre, apellidos, email
+         FROM usuarios
+         WHERE id = ?`,
+        [jugadorId],
+        async (err, usuario) => {
+
+            if(err){
+                console.log("❌ Error consultando usuario para correo:", err.message);
+                return;
+            }
+
+            if(!usuario || !usuario.email){
+                console.log("⚠️ No se encontró email para jugador:", jugadorId);
+                return;
+            }
+
+            const nombreCompleto = [usuario.nombre, usuario.apellidos]
+                .filter(Boolean)
+                .join(" ")
+                .trim() || "jugador";
+
+            const listaCasillas = casillas.join(", ");
+
+            try{
+
+                await transporter.sendMail({
+                    from: '"Quiz $1000" <juanjmichelena@outlook.com>',
+                    to: usuario.email,
+                    subject: "Confirmación de compra - QUIZ1000",
+                    html: `
+                        <h2>Compra confirmada</h2>
+                        <p>Hola ${nombreCompleto},</p>
+                        <p>Tu pago fue aprobado correctamente.</p>
+                        <p><strong>Folio:</strong> ${folio}</p>
+                        <p><strong>Casillas compradas:</strong> ${listaCasillas}</p>
+                        <p>
+                            Puedes revisar tus jugadas aquí:
+                            <a href="https://quiz1000.onrender.com/perfil">Mi perfil</a>
+                        </p>
+                    `
+                });
+
+                console.log("✅ Correo de confirmación enviado a:", usuario.email);
+
+            }catch(emailError){
+                console.log("❌ Error enviando correo de confirmación:", emailError.message);
+            }
+
+        });
+
+    }else{
+        console.log("⚠️ No llegó jugadorId; no se envió correo de confirmación");
+    }
 
 }
 
 }catch(error){
 
-console.log("❌ ERROR PROCESANDO PAGO:",error);
+console.log("❌ ERROR PROCESANDO PAGO:", error);
 
 }
 
@@ -1373,6 +1435,7 @@ app.post("/crear-pago", async (req, res) => {
 
             metadata: {
     folio: folio,
+    jugador_id: jugadorId,
     jugadorId: jugadorId,
     casillas: items.map(item => item.numero),
     tiempos: items.map(item => ({
@@ -1382,11 +1445,11 @@ app.post("/crear-pago", async (req, res) => {
     tipoCambioCobro: tipoCambioCobro
 },
 
-            back_urls: {
-                success: "https://quiz1000.onrender.com/pago",
-                failure: "https://quiz1000.onrender.com/pago",
-                pending: "https://quiz1000.onrender.com/pago"
-            },
+back_urls: {
+    success: `https://quiz1000.onrender.com/perfil?folio=${folio}&pago=success`,
+    failure: `https://quiz1000.onrender.com/pago?folio=${folio}&pago=failure`,
+    pending: `https://quiz1000.onrender.com/perfil?folio=${folio}&pago=pending`
+},
 
             auto_return: "approved",
             notification_url: "https://quiz1000.onrender.com/webhook/mercadopago"
