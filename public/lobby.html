@@ -222,6 +222,10 @@ renderTableros();
 // ESTADO RAPIDO DEL JUGADOR
 // =============================
 
+// =============================
+// ESTADO RAPIDO DEL JUGADOR
+// =============================
+
 function cargarEstadoRapido(){
 
     const contenedor = document.getElementById("estadoRapido");
@@ -237,6 +241,7 @@ function cargarEstadoRapido(){
 }
 
 cargarEstadoRapido();
+
 async function crearNuevoTablero() {
     try {
         const res = await fetch("/api/crear-tablero", {
@@ -250,9 +255,11 @@ async function crearNuevoTablero() {
             return;
         }
 
-        localStorage.setItem("folioTableroActual", data.folio);
+        const folio = data.folio;
 
-        const carritoKey = "carrito_" + data.folio;
+        localStorage.setItem("folioTableroActual", folio);
+
+        const carritoKey = "carrito_" + folio;
         if (!localStorage.getItem(carritoKey)) {
             localStorage.setItem(carritoKey, JSON.stringify({
                 items: [],
@@ -260,12 +267,34 @@ async function crearNuevoTablero() {
             }));
         }
 
-        window.location.href = "/tablero?folio=" + data.folio;
+        let jugadorActual = JSON.parse(localStorage.getItem("jugadorActual"));
+
+        if (jugadorActual) {
+            if (!jugadorActual.tableros) {
+                jugadorActual.tableros = {};
+            }
+
+            if (!jugadorActual.tableros[folio]) {
+                jugadorActual.tableros[folio] = {
+                    numeros: [],
+                    tiempos: [],
+                    fechaApertura: new Date().toLocaleString(),
+                    estado: "activo"
+                };
+            }
+
+            localStorage.setItem("jugadorActual", JSON.stringify(jugadorActual));
+            localStorage.setItem("usuarioLogueado", JSON.stringify(jugadorActual));
+        }
+
+        window.location.href = "/tablero?folio=" + folio;
+
     } catch (error) {
         console.error("Error creando tablero desde lobby:", error);
         alert("Error creando tablero");
     }
 }
+
 function abrirTableroEnCurso(folio) {
     localStorage.setItem("folioTableroActual", folio);
 
