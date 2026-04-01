@@ -5,6 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mi Perfil - Quiz $1000</title>
 <link rel="stylesheet" href="css/styles.css?v=3">
+
+<style>
+.btn-invitar-whatsapp{
+    display:inline-block;
+    margin:10px 0;
+    padding:10px 14px;
+    background:#25D366;
+    color:white;
+    text-decoration:none;
+    border-radius:8px;
+    font-weight:bold;
+}
+</style>
 </head>
 
 <body>
@@ -72,14 +85,16 @@ const usuario = JSON.parse(localStorage.getItem("usuarioLogueado"));
 if(!usuario){
     window.location.href = "login.html";
 }
+
 // Esperar a que cargue el DOM
 document.addEventListener("DOMContentLoaded", function(){
-    // sincronizar login con perfil
-const usuarioLogueado = JSON.parse(localStorage.getItem("usuarioLogueado"));
 
-if(usuarioLogueado && !localStorage.getItem("jugadorActual")){
-    localStorage.setItem("jugadorActual", JSON.stringify(usuarioLogueado));
-}
+    // sincronizar login con perfil
+    const usuarioLogueado = JSON.parse(localStorage.getItem("usuarioLogueado"));
+
+    if(usuarioLogueado && !localStorage.getItem("jugadorActual")){
+        localStorage.setItem("jugadorActual", JSON.stringify(usuarioLogueado));
+    }
 
     const jugador = JSON.parse(localStorage.getItem("jugadorActual"));
 
@@ -89,6 +104,7 @@ if(usuarioLogueado && !localStorage.getItem("jugadorActual")){
         document.getElementById("perfilEdad").value = jugador.edad || "";
         document.getElementById("perfilEmail").value = jugador.email || "";
         document.getElementById("perfilTelefono").value = jugador.telefono || "";
+
         if(jugador.tableroID){
             const estado = JSON.parse(localStorage.getItem("tableroEstado_" + jugador.tableroID));
 
@@ -99,123 +115,158 @@ if(usuarioLogueado && !localStorage.getItem("jugadorActual")){
 
                 const encabezado = document.getElementById("estadoTablero");
                 if(encabezado){
-                    encabezado.textContent = 
+                    encabezado.textContent =
                         `Este tablero tiene ${resueltas} números resueltos. Faltan ${faltan} para completarse`;
                 }
             }
         }
     }
-// ============================
-// MOSTRAR TABLEROS EN PERFIL
-// ============================
 
-const contenedorTableros = document.getElementById("misTablerosPerfil");
+    // ============================
+    // MOSTRAR TABLEROS EN PERFIL
+    // ============================
+    const contenedorTableros = document.getElementById("misTablerosPerfil");
 
-if(jugador && jugador.tableros && Object.keys(jugador.tableros).length > 0){
+    async function cargarMisTableros(){
 
-    for(let folio in jugador.tableros){
+        const jugador = JSON.parse(localStorage.getItem("jugadorActual"));
 
-        const tablero = jugador.tableros[folio];
+        if(!jugador || !jugador.id){
+            contenedorTableros.innerHTML = "<p>No hay historial aún.</p>";
+            return;
+        }
 
-        const estadoClase = tablero.estado === "completo"
-            ? "tablero-estado-completo"
-            : "tablero-estado-activo";
+        try{
 
-        const div = document.createElement("div");
-        div.classList.add("tablero-perfil-card");
+            const res = await fetch(`/api/mis-tableros/${jugador.id}`);
+            const data = await res.json();
 
-        div.innerHTML = `
-            <strong>${folio}</strong><br>
-            Estado: <span class="${estadoClase}">
-                ${tablero.estado || "activo"}
-            </span><br>
-            Números: ${(tablero.numeros || []).join(", ") || "Sin números"}<br>
-            Mejor tiempo: ${tablero.mejorTiempo || "Sin registro"}
-        `;
+            if(!data.ok || !data.tableros || Object.keys(data.tableros).length === 0){
+                contenedorTableros.innerHTML = "<p>Aún no participas en ningún tablero.</p>";
+                return;
+            }
 
-        contenedorTableros.appendChild(div);
+            contenedorTableros.innerHTML = "";
+
+            const tableros = data.tableros;
+
+            for(let folio in tableros){
+
+                const compras = tableros[folio];
+
+                const details = document.createElement("details");
+                details.classList.add("tablero-perfil-card");
+
+                const lista = compras.map(c => {
+                    return `<li>Número ${c.numero} — Tiempo: ${c.tiempo || "Sin registro"}</li>`;
+                }).join("");
+
+                const linkTablero = `${window.location.origin}/tablero?folio=${encodeURIComponent(folio)}`;
+                const mensajeWhatsapp = encodeURIComponent(
+                    `Estoy jugando este tablero de QUIZ1000. ¡Entra y participa! ${linkTablero}`
+                );
+                const whatsappUrl = `https://wa.me/?text=${mensajeWhatsapp}`;
+
+                details.innerHTML = `
+                    <summary>
+                        <strong>${folio}</strong>
+                    </summary>
+
+                    <div style="margin-top:10px;">
+                        <a href="${whatsappUrl}" target="_blank" class="btn-invitar-whatsapp">
+                            Invita a tus amigos
+                        </a>
+                    </div>
+
+                    <ul style="margin-top:10px;">
+                        ${lista}
+                    </ul>
+                `;
+
+                contenedorTableros.appendChild(details);
+            }
+
+        }catch(error){
+            console.error("Error cargando mis tableros:", error);
+            contenedorTableros.innerHTML = "<p>Error cargando historial.</p>";
+        }
     }
 
-}else{
-    contenedorTableros.innerHTML = "<p>Aún no participas en ningún tablero.</p>";
-}
+    cargarMisTableros();
+
     document.getElementById("perfilForm").addEventListener("submit", function(e){
 
-e.preventDefault();
+        e.preventDefault();
 
-const jugadorActual = JSON.parse(localStorage.getItem("jugadorActual"));
-if(!jugadorActual) return;
+        const jugadorActual = JSON.parse(localStorage.getItem("jugadorActual"));
+        if(!jugadorActual) return;
 
-const email = document.getElementById("perfilEmail").value;
-const telefono = document.getElementById("perfilTelefono").value;
-const password = document.getElementById("perfilPassword").value;
+        const email = document.getElementById("perfilEmail").value;
+        const telefono = document.getElementById("perfilTelefono").value;
+        const password = document.getElementById("perfilPassword").value;
 
-fetch("/actualizar-perfil",{
+        fetch("/actualizar-perfil", {
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body: JSON.stringify({
+                id: jugadorActual.id,
+                email,
+                telefono,
+                password
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
 
-method:"POST",
+            if(data.ok){
 
-headers:{
-"Content-Type":"application/json"
-},
+                jugadorActual.email = email;
+                jugadorActual.telefono = telefono;
 
-body: JSON.stringify({
-id: jugadorActual.id,
-email,
-telefono,
-password
-})
+                localStorage.setItem("jugadorActual", JSON.stringify(jugadorActual));
 
-})
-.then(res=>res.json())
-.then(data=>{
+                alert("Perfil actualizado correctamente ✅");
 
-if(data.ok){
+            }else{
+                alert("Error actualizando perfil");
+            }
 
-jugadorActual.email = email;
-jugadorActual.telefono = telefono;
+        });
 
-localStorage.setItem("jugadorActual", JSON.stringify(jugadorActual));
-
-alert("Perfil actualizado correctamente ✅");
-
-}else{
-
-alert("Error actualizando perfil");
-
-}
+    });
 
 });
 
-});
-
-});
 const inputsCodigo = document.querySelectorAll(".codigo");
 
 inputsCodigo.forEach((input, index) => {
 
-input.addEventListener("input", function(){
+    input.addEventListener("input", function(){
 
-if(this.value.length === 1 && index < inputsCodigo.length - 1){
-inputsCodigo[index + 1].focus();
-}
+        if(this.value.length === 1 && index < inputsCodigo.length - 1){
+            inputsCodigo[index + 1].focus();
+        }
+
+    });
+
+    input.addEventListener("keydown", function(e){
+
+        if(e.key === "Backspace" && this.value === "" && index > 0){
+            inputsCodigo[index - 1].focus();
+        }
+
+    });
 
 });
 
-input.addEventListener("keydown", function(e){
-
-if(e.key === "Backspace" && this.value === "" && index > 0){
-inputsCodigo[index - 1].focus();
-}
-
-});
-
-});
 function logout(){
 
-localStorage.removeItem("usuarioLogueado");
-localStorage.removeItem("jugadorActual");
+    localStorage.removeItem("usuarioLogueado");
+    localStorage.removeItem("jugadorActual");
 
-window.location.href = "index.html";
+    window.location.href = "index.html";
 
 }
 </script>

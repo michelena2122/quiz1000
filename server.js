@@ -1609,4 +1609,49 @@ app.listen(PORT, () => {
         console.log(`Servidor corriendo en http://localhost:${PORT}`);
     });
 });
+// =============================
+// MIS TABLEROS (PERFIL JUGADOR)
+// =============================
+app.get("/api/mis-tableros/:jugadorId", (req, res) => {
 
+    const jugadorId = req.params.jugadorId;
+
+    db.all(`
+        SELECT tableroId, casilla, tiempo
+        FROM casillas
+        WHERE jugador = ?
+        AND estado = 'pagada'
+        ORDER BY tableroId ASC
+    `,
+    [jugadorId],
+    (err, rows) => {
+
+        if(err){
+            console.error("ERROR PERFIL:", err.message);
+            return res.json({ ok:false });
+        }
+
+        // agrupar por folio
+        const tableros = {};
+
+        rows.forEach(r => {
+
+            if(!tableros[r.tableroId]){
+                tableros[r.tableroId] = [];
+            }
+
+            tableros[r.tableroId].push({
+                numero: r.casilla,
+                tiempo: r.tiempo
+            });
+
+        });
+
+        res.json({
+            ok:true,
+            tableros: tableros
+        });
+
+    });
+
+});
