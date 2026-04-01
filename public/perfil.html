@@ -17,6 +17,30 @@
     border-radius:8px;
     font-weight:bold;
 }
+
+.robots-menu{
+    display:flex;
+    justify-content:center;
+    gap:30px;
+    margin-bottom:30px;
+    flex-wrap:wrap;
+}
+
+.robot-btn{
+    width:120px;
+    cursor:pointer;
+    transition:transform 0.2s;
+}
+
+.robot-btn:hover{
+    transform:scale(1.08);
+}
+
+@media(max-width:600px){
+    .robot-btn{
+        width:90px;
+    }
+}
 </style>
 </head>
 
@@ -24,53 +48,67 @@
 
 <div class="perfil-contenedor">
 
-<img src="./assets/images/perfil.png"
-class="icono-perfil"
-alt="Mi Perfil">
+    <!-- BOTONES ROBOT -->
+    <div class="robots-menu">
+        <img src="./assets/images/robot-editarperfil.png"
+             class="robot-btn"
+             id="btnEditarPerfil"
+             alt="Editar perfil">
 
-<form id="perfilForm" class="perfil-grid">
+        <img src="./assets/images/robot-tableroperfil.png"
+             class="robot-btn"
+             id="btnVerTableros"
+             alt="Ver tableros">
+    </div>
 
-<div class="campo">
-<label>Nombre</label>
-<input type="text" id="perfilNombre" disabled>
-</div>
+    <img src="./assets/images/perfil.png"
+    class="icono-perfil"
+    alt="Mi Perfil">
 
-<div class="campo">
-<label>Apellidos</label>
-<input type="text" id="perfilApellidos" disabled>
-</div>
+    <form id="perfilForm" class="perfil-grid" style="display:none;">
 
-<div class="campo">
-<label>Edad</label>
-<input type="number" id="perfilEdad" disabled>
-</div>
+        <div class="campo">
+            <label>Nombre</label>
+            <input type="text" id="perfilNombre" disabled>
+        </div>
 
-<div class="campo">
-<label>Email</label>
-<input type="email" id="perfilEmail">
-</div>
+        <div class="campo">
+            <label>Apellidos</label>
+            <input type="text" id="perfilApellidos" disabled>
+        </div>
 
-<div class="campo">
-<label>Teléfono</label>
-<input type="text" id="perfilTelefono">
-</div>
+        <div class="campo">
+            <label>Edad</label>
+            <input type="number" id="perfilEdad" disabled>
+        </div>
 
-<div class="campo">
-<label>Nueva Contraseña</label>
-<input type="password" id="perfilPassword">
-</div>
+        <div class="campo">
+            <label>Email</label>
+            <input type="email" id="perfilEmail">
+        </div>
 
-<div class="campo-boton">
-<button type="submit">Guardar Cambios</button>
-</div>
+        <div class="campo">
+            <label>Teléfono</label>
+            <input type="text" id="perfilTelefono">
+        </div>
 
-</form>
+        <div class="campo">
+            <label>Nueva Contraseña</label>
+            <input type="password" id="perfilPassword">
+        </div>
 
-<hr style="margin:40px 0;">
+        <div class="campo-boton">
+            <button type="submit">Guardar Cambios</button>
+        </div>
 
-<h2>🎯 Mis Tableros</h2>
+    </form>
 
-<div id="misTablerosPerfil"></div>
+    <div id="seccionTableros" style="display:none;">
+        <hr style="margin:40px 0;">
+        <h2>🎯 Mis Tableros</h2>
+        <div id="misTablerosPerfil"></div>
+    </div>
+
 </div>
 
 <!-- ICONO HOME -->
@@ -235,6 +273,24 @@ document.addEventListener("DOMContentLoaded", function(){
 
         });
 
+    });
+
+    // ============================
+    // BOTONES ROBOT PERFIL
+    // ============================
+    const btnEditar = document.getElementById("btnEditarPerfil");
+    const btnTableros = document.getElementById("btnVerTableros");
+    const formPerfil = document.getElementById("perfilForm");
+    const seccionTableros = document.getElementById("seccionTableros");
+
+    btnEditar.addEventListener("click", function(){
+        formPerfil.style.display = "grid";
+        seccionTableros.style.display = "none";
+    });
+
+    btnTableros.addEventListener("click", function(){
+        formPerfil.style.display = "none";
+        seccionTableros.style.display = "block";
     });
 
 });
