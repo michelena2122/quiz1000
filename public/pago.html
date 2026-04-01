@@ -344,19 +344,32 @@ document.getElementById("btnPagarTodo").addEventListener("click", function(){
         alert("No hay casillas en el carrito");
         return;
     }
-    console.log("JUGADOR ID ENVIADO:", localStorage.getItem("jugadorId"));
-    console.log("LOCALSTORAGE COMPLETO:", localStorage);
+
+    // ============================
+    // OBTENER JUGADOR ID (SEGURO)
+    // ============================
+    const jugadorActual = JSON.parse(localStorage.getItem("jugadorActual"));
+    const jugadorId = localStorage.getItem("jugadorId") || (jugadorActual ? jugadorActual.id : null);
+
+    console.log("JUGADOR ID ENVIADO:", jugadorId);
+    console.log("JUGADOR ACTUAL:", jugadorActual);
+
+    if(!jugadorId){
+        alert("No se encontró el ID del jugador. Inicia sesión nuevamente.");
+        return;
+    }
+
     fetch("/crear-pago", {
-    method: "POST",
-    headers: {
-        "Content-Type": "application/json"
-    },
-   body: JSON.stringify({
-    folio: folioCarrito,
-    items: carritoActual.items,
-    jugadorId: localStorage.getItem("jugadorId")
-})
-})
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            folio: folioCarrito,
+            items: carritoActual.items,
+            jugadorId: jugadorId
+        })
+    })
     .then(res => res.json())
     .then(data => {
         if(data.link){
@@ -372,7 +385,6 @@ document.getElementById("btnPagarTodo").addEventListener("click", function(){
     });
 
 });
-
 document.getElementById("btnWhatsapp").addEventListener("click", function(){
     const folioActual = localStorage.getItem("folioTablero") || "TABLERO";
     const linkTablero = window.location.origin + "/tablero.html?folio=" + folioActual;
