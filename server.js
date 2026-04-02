@@ -1095,11 +1095,24 @@ function obtenerResumenTablero(tableroId){
                 const jugadorId = r.jugadorId || "sin-id";
 
                 if(!participantesMap[jugadorId]){
-                    participantesMap[jugadorId] = {
-                        jugadorId: jugadorId,
-                        nombre: (r.nombre || "Jugador").trim(),
-                        apellidos: (r.apellidos || "").trim(),
-                        email: (r.email || "").trim().toLowerCase(),
+                    const emailReal = (r.email || "").trim().toLowerCase();
+
+let nombreReal = (r.nombre || "").trim();
+
+if(!nombreReal && emailReal){
+    nombreReal = emailReal.split("@")[0];
+}
+
+if(!nombreReal){
+    nombreReal = "Jugador";
+}
+
+participantesMap[jugadorId] = {
+    jugadorId: jugadorId,
+    nombre: nombreReal,
+    nombreSolo: nombreReal,
+    apellidos: (r.apellidos || "").trim(),
+    email: emailReal,
                         numeros: [],
                         tiempos: [],
                         mejorTiempoNumero: Number.MAX_SAFE_INTEGER,
