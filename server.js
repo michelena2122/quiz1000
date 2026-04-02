@@ -844,6 +844,16 @@ db.get(
 
 (err,row)=>{
 
+if(err){
+    console.log("Error consultando tableros iniciales:", err.message);
+    return;
+}
+
+if(!row){
+    console.log("No se pudo leer COUNT(*) de tableros");
+    return;
+}
+
 if(row.total < 3){
 
 for(let i=1;i<=3;i++){
@@ -861,9 +871,9 @@ VALUES (?,?)`,
 
 }
 
-console.log("Tableros iniciales verificados");
-
 }
+
+console.log("Tableros iniciales verificados");
 
 }
 
