@@ -258,8 +258,14 @@ app.post("/enviar-codigo", async (req, res) => {
             console.log("Código enviado por email:", codigo);
         })
         .catch((error) => {
-            console.error("ERROR ENVIANDO EMAIL:", error);
-        });
+    console.error("ERROR ENVIANDO EMAIL:", error);
+
+    res.json({
+        ok: true,
+        mensaje: "Correo no enviado (modo pruebas)",
+        codigo: codigo
+    });
+});
 });
 // ============================
 // REGISTRO DE USUARIO
@@ -1310,7 +1316,7 @@ if(data.status === "approved"){
              jugador = ?
          WHERE tableroId = ?
            AND casilla = ?
-           AND estado = 'reservada'`,
+           AND estado = 'pagada'`,
         [
             infoTiempo ? infoTiempo.tiempo : null,
             jugadorId,
