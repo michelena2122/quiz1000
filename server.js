@@ -116,7 +116,9 @@ const MP_ACCESS_TOKEN = "c0E8HVNboWsJMBiRkHxKBW3pypue47uk";
 // BASE DE DATOS USUARIOS
 // ============================
 
-const db = new sqlite3.Database("./usuarios.db");
+const DB_PATH = process.env.DB_PATH || "/var/data/usuarios.db";
+const db = new sqlite3.Database(DB_PATH);
+console.log("USANDO SQLITE EN:", DB_PATH);
 
 // ============================
 // BASE DE DATOS
