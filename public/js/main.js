@@ -233,7 +233,7 @@ fetch("/api/preguntas")
 .then(res => res.json())
 .then(data => {
 
-    fetch("/api/tablero?folio=" + folio)
+    fetch("/api/tablero")
     .then(res => res.json())
     .then(tableroData => {
 

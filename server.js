@@ -660,36 +660,28 @@ app.post("/api/preguntas", (req, res) => {
 
 app.get("/api/tablero", (req, res) => {
 
-    const folio = req.query.folio;
+db.all(
 
-    if(!folio){
-        return res.json({
-            completo: false,
-            casillas: []
-        });
-    }
+`SELECT casilla
+FROM casillas
+WHERE estado = 'ocupada'`,
 
-    db.all(
-    `SELECT casilla
-     FROM casillas
-     WHERE tableroId = ?
-     AND estado = 'pagada'`,
-    [folio],
-    (err, rows) => {
+[],
 
-        if(err){
-            console.error("ERROR CONSULTANDO TABLERO:", err.message);
-            return res.json({
-                completo: false,
-                casillas: []
-            });
-        }
+(err,rows)=>{
 
-        res.json({
-            completo: false,
-            casillas: rows
-        });
-    });
+if(err){
+return res.json({ casillas:[] });
+}
+
+res.json({
+completo:false,
+casillas:rows
+});
+
+}
+
+);
 
 });
 // =============================
@@ -1137,6 +1129,170 @@ function guardarRankingCerrado(resumen){
 
     });
 }
+async function enviarCorreoRankingFinal(resumen){
+    try{
+
+        if(!resumen || !resumen.participantes || resumen.participantes.length === 0){
+            console.log("⚠️ No hay participantes para enviar ranking final");
+            return;
+        }
+
+        const participantesConEmail = resumen.participantes.filter(p => p.email);
+
+        if(participantesConEmail.length === 0){
+            console.log("⚠️ No hay emails de participantes para ranking final");
+            return;
+        }
+
+        let filasParticipantes = "";
+
+        resumen.participantes.forEach((p, index) => {
+
+            const numeros = (p.numeros || []).join(", ");
+            const tiempos = (p.tiempos || [])
+                .map(t => `Casilla ${t.numero}: ${t.tiempo}`)
+                .join("<br>");
+
+            filasParticipantes += `
+                <div style="margin-bottom:18px; padding:12px; border:1px solid #ddd; border-radius:8px;">
+                    <p><strong>#${index + 1} ${p.nombreSolo || "Jugador"}</strong></p>
+                    <p><strong>Casillas pagadas:</strong> ${numeros || "Sin registro"}</p>
+                    <p><strong>Tiempos:</strong><br>${tiempos || "Sin registro"}</p>
+                    <p><strong>Mejor tiempo:</strong> ${p.mejorTiempoTexto || "Sin registro"}</p>
+                </div>
+            `;
+        });
+
+        const ganadorNombre = resumen.ganador?.nombreSolo || "Sin ganador";
+        const ganadorTiempo = resumen.ganador?.mejorTiempoTexto || "Sin registro";
+
+        const html = `
+            <h2>🏆 Ranking final de QUIZ1000</h2>
+
+            <p><strong>Folio del tablero:</strong> ${resumen.tableroId}</p>
+            <p>El tablero ha sido completado con 50 casillas pagadas.</p>
+
+            <h3>Ganador</h3>
+            <p>
+                <strong>${ganadorNombre}</strong><br>
+                Mejor tiempo: ${ganadorTiempo}
+            </p>
+
+            <h3>Participantes</h3>
+            ${filasParticipantes}
+
+            <p>
+                Puedes consultar el resultado en:
+                <a href="https://quiz1000.onrender.com/ranking?folio=${encodeURIComponent(resumen.tableroId)}">
+                    Ver ranking
+                </a>
+            </p>
+        `;
+
+        for(const participante of participantesConEmail){
+            await transporter.sendMail({
+                from: '"Quiz $1000" <juanjmichelena@outlook.com>',
+                to: participante.email,
+                subject: `Ranking final QUIZ1000 - ${resumen.tableroId}`,
+                html
+            });
+        }
+
+        console.log("✅ Correos de ranking final enviados:", participantesConEmail.length);
+
+    }catch(error){
+        console.log("❌ Error enviando correos de ranking final:", error.message);
+    }
+}
+
+function revisarCierreTablero(tableroId){
+    return new Promise((resolve) => {
+
+        db.get(`
+            SELECT COUNT(*) AS total
+            FROM casillas
+            WHERE tableroId = ?
+              AND estado = 'pagada'
+        `, [tableroId], async (err, row) => {
+
+            if(err){
+                console.log("❌ Error revisando cierre de tablero:", err.message);
+                return resolve({ ok:false, cerrado:false });
+            }
+
+            const totalPagadas = row ? row.total : 0;
+
+            console.log("📊 CASILLAS PAGADAS EN TABLERO:", {
+                tableroId,
+                totalPagadas
+            });
+
+            if(totalPagadas < 50){
+                return resolve({
+                    ok:true,
+                    cerrado:false,
+                    totalPagadas
+                });
+            }
+
+            db.get(`
+                SELECT tableroId
+                FROM rankings_tableros
+                WHERE tableroId = ?
+            `, [tableroId], async (err2, existente) => {
+
+                if(err2){
+                    console.log("❌ Error validando ranking existente:", err2.message);
+                    return resolve({ ok:false, cerrado:false });
+                }
+
+                if(existente){
+                    console.log("ℹ️ El ranking ya estaba guardado para este tablero:", tableroId);
+                    return resolve({
+                        ok:true,
+                        cerrado:true,
+                        repetido:true,
+                        totalPagadas
+                    });
+                }
+
+                try{
+
+                    const resumen = await obtenerResumenTablero(tableroId);
+                    const resultadoGuardado = await guardarRankingCerrado(resumen);
+
+                    db.run(`
+                        UPDATE tableros
+                        SET completo = 1
+                        WHERE id = ?
+                    `, [tableroId], async function(err3){
+
+                        if(err3){
+                            console.log("❌ Error marcando tablero como completo:", err3.message);
+                            return resolve({ ok:false, cerrado:false });
+                        }
+
+                        console.log("✅ Tablero marcado como completo:", tableroId);
+                        console.log("✅ Ranking guardado:", resultadoGuardado);
+
+                        await enviarCorreoRankingFinal(resumen);
+
+                        resolve({
+                            ok:true,
+                            cerrado:true,
+                            totalPagadas,
+                            resumen
+                        });
+                    });
+
+                }catch(error){
+                    console.log("❌ Error cerrando tablero:", error.message);
+                    resolve({ ok:false, cerrado:false });
+                }
+            });
+        });
+    });
+}
 // =============================
 // OBTENER UNA PREGUNTA
 // =============================
@@ -1228,6 +1384,29 @@ casillas:rows
 }
 
 );
+
+});
+app.get("/api/debug-limpiar-duplicados", (req, res) => {
+
+    db.run(`
+        DELETE FROM casillas
+        WHERE id NOT IN (
+            SELECT MIN(id)
+            FROM casillas
+            GROUP BY tableroId, casilla
+        )
+    `, function(err){
+
+        if(err){
+            return res.json({ ok:false, error: err.message });
+        }
+
+        res.json({
+            ok:true,
+            eliminados: this.changes
+        });
+
+    });
 
 });
 app.get("/api/debug-rankings", (req, res) => {
@@ -1633,6 +1812,14 @@ function(err){
 );
 
     });
+setTimeout(async () => {
+    try{
+        const cierre = await revisarCierreTablero(folio);
+        console.log("🧾 RESULTADO REVISAR CIERRE:", cierre);
+    }catch(error){
+        console.log("❌ Error al revisar cierre tras pago:", error.message);
+    }
+}, 1200);
 
     if(jugadorId){
 
