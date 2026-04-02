@@ -161,20 +161,40 @@ function inicializarConfiguracion(callback){
                 console.log("Tabla tableros creada correctamente");
 
                 db.run(`
-                    CREATE TABLE IF NOT EXISTS configuracion (
-                        clave TEXT PRIMARY KEY,
-                        valor TEXT
-                    )
-                `, (err) => {
-                    if(err){
-                        console.log("Error creando tabla configuracion:", err.message);
-                        if(callback) return callback(err);
-                    }
+    CREATE TABLE IF NOT EXISTS configuracion (
+        clave TEXT PRIMARY KEY,
+        valor TEXT
+    )
+`, (err) => {
+    if(err){
+        console.log("Error creando tabla configuracion:", err.message);
+        if(callback) return callback(err);
+    }
 
-                    console.log("Tabla configuracion creada correctamente");
+    console.log("Tabla configuracion creada correctamente");
 
-                    if(callback) callback(null);
-                });
+    db.run(`
+        CREATE TABLE IF NOT EXISTS rankings_tableros (
+            tableroId TEXT PRIMARY KEY,
+            ganadorId TEXT,
+            ganadorNombre TEXT,
+            mejorTiempoTexto TEXT,
+            mejorTiempoNumero REAL,
+            totalParticipantes INTEGER DEFAULT 0,
+            resumenJson TEXT,
+            fechaCierre INTEGER
+        )
+    `, (err2) => {
+        if(err2){
+            console.log("Error creando tabla rankings_tableros:", err2.message);
+            if(callback) return callback(err2);
+        }
+
+        console.log("Tabla rankings_tableros creada correctamente");
+
+        if(callback) callback(null);
+    });
+    });
 
             });
 
@@ -1067,6 +1087,30 @@ casillas:rows
 }
 
 );
+
+});
+app.get("/api/debug-rankings", (req, res) => {
+
+    db.all(`
+        SELECT name
+        FROM sqlite_master
+        WHERE type = 'table'
+        ORDER BY name ASC
+    `, [], (err, rows) => {
+
+        if(err){
+            return res.json({
+                ok:false,
+                error: err.message
+            });
+        }
+
+        res.json({
+            ok:true,
+            tablas: rows
+        });
+
+    });
 
 });
 // =============================
