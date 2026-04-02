@@ -1309,37 +1309,45 @@ if(data.status === "approved"){
         });
 
         db.run(
-        `UPDATE casillas
-         SET estado = 'pagada',
-             expira = NULL,
-             tiempo = ?,
-             jugador = ?
-         WHERE tableroId = ?
-           AND casilla = ?
-           AND estado = 'pagada'`,
-        [
-            infoTiempo ? infoTiempo.tiempo : null,
-            jugadorId,
+`UPDATE casillas
+ SET estado = 'pagada',
+     expira = NULL,
+     tiempo = ?,
+     jugador = ?
+ WHERE tableroId = ?
+   AND casilla = ?
+   AND estado = 'reservada'`,
+[
+    infoTiempo ? infoTiempo.tiempo : null,
+    jugadorId,
+    folio,
+    casilla
+],
+function(err){
+    if(err){
+        console.log("Error actualizando pago:", casilla, err.message);
+        return;
+    }
+
+    console.log("FILAS AFECTADAS:", this.changes);
+    console.log("FILAS AFECTADAS UPDATE PAGO:", this.changes);
+
+    if(this.changes > 0){
+        console.log("✅ CASILLA PAGADA NUEVA VERSION:", {
             folio,
-            casilla
-        ],
-        function(err){
-            if(err){
-                console.log("Error actualizando pago:", casilla, err.message);
-                return;
-            }
-
-            console.log("FILAS AFECTADAS:", this.changes);
-            console.log("FILAS AFECTADAS UPDATE PAGO:", this.changes);
-
-            console.log("✅ CASILLA PAGADA NUEVA VERSION:", {
-                folio,
-                casilla,
-                jugadorId,
-                tiempo: infoTiempo ? infoTiempo.tiempo : null
-            });
-        }
-        );
+            casilla,
+            jugadorId,
+            tiempo: infoTiempo ? infoTiempo.tiempo : null
+        });
+    }else{
+        console.log("⚠️ No se encontró reserva para actualizar:", {
+            folio,
+            casilla,
+            jugadorId
+        });
+    }
+}
+);
 
     });
 
