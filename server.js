@@ -1531,6 +1531,38 @@ app.get("/api/debug-db-status", (req, res) => {
     });
 
 });
+app.get("/api/ranking/:folio", async (req, res) => {
+
+    const folio = req.params.folio;
+
+    try{
+
+        const resumen = await obtenerResumenTablero(folio);
+
+        if(!resumen || !resumen.participantes){
+            return res.json({
+                ok:false,
+                mensaje:"Sin datos de ranking"
+            });
+        }
+
+        res.json({
+            ok:true,
+            ranking: resumen
+        });
+
+    }catch(error){
+
+        console.log("ERROR RANKING:", error.message);
+
+        res.json({
+            ok:false,
+            mensaje:"Error generando ranking"
+        });
+
+    }
+
+});
 app.get("/api/debug-resumen-tablero/:folio", async (req, res) => {
 
     const folio = req.params.folio;
