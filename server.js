@@ -1433,6 +1433,53 @@ app.get("/api/debug-rankings", (req, res) => {
     });
 
 });
+app.get("/api/debug-db-status", (req, res) => {
+
+    db.serialize(() => {
+
+        db.get(`SELECT COUNT(*) AS total FROM usuarios`, [], (err1, usuarios) => {
+            if(err1){
+                return res.json({ ok:false, error: err1.message });
+            }
+
+            db.get(`SELECT COUNT(*) AS total FROM casillas`, [], (err2, casillas) => {
+                if(err2){
+                    return res.json({ ok:false, error: err2.message });
+                }
+
+                db.get(`SELECT COUNT(*) AS total FROM tableros`, [], (err3, tableros) => {
+                    if(err3){
+                        return res.json({ ok:false, error: err3.message });
+                    }
+
+                    db.all(`
+                        SELECT id, completo, fechaCreacion
+                        FROM tableros
+                        ORDER BY fechaCreacion DESC
+                        LIMIT 10
+                    `, [], (err4, ultimosTableros) => {
+                        if(err4){
+                            return res.json({ ok:false, error: err4.message });
+                        }
+
+                        res.json({
+                            ok:true,
+                            dbPath: path.resolve("./usuarios.db"),
+                            conteos: {
+                                usuarios: usuarios.total,
+                                casillas: casillas.total,
+                                tableros: tableros.total
+                            },
+                            ultimosTableros
+                        });
+                    });
+                });
+            });
+        });
+
+    });
+
+});
 app.get("/api/debug-resumen-tablero/:folio", async (req, res) => {
 
     const folio = req.params.folio;
@@ -1526,6 +1573,53 @@ app.get("/api/debug-ranking-guardado/:folio", (req, res) => {
             ok:true,
             ranking: row,
             resumen: resumenParseado
+        });
+
+    });
+
+});
+app.get("/api/debug-db-status", (req, res) => {
+
+    db.serialize(() => {
+
+        db.get(`SELECT COUNT(*) AS total FROM usuarios`, [], (err1, usuarios) => {
+            if(err1){
+                return res.json({ ok:false, error: err1.message });
+            }
+
+            db.get(`SELECT COUNT(*) AS total FROM casillas`, [], (err2, casillas) => {
+                if(err2){
+                    return res.json({ ok:false, error: err2.message });
+                }
+
+                db.get(`SELECT COUNT(*) AS total FROM tableros`, [], (err3, tableros) => {
+                    if(err3){
+                        return res.json({ ok:false, error: err3.message });
+                    }
+
+                    db.all(`
+                        SELECT id, completo, fechaCreacion
+                        FROM tableros
+                        ORDER BY fechaCreacion DESC
+                        LIMIT 10
+                    `, [], (err4, ultimosTableros) => {
+                        if(err4){
+                            return res.json({ ok:false, error: err4.message });
+                        }
+
+                        res.json({
+                            ok:true,
+                            dbPath: path.resolve("./usuarios.db"),
+                            conteos: {
+                                usuarios: usuarios.total,
+                                casillas: casillas.total,
+                                tableros: tableros.total
+                            },
+                            ultimosTableros
+                        });
+                    });
+                });
+            });
         });
 
     });
