@@ -660,28 +660,36 @@ app.post("/api/preguntas", (req, res) => {
 
 app.get("/api/tablero", (req, res) => {
 
-db.all(
+    const folio = req.query.folio;
 
-`SELECT casilla
-FROM casillas
-WHERE estado = 'ocupada'`,
+    if(!folio){
+        return res.json({
+            completo: false,
+            casillas: []
+        });
+    }
 
-[],
+    db.all(
+    `SELECT casilla
+     FROM casillas
+     WHERE tableroId = ?
+     AND estado = 'pagada'`,
+    [folio],
+    (err, rows) => {
 
-(err,rows)=>{
+        if(err){
+            console.error("ERROR CONSULTANDO TABLERO:", err.message);
+            return res.json({
+                completo: false,
+                casillas: []
+            });
+        }
 
-if(err){
-return res.json({ casillas:[] });
-}
-
-res.json({
-completo:false,
-casillas:rows
-});
-
-}
-
-);
+        res.json({
+            completo: false,
+            casillas: rows
+        });
+    });
 
 });
 // =============================
@@ -719,13 +727,14 @@ try {
     db.get(
     `SELECT id
      FROM casillas
-     WHERE casilla = ?
-     AND (
+     WHERE tableroId = ?
+    AND casilla = ?
+    AND (
           estado = 'pagada'
           OR estado = 'ocupada'
           OR (estado = 'reservada' AND expira > ?)
      )`,
-    [casilla, ahora],
+    [folio,casilla, ahora],
     (err, ocupada) => {
 
         if(err){
@@ -1760,7 +1769,8 @@ back_urls: {
 
     }
 
-});// =============================
+});
+// =============================
 // ADMIN - OBTENER TIPO DE CAMBIO
 // =============================
 app.get("/api/admin/tipo-cambio", (req, res) => {
