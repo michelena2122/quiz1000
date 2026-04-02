@@ -176,21 +176,60 @@ function inicializarConfiguracion(callback){
     console.log("Tabla configuracion creada correctamente");
 
     db.run(`
-        CREATE TABLE IF NOT EXISTS rankings_tableros (
-            tableroId TEXT PRIMARY KEY,
-            ganadorId TEXT,
-            ganadorNombre TEXT,
-            mejorTiempoTexto TEXT,
-            mejorTiempoNumero REAL,
-            totalParticipantes INTEGER DEFAULT 0,
-            resumenJson TEXT,
-            fechaCierre INTEGER
+    CREATE TABLE IF NOT EXISTS configuracion (
+        clave TEXT PRIMARY KEY,
+        valor TEXT
+    )
+`, (err) => {
+    if(err){
+        console.log("Error creando tabla configuracion:", err.message);
+        if(callback) return callback(err);
+    }
+
+    console.log("Tabla configuracion creada correctamente");
+
+    db.run(`
+        CREATE TABLE IF NOT EXISTS casillas (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            tableroId TEXT,
+            casilla INTEGER,
+            jugador TEXT,
+            email TEXT,
+            tiempo TEXT,
+            estado TEXT,
+            expira INTEGER,
+            fecha INTEGER
         )
-    `, (err2) => {
-        if(err2){
-            console.log("Error creando tabla rankings_tableros:", err2.message);
-            if(callback) return callback(err2);
+    `, (errCasillas) => {
+        if(errCasillas){
+            console.log("Error creando tabla casillas:", errCasillas.message);
+            if(callback) return callback(errCasillas);
         }
+
+        console.log("Tabla casillas creada correctamente");
+
+        db.run(`
+            CREATE TABLE IF NOT EXISTS rankings_tableros (
+                tableroId TEXT PRIMARY KEY,
+                ganadorId TEXT,
+                ganadorNombre TEXT,
+                mejorTiempoTexto TEXT,
+                mejorTiempoNumero REAL,
+                totalParticipantes INTEGER DEFAULT 0,
+                resumenJson TEXT,
+                fechaCierre INTEGER
+            )
+        `, (err2) => {
+            if(err2){
+                console.log("Error creando tabla rankings_tableros:", err2.message);
+                if(callback) return callback(err2);
+            }
+
+            console.log("Tabla rankings_tableros creada correctamente");
+
+            if(callback) callback(null);
+        });
+    });
 
         console.log("Tabla rankings_tableros creada correctamente");
 
