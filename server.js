@@ -996,6 +996,98 @@ function crearNuevoTablero(){
     );
 
 }
+function convertirTiempoATotal(tiempoTexto){
+
+    if(!tiempoTexto || typeof tiempoTexto !== "string"){
+        return Number.MAX_SAFE_INTEGER;
+    }
+
+    const partes = tiempoTexto.split(":");
+
+    const dias = parseInt(partes[0], 10) || 0;
+    const horas = parseInt(partes[1], 10) || 0;
+    const minutos = parseInt(partes[2], 10) || 0;
+    const segundos = parseInt(partes[3], 10) || 0;
+
+    return (dias * 86400) + (horas * 3600) + (minutos * 60) + segundos;
+}
+
+function obtenerResumenTablero(tableroId){
+    return new Promise((resolve, reject) => {
+
+        db.all(`
+            SELECT
+                c.tableroId,
+                c.casilla,
+                c.tiempo,
+                c.jugador AS jugadorId,
+                u.nombre,
+                u.apellidos,
+                u.email
+            FROM casillas c
+            LEFT JOIN usuarios u
+                ON u.id = c.jugador
+            WHERE c.tableroId = ?
+              AND c.estado = 'pagada'
+            ORDER BY c.casilla ASC
+        `, [tableroId], (err, rows) => {
+
+            if(err){
+                return reject(err);
+            }
+
+            const participantesMap = {};
+
+            rows.forEach(r => {
+
+                const jugadorId = r.jugadorId || "sin-id";
+
+                if(!participantesMap[jugadorId]){
+                    participantesMap[jugadorId] = {
+                        jugadorId: jugadorId,
+                        nombre: (r.nombre || "Jugador").trim(),
+                        apellidos: (r.apellidos || "").trim(),
+                        email: (r.email || "").trim().toLowerCase(),
+                        numeros: [],
+                        tiempos: [],
+                        mejorTiempoNumero: Number.MAX_SAFE_INTEGER,
+                        mejorTiempoTexto: null
+                    };
+                }
+
+                participantesMap[jugadorId].numeros.push(r.casilla);
+                participantesMap[jugadorId].tiempos.push({
+                    numero: r.casilla,
+                    tiempo: r.tiempo || "Sin registro"
+                });
+
+                const tiempoNumero = convertirTiempoATotal(r.tiempo);
+
+                if(tiempoNumero < participantesMap[jugadorId].mejorTiempoNumero){
+                    participantesMap[jugadorId].mejorTiempoNumero = tiempoNumero;
+                    participantesMap[jugadorId].mejorTiempoTexto = r.tiempo || "Sin registro";
+                }
+            });
+
+            const participantes = Object.values(participantesMap)
+                .map(p => ({
+                    ...p,
+                    nombreSolo: p.nombre || "Jugador"
+                }))
+                .sort((a, b) => a.mejorTiempoNumero - b.mejorTiempoNumero);
+
+            const ganador = participantes.length > 0 ? participantes[0] : null;
+
+            resolve({
+                tableroId,
+                totalCasillasPagadas: rows.length,
+                totalParticipantes: participantes.length,
+                participantes,
+                ganador
+            });
+        });
+    });
+}
 // =============================
 // OBTENER UNA PREGUNTA
 // =============================
@@ -1111,6 +1203,29 @@ app.get("/api/debug-rankings", (req, res) => {
         });
 
     });
+
+});
+app.get("/api/debug-resumen-tablero/:folio", async (req, res) => {
+
+    const folio = req.params.folio;
+
+    try{
+
+        const resumen = await obtenerResumenTablero(folio);
+
+        res.json({
+            ok:true,
+            resumen
+        });
+
+    }catch(error){
+        console.log("ERROR DEBUG RESUMEN TABLERO:", error.message);
+
+        res.json({
+            ok:false,
+            error: error.message
+        });
+    }
 
 });
 // =============================
