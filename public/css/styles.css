@@ -1700,3 +1700,59 @@ header p {
     white-space:nowrap;
     overflow-x:auto;
 }
+.robots-menu{
+    display:flex;
+    justify-content:center;
+    gap:30px;
+    margin-bottom:30px;
+    flex-wrap:wrap;
+}
+
+.robot-btn{
+    width:120px;
+    cursor:pointer;
+    transition: transform 0.2s;
+}
+
+.robot-btn:hover{
+    transform:scale(1.1);
+}
+
+/* Mobile */
+@media(max-width:600px){
+    .robot-btn{
+        width:90px;
+    }
+}
+.footer-perfil{
+    margin-top:30px;
+    text-align:center;
+    color:white;
+    font-size:14px;
+    line-height:1.5;
+    padding:20px 10px 10px;
+}
+.perfil-contenedor{
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:center !important;
+}
+
+.icono-perfil{
+    display:block !important;
+    order:1 !important;
+    margin:0 auto 20px auto !important;
+    max-width:220px !important;
+    height:auto !important;
+}
+
+.robots-menu{
+    display:flex !important;
+    order:2 !important;
+    justify-content:center !important;
+    align-items:center !important;
+    gap:30px !important;
+    margin:0 0 30px 0 !important;
+    flex-wrap:wrap !important;
+    width:100% !important;
+}

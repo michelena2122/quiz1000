@@ -346,43 +346,53 @@ document.getElementById("btnPagarTodo").addEventListener("click", function(){
     }
 
     // ============================
-    // OBTENER JUGADOR ID (SEGURO)
-    // ============================
-    const jugadorActual = JSON.parse(localStorage.getItem("jugadorActual"));
-    const jugadorId = localStorage.getItem("jugadorId") || (jugadorActual ? jugadorActual.id : null);
+// OBTENER JUGADOR ID (SEGURO)
+// ============================
+const usuarioLogueado = JSON.parse(localStorage.getItem("usuarioLogueado") || "null");
+const jugadorActual = JSON.parse(localStorage.getItem("jugadorActual") || "null");
 
-    console.log("JUGADOR ID ENVIADO:", jugadorId);
-    console.log("JUGADOR ACTUAL:", jugadorActual);
+const jugadorId =
+    localStorage.getItem("jugadorId") ||
+    (jugadorActual ? jugadorActual.id : null) ||
+    (usuarioLogueado ? usuarioLogueado.id : null);
 
-    if(!jugadorId){
-        alert("No se encontró el ID del jugador. Inicia sesión nuevamente.");
-        return;
-    }
+if(jugadorId){
+    localStorage.setItem("jugadorId", jugadorId);
+}
 
-    fetch("/crear-pago", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            folio: folioCarrito,
-            items: carritoActual.items,
-            jugadorId: jugadorId
-        })
+console.log("JUGADOR ID ENVIADO:", jugadorId);
+console.log("JUGADOR ACTUAL:", jugadorActual);
+console.log("USUARIO LOGUEADO:", usuarioLogueado);
+
+if(!jugadorId){
+    alert("No se encontró el ID del jugador. Inicia sesión nuevamente.");
+    return;
+}
+
+fetch("/crear-pago", {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+        folio: folioCarrito,
+        items: carritoActual.items,
+        jugadorId: jugadorId
     })
-    .then(res => res.json())
-    .then(data => {
-        if(data.link){
-            window.location.href = data.link;
-        }else{
-            console.error("Respuesta crear-pago:", data);
-            alert("Error generando pago");
-        }
-    })
-    .catch(error => {
-        console.error("Error creando pago:", error);
+})
+.then(res => res.json())
+.then(data => {
+    if(data.link){
+        window.location.href = data.link;
+    }else{
+        console.error("Respuesta crear-pago:", data);
         alert("Error generando pago");
-    });
+    }
+})
+.catch(error => {
+    console.error("Error creando pago:", error);
+    alert("Error generando pago");
+});
 
 });
 document.getElementById("btnWhatsapp").addEventListener("click", function(){
