@@ -1088,6 +1088,46 @@ function obtenerResumenTablero(tableroId){
         });
     });
 }
+function guardarRankingCerrado(resumen){
+    return new Promise((resolve, reject) => {
+
+        db.run(`
+            INSERT OR REPLACE INTO rankings_tableros
+            (
+                tableroId,
+                ganadorId,
+                ganadorNombre,
+                mejorTiempoTexto,
+                mejorTiempoNumero,
+                totalParticipantes,
+                resumenJson,
+                fechaCierre
+            )
+            VALUES (?,?,?,?,?,?,?,?)
+        `,
+        [
+            resumen.tableroId,
+            resumen.ganador ? resumen.ganador.jugadorId : null,
+            resumen.ganador ? resumen.ganador.nombreSolo : null,
+            resumen.ganador ? resumen.ganador.mejorTiempoTexto : null,
+            resumen.ganador ? resumen.ganador.mejorTiempoNumero : null,
+            resumen.totalParticipantes || 0,
+            JSON.stringify(resumen),
+            Date.now()
+        ],
+        function(err){
+            if(err){
+                return reject(err);
+            }
+
+            resolve({
+                ok:true,
+                cambios: this.changes
+            });
+        });
+
+    });
+}
 // =============================
 // OBTENER UNA PREGUNTA
 // =============================
@@ -1226,6 +1266,81 @@ app.get("/api/debug-resumen-tablero/:folio", async (req, res) => {
             error: error.message
         });
     }
+
+});
+app.get("/api/debug-guardar-ranking/:folio", async (req, res) => {
+
+    const folio = req.params.folio;
+
+    try{
+
+        const resumen = await obtenerResumenTablero(folio);
+
+        if(!resumen || resumen.totalCasillasPagadas === 0){
+            return res.json({
+                ok:false,
+                mensaje:"Ese tablero no tiene casillas pagadas para guardar ranking"
+            });
+        }
+
+        const resultado = await guardarRankingCerrado(resumen);
+
+        res.json({
+            ok:true,
+            mensaje:"Ranking guardado correctamente",
+            resultado,
+            resumen
+        });
+
+    }catch(error){
+        console.log("ERROR DEBUG GUARDAR RANKING:", error.message);
+
+        res.json({
+            ok:false,
+            error: error.message
+        });
+    }
+
+});
+app.get("/api/debug-ranking-guardado/:folio", (req, res) => {
+
+    const folio = req.params.folio;
+
+    db.get(`
+        SELECT *
+        FROM rankings_tableros
+        WHERE tableroId = ?
+    `, [folio], (err, row) => {
+
+        if(err){
+            return res.json({
+                ok:false,
+                error: err.message
+            });
+        }
+
+        if(!row){
+            return res.json({
+                ok:false,
+                mensaje:"No existe ranking guardado para ese tablero"
+            });
+        }
+
+        let resumenParseado = null;
+
+        try{
+            resumenParseado = JSON.parse(row.resumenJson);
+        }catch(error){
+            resumenParseado = null;
+        }
+
+        res.json({
+            ok:true,
+            ranking: row,
+            resumen: resumenParseado
+        });
+
+    });
 
 });
 // =============================
