@@ -1576,6 +1576,59 @@ app.get("/api/ranking/:folio", async (req, res) => {
     }
 
 });
+app.get("/api/rankings", (req, res) => {
+
+    db.all(`
+        SELECT
+            tableroId,
+            ganadorId,
+            ganadorNombre,
+            mejorTiempoTexto,
+            mejorTiempoNumero,
+            totalParticipantes,
+            resumenJson,
+            fechaCierre
+        FROM rankings_tableros
+        ORDER BY fechaCierre DESC
+    `, [], (err, rows) => {
+
+        if(err){
+            console.log("ERROR LISTANDO RANKINGS:", err.message);
+            return res.json({
+                ok:false,
+                rankings:[]
+            });
+        }
+
+        const rankings = (rows || []).map(row => {
+            let resumen = null;
+
+            try{
+                resumen = row.resumenJson ? JSON.parse(row.resumenJson) : null;
+            }catch(e){
+                resumen = null;
+            }
+
+            return {
+                tableroId: row.tableroId,
+                ganadorId: row.ganadorId,
+                ganadorNombre: row.ganadorNombre,
+                mejorTiempoTexto: row.mejorTiempoTexto,
+                mejorTiempoNumero: row.mejorTiempoNumero,
+                totalParticipantes: row.totalParticipantes,
+                fechaCierre: row.fechaCierre,
+                ranking: resumen
+            };
+        });
+
+        res.json({
+            ok:true,
+            total: rankings.length,
+            rankings
+        });
+    });
+
+});
 app.get("/api/debug-resumen-tablero/:folio", async (req, res) => {
 
     const folio = req.params.folio;
