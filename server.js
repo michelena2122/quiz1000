@@ -1208,49 +1208,95 @@ async function enviarCorreoRankingFinal(resumen){
             return;
         }
 
-        let filasParticipantes = "";
+        const ganador = resumen.ganador || null;
 
-        resumen.participantes.forEach((p, index) => {
+        const filas = [];
 
-            const numeros = (p.numeros || []).join(", ");
-            const tiempos = (p.tiempos || [])
-                .map(t => `Casilla ${t.numero}: ${t.tiempo}`)
-                .join("<br>");
+        resumen.participantes.forEach((jugador) => {
 
-            filasParticipantes += `
-                <div style="margin-bottom:18px; padding:12px; border:1px solid #ddd; border-radius:8px;">
-                    <p><strong>#${index + 1} ${p.nombreSolo || "Jugador"}</strong></p>
-                    <p><strong>Casillas pagadas:</strong> ${numeros || "Sin registro"}</p>
-                    <p><strong>Tiempos:</strong><br>${tiempos || "Sin registro"}</p>
-                    <p><strong>Mejor tiempo:</strong> ${p.mejorTiempoTexto || "Sin registro"}</p>
+            const nombre = (jugador.nombreSolo || jugador.nombre || "Jugador").trim();
+            const jugadorId = jugador.jugadorId || "Sin ID";
+            const tiempos = Array.isArray(jugador.tiempos) ? jugador.tiempos : [];
+
+            tiempos.forEach((t) => {
+                filas.push({
+                    nombre,
+                    jugadorId,
+                    casilla: Number(t.numero) || 0,
+                    tiempo: t.tiempo || "Sin registro",
+                    esGanador:
+                        ganador &&
+                        jugador.jugadorId === ganador.jugadorId &&
+                        t.tiempo === ganador.mejorTiempoTexto
+                });
+            });
+
+        });
+
+        filas.sort((a, b) => a.casilla - b.casilla);
+
+        let filasHtml = "";
+
+        filas.forEach((fila) => {
+
+            const estiloFila = fila.esGanador
+                ? "background:#d4edda;border:2px solid #28a745;font-weight:bold;"
+                : "background:#f5f7fb;border:1px solid #d8e0ea;";
+
+            const marcaGanador = fila.esGanador
+                ? `<div style="margin-top:6px;color:#1d6f2c;font-weight:bold;">🏆 Ganador</div>`
+                : "";
+
+            filasHtml += `
+                <div style="
+                    ${estiloFila}
+                    border-radius:10px;
+                    padding:12px;
+                    margin-bottom:10px;
+                ">
+                    <div style="margin-bottom:4px;"><strong>Nombre:</strong> ${fila.nombre}</div>
+                    <div style="margin-bottom:4px;"><strong>ID:</strong> ${fila.jugadorId}</div>
+                    <div style="margin-bottom:4px;"><strong>Casilla:</strong> ${fila.casilla}</div>
+                    <div><strong>Tiempo:</strong> ${fila.tiempo}</div>
+                    ${marcaGanador}
                 </div>
             `;
         });
 
-        const ganadorNombre = resumen.ganador?.nombreSolo || "Sin ganador";
-        const ganadorTiempo = resumen.ganador?.mejorTiempoTexto || "Sin registro";
+        const ganadorNombre = ganador ? (ganador.nombreSolo || ganador.nombre || "Jugador") : "Sin ganador";
+        const ganadorId = ganador?.jugadorId || "Sin ID";
+        const ganadorTiempo = ganador?.mejorTiempoTexto || "Sin registro";
 
         const html = `
-            <h2>🏆 Ranking final de QUIZ1000</h2>
+            <div style="font-family:Arial,sans-serif;color:#111;line-height:1.4;">
+                <h2 style="color:#0b1f5c;">🏆 Ranking final de QUIZ1000</h2>
 
-            <p><strong>Folio del tablero:</strong> ${resumen.tableroId}</p>
-            <p>El tablero ha sido completado con 50 casillas pagadas.</p>
+                <p><strong>Folio del tablero:</strong> ${resumen.tableroId}</p>
+                <p>El tablero ha sido completado y este es el ranking oficial final.</p>
 
-            <h3>Ganador</h3>
-            <p>
-                <strong>${ganadorNombre}</strong><br>
-                Mejor tiempo: ${ganadorTiempo}
-            </p>
+                <div style="
+                    background:#d4edda;
+                    border:2px solid #28a745;
+                    border-radius:10px;
+                    padding:14px;
+                    margin:16px 0;
+                ">
+                    <div style="font-size:18px;font-weight:bold;margin-bottom:8px;">🏆 Ganador del tablero</div>
+                    <div><strong>Nombre:</strong> ${ganadorNombre}</div>
+                    <div><strong>ID:</strong> ${ganadorId}</div>
+                    <div><strong>Mejor tiempo individual:</strong> ${ganadorTiempo}</div>
+                </div>
 
-            <h3>Participantes</h3>
-            ${filasParticipantes}
+                <h3 style="color:#0b1f5c;">Detalle de casillas pagadas</h3>
+                ${filasHtml || "<p>Sin registros.</p>"}
 
-            <p>
-                Puedes consultar el resultado en:
-                <a href="https://quiz1000.onrender.com/ranking?folio=${encodeURIComponent(resumen.tableroId)}">
-                    Ver ranking
-                </a>
-            </p>
+                <p style="margin-top:20px;">
+                    Puedes consultar el ranking publicado aquí:
+                    <a href="https://quiz1000.onrender.com/ranking">
+                        Ver ranking oficial
+                    </a>
+                </p>
+            </div>
         `;
 
         for(const participante of participantesConEmail){
@@ -1268,7 +1314,6 @@ async function enviarCorreoRankingFinal(resumen){
         console.log("❌ Error enviando correos de ranking final:", error.message);
     }
 }
-
 function revisarCierreTablero(tableroId){
     return new Promise((resolve) => {
 
