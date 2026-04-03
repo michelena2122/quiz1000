@@ -2,85 +2,271 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Ranking del Tablero</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ranking QUIZ1000</title>
+
 <style>
-body { font-family: Arial; padding: 30px; background:#f2f8ff; }
-h2 { text-align:center; }
-.item {
-    padding:10px;
-    margin-bottom:8px;
-    background:white;
-    border-radius:8px;
+body{
+    margin:0;
+    font-family:Arial, sans-serif;
+    background:url("/assets/images/fondo-rayos.jpg") no-repeat center center fixed;
+    background-size:cover;
+    color:white;
+}
+
+.ranking-page{
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:30px 16px 120px;
+    box-sizing:border-box;
+}
+
+.titulo-ranking{
+    text-align:center;
+    margin-bottom:20px;
+    text-shadow:0 2px 8px rgba(0,0,0,0.5);
+}
+
+.robot-centro{
+    display:block;
+    margin:0 auto 25px auto;
+    width:140px;
+    max-width:60%;
+}
+
+.ranking-contenedor{
+    width:100%;
+    max-width:900px;
+}
+
+.sin-rankings{
+    background:rgba(0,0,0,0.75);
+    border-radius:12px;
+    padding:18px;
+    text-align:center;
+}
+
+.tablero-box{
+    background:#0b1f5c;
+    border-radius:12px;
+    margin-bottom:14px;
+    overflow:hidden;
+    box-shadow:0 4px 12px rgba(0,0,0,0.25);
+}
+
+.tablero-header{
+    width:100%;
+    border:none;
+    background:#0b1f5c;
+    color:white;
+    padding:16px;
+    text-align:left;
+    font-size:16px;
+    font-weight:bold;
+    cursor:pointer;
     display:flex;
     justify-content:space-between;
+    align-items:center;
+    box-sizing:border-box;
 }
-.primero {
+
+.tablero-header:hover{
+    background:#102a7c;
+}
+
+.tablero-body{
+    display:none;
+    background:rgba(255,255,255,0.96);
+    color:#111;
+    padding:16px;
+}
+
+.tablero-body.abierto{
+    display:block;
+}
+
+.ganador-box{
     background:#d4edda;
+    border:2px solid #28a745;
+    border-radius:10px;
+    padding:14px;
+    margin-bottom:16px;
+    color:#111;
+}
+
+.ganador-box strong{
     font-weight:bold;
+}
+
+.jugador-item{
+    background:#f4f7fb;
+    border:1px solid #d7dfeb;
+    border-radius:10px;
+    padding:14px;
+    margin-bottom:12px;
+}
+
+.jugador-item.ganador{
+    background:#d4edda;
+    border:2px solid #28a745;
+}
+
+.jugador-titulo{
+    font-size:17px;
+    font-weight:bold;
+    margin-bottom:8px;
+}
+
+.linea{
+    margin-bottom:6px;
+    line-height:1.4;
+    word-break:break-word;
+}
+
+.footer-login{
+    width:100%;
+    text-align:center;
+    color:white;
+    font-size:13px;
+    padding:20px 16px 30px;
+    margin-top:auto;
+    text-shadow:0 2px 6px rgba(0,0,0,0.5);
+    box-sizing:border-box;
+}
+
+@media(max-width:768px){
+    .tablero-header{
+        font-size:15px;
+        padding:14px;
+    }
+
+    .jugador-titulo{
+        font-size:16px;
+    }
+
+    .robot-centro{
+        width:120px;
+    }
 }
 </style>
 </head>
 <body>
 
-<h2>🏆 Ranking del Tablero</h2>
+<div class="ranking-page">
 
-<div id="rankingLista"></div>
+    <h1 class="titulo-ranking">🏆 Ranking Oficial QUIZ1000</h1>
+
+    <img src="/assets/images/robotranking.png" alt="Robot Ranking" class="robot-centro">
+
+    <div class="ranking-contenedor" id="rankingContenedor">
+        <div class="sin-rankings">Cargando rankings...</div>
+    </div>
+
+    <footer class="footer-login">
+        <p>
+            © 2026 Quiz1000 LLC. All rights reserved. QUIZ1000 is a trademark of Quiz1000 LLC. www.Quiz1000.llc
+        </p>
+    </footer>
+
+</div>
 
 <script>
+const contenedor = document.getElementById("rankingContenedor");
 
-const params = new URLSearchParams(window.location.search);
-const folio = params.get("folio");
+fetch("/api/rankings")
+.then(res => res.json())
+.then(data => {
 
-const contenedor = document.getElementById("rankingLista");
+    console.log("RANKINGS CERRADOS:", data);
 
-if(!folio){
-    contenedor.innerHTML = "<p>Folio no recibido</p>";
-}else{
+    if(!data.ok || !data.rankings || data.rankings.length === 0){
+        contenedor.innerHTML = `
+            <div class="sin-rankings">
+                No hay tableros cerrados aún.
+            </div>
+        `;
+        return;
+    }
 
-    fetch(`/api/ranking/${folio}`)
-    .then(res => res.json())
-    .then(data => {
+    contenedor.innerHTML = "";
 
-        console.log("DATA RANKING:", data); // 👈 DEBUG
+    data.rankings.forEach((item, index) => {
 
-        if(!data.ok || !data.ranking || data.ranking.participantes.length === 0){
-            contenedor.innerHTML = "<p>No hay participantes aún.</p>";
-            return;
+        const resumen = item.ranking;
+        const participantes = resumen && resumen.participantes ? resumen.participantes : [];
+        const ganador = resumen && resumen.ganador ? resumen.ganador : null;
+
+        const tableroBox = document.createElement("div");
+        tableroBox.className = "tablero-box";
+
+        const header = document.createElement("button");
+        header.className = "tablero-header";
+        header.innerHTML = `
+            <span>Folio: ${item.tableroId}</span>
+            <span>▼</span>
+        `;
+
+        const body = document.createElement("div");
+        body.className = "tablero-body";
+
+        let htmlInterno = "";
+
+        if(ganador){
+            htmlInterno += `
+                <div class="ganador-box">
+                    <div class="jugador-titulo">🏆 Ganador del tablero</div>
+                    <div class="linea"><strong>Nombre:</strong> ${ganador.nombreSolo || ganador.nombre || "Jugador"}</div>
+                    <div class="linea"><strong>ID:</strong> ${ganador.jugadorId || "Sin ID"}</div>
+                    <div class="linea"><strong>Casillas pagadas:</strong> ${(ganador.numeros || []).join(", ") || "Sin registro"}</div>
+                    <div class="linea"><strong>Tiempo ganador:</strong> ${ganador.mejorTiempoTexto || "Sin registro"}</div>
+                </div>
+            `;
         }
 
-        const lista = data.ranking.participantes;
+        participantes.forEach((jugador, i) => {
 
-        lista.forEach((jugador, index) => {
+            const esGanador = ganador && jugador.jugadorId === ganador.jugadorId;
 
-            const div = document.createElement("div");
-            div.classList.add("item");
+            const tiemposHtml = (jugador.tiempos || []).length > 0
+                ? jugador.tiempos.map(t => `Casilla ${t.numero}: ${t.tiempo}`).join("<br>")
+                : "Sin registro";
 
-            if(index === 0){
-                div.classList.add("primero");
-            }
-
-            div.innerHTML = `
-                <span>
-                    #${index + 1} ${jugador.nombre}
-                    <br>
-                    Casillas: ${jugador.numeros.length}
-                </span>
-                <span>
-                    ⏱ ${jugador.mejorTiempoTexto}
-                </span>
+            htmlInterno += `
+                <div class="jugador-item ${esGanador ? "ganador" : ""}">
+                    <div class="jugador-titulo">
+                        ${esGanador ? "🏆 " : ""}
+                        ${jugador.nombreSolo || jugador.nombre || "Jugador"}
+                    </div>
+                    <div class="linea"><strong>ID del jugador:</strong> ${jugador.jugadorId || "Sin ID"}</div>
+                    <div class="linea"><strong>Casillas pagadas:</strong> ${(jugador.numeros || []).join(", ") || "Sin registro"}</div>
+                    <div class="linea"><strong>Tiempos por casilla:</strong><br>${tiemposHtml}</div>
+                    <div class="linea"><strong>Mejor tiempo individual:</strong> ${jugador.mejorTiempoTexto || "Sin registro"}</div>
+                </div>
             `;
-
-            contenedor.appendChild(div);
         });
 
-    })
-    .catch(err => {
-        console.error("ERROR:", err);
-        contenedor.innerHTML = "<p>Error cargando ranking</p>";
+        body.innerHTML = htmlInterno;
+
+        header.addEventListener("click", () => {
+            body.classList.toggle("abierto");
+        });
+
+        tableroBox.appendChild(header);
+        tableroBox.appendChild(body);
+        contenedor.appendChild(tableroBox);
     });
 
-}
-
+})
+.catch(error => {
+    console.error("ERROR CARGANDO RANKINGS:", error);
+    contenedor.innerHTML = `
+        <div class="sin-rankings">
+            Error cargando ranking
+        </div>
+    `;
+});
 </script>
 
 </body>
