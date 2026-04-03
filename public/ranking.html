@@ -38,7 +38,7 @@ body{
 
 .ranking-contenedor{
     width:100%;
-    max-width:900px;
+    max-width:760px;
 }
 
 .sin-rankings{
@@ -78,9 +78,9 @@ body{
 
 .tablero-body{
     display:none;
-    background:rgba(255,255,255,0.96);
+    background:rgba(255,255,255,0.97);
     color:#111;
-    padding:16px;
+    padding:14px;
 }
 
 .tablero-body.abierto{
@@ -92,37 +92,59 @@ body{
     border:2px solid #28a745;
     border-radius:10px;
     padding:14px;
-    margin-bottom:16px;
+    margin-bottom:14px;
     color:#111;
 }
 
-.ganador-box strong{
-    font-weight:bold;
-}
-
-.jugador-item{
-    background:#f4f7fb;
-    border:1px solid #d7dfeb;
-    border-radius:10px;
-    padding:14px;
-    margin-bottom:12px;
-}
-
-.jugador-item.ganador{
-    background:#d4edda;
-    border:2px solid #28a745;
-}
-
-.jugador-titulo{
+.ganador-titulo{
     font-size:17px;
     font-weight:bold;
     margin-bottom:8px;
 }
 
-.linea{
-    margin-bottom:6px;
-    line-height:1.4;
+.filas-ranking{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.fila-ranking{
+    background:#f5f7fb;
+    border:1px solid #d8e0ea;
+    border-radius:10px;
+    padding:12px;
+}
+
+.fila-ranking.ganador{
+    background:#d4edda;
+    border:2px solid #28a745;
+}
+
+.fila-top{
+    display:grid;
+    grid-template-columns: 1.2fr 1.5fr .7fr .9fr;
+    gap:10px;
+    align-items:center;
+}
+
+.celda{
+    min-width:0;
     word-break:break-word;
+    line-height:1.35;
+    font-size:14px;
+}
+
+.celda strong{
+    display:block;
+    font-size:12px;
+    margin-bottom:2px;
+    color:#1f2d3d;
+}
+
+.marca-ganador{
+    margin-top:8px;
+    font-weight:bold;
+    color:#1d6f2c;
 }
 
 .footer-login{
@@ -142,12 +164,21 @@ body{
         padding:14px;
     }
 
-    .jugador-titulo{
-        font-size:16px;
-    }
-
     .robot-centro{
         width:120px;
+    }
+
+    .fila-top{
+        grid-template-columns:1fr 1fr;
+        gap:8px;
+    }
+
+    .celda{
+        font-size:13px;
+    }
+
+    .celda strong{
+        font-size:11px;
     }
 }
 </style>
@@ -156,7 +187,7 @@ body{
 
 <div class="ranking-page">
 
-    <h1 class="titulo-ranking">🏆 Ranking Oficial QUIZ1000</h1>
+    <h1 class="titulo-ranking">Ranking Oficial QUIZ1000</h1>
 
     <img src="/assets/images/robotranking.png" alt="Robot Ranking" class="robot-centro">
 
@@ -192,71 +223,105 @@ fetch("/api/rankings")
 
     contenedor.innerHTML = "";
 
-    data.rankings.forEach((item, index) => {
+    data.rankings.forEach((item) => {
 
-        const resumen = item.ranking;
-        const participantes = resumen && resumen.participantes ? resumen.participantes : [];
-        const ganador = resumen && resumen.ganador ? resumen.ganador : null;
+    const resumen = item.ranking;
+    const participantes = resumen && resumen.participantes ? resumen.participantes : [];
+    const ganador = resumen && resumen.ganador ? resumen.ganador : null;
 
-        const tableroBox = document.createElement("div");
-        tableroBox.className = "tablero-box";
+    const tableroBox = document.createElement("div");
+    tableroBox.className = "tablero-box";
 
-        const header = document.createElement("button");
-        header.className = "tablero-header";
-        header.innerHTML = `
-            <span>Folio: ${item.tableroId}</span>
-            <span>▼</span>
-        `;
+    const header = document.createElement("button");
+    header.className = "tablero-header";
+    header.innerHTML = `
+        <span>Folio: ${item.tableroId}</span>
+        <span>▼</span>
+    `;
 
-        const body = document.createElement("div");
-        body.className = "tablero-body";
+    const body = document.createElement("div");
+    body.className = "tablero-body";
 
-        let htmlInterno = "";
+    const filas = [];
 
-        if(ganador){
-            htmlInterno += `
-                <div class="ganador-box">
-                    <div class="jugador-titulo">🏆 Ganador del tablero</div>
-                    <div class="linea"><strong>Nombre:</strong> ${ganador.nombreSolo || ganador.nombre || "Jugador"}</div>
-                    <div class="linea"><strong>ID:</strong> ${ganador.jugadorId || "Sin ID"}</div>
-                    <div class="linea"><strong>Casillas pagadas:</strong> ${(ganador.numeros || []).join(", ") || "Sin registro"}</div>
-                    <div class="linea"><strong>Tiempo ganador:</strong> ${ganador.mejorTiempoTexto || "Sin registro"}</div>
-                </div>
-            `;
-        }
+    participantes.forEach((jugador) => {
+        const nombre = jugador.nombreSolo || jugador.nombre || "Jugador";
+        const jugadorId = jugador.jugadorId || "Sin ID";
+        const tiempos = Array.isArray(jugador.tiempos) ? jugador.tiempos : [];
 
-        participantes.forEach((jugador, i) => {
-
-            const esGanador = ganador && jugador.jugadorId === ganador.jugadorId;
-
-            const tiemposHtml = (jugador.tiempos || []).length > 0
-                ? jugador.tiempos.map(t => `Casilla ${t.numero}: ${t.tiempo}`).join("<br>")
-                : "Sin registro";
-
-            htmlInterno += `
-                <div class="jugador-item ${esGanador ? "ganador" : ""}">
-                    <div class="jugador-titulo">
-                        ${esGanador ? "🏆 " : ""}
-                        ${jugador.nombreSolo || jugador.nombre || "Jugador"}
-                    </div>
-                    <div class="linea"><strong>ID del jugador:</strong> ${jugador.jugadorId || "Sin ID"}</div>
-                    <div class="linea"><strong>Casillas pagadas:</strong> ${(jugador.numeros || []).join(", ") || "Sin registro"}</div>
-                    <div class="linea"><strong>Tiempos por casilla:</strong><br>${tiemposHtml}</div>
-                    <div class="linea"><strong>Mejor tiempo individual:</strong> ${jugador.mejorTiempoTexto || "Sin registro"}</div>
-                </div>
-            `;
+        tiempos.forEach((t) => {
+            filas.push({
+                nombre,
+                jugadorId,
+                casilla: Number(t.numero) || 0,
+                tiempo: t.tiempo || "Sin registro",
+                esGanador:
+                    ganador &&
+                    jugador.jugadorId === ganador.jugadorId &&
+                    t.tiempo === ganador.mejorTiempoTexto
+            });
         });
-
-        body.innerHTML = htmlInterno;
-
-        header.addEventListener("click", () => {
-            body.classList.toggle("abierto");
-        });
-
-        tableroBox.appendChild(header);
-        tableroBox.appendChild(body);
-        contenedor.appendChild(tableroBox);
     });
+
+    filas.sort((a, b) => a.casilla - b.casilla);
+
+    let htmlInterno = "";
+
+    if(ganador){
+        htmlInterno += `
+            <div class="ganador-box">
+                <div class="ganador-titulo">🏆 Ganador del tablero</div>
+                <div><strong>Nombre:</strong> ${ganador.nombreSolo || ganador.nombre || "Jugador"}</div>
+                <div><strong>ID:</strong> ${ganador.jugadorId || "Sin ID"}</div>
+                <div><strong>Mejor tiempo individual:</strong> ${ganador.mejorTiempoTexto || "Sin registro"}</div>
+            </div>
+        `;
+    }
+
+    if(filas.length === 0){
+        htmlInterno += `<div class="sin-rankings">No hay filas de ranking para este tablero.</div>`;
+    }else{
+        htmlInterno += `<div class="filas-ranking">`;
+
+        filas.forEach((fila) => {
+            htmlInterno += `
+                <div class="fila-ranking ${fila.esGanador ? "ganador" : ""}">
+                    <div class="fila-top">
+                        <div class="celda">
+                            <strong>Nombre</strong>
+                            ${fila.nombre}
+                        </div>
+                        <div class="celda">
+                            <strong>ID</strong>
+                            ${fila.jugadorId}
+                        </div>
+                        <div class="celda">
+                            <strong>Casilla</strong>
+                            ${fila.casilla}
+                        </div>
+                        <div class="celda">
+                            <strong>Tiempo</strong>
+                            ${fila.tiempo}
+                        </div>
+                    </div>
+                    ${fila.esGanador ? `<div class="marca-ganador">🏆 Ganador</div>` : ""}
+                </div>
+            `;
+        });
+
+        htmlInterno += `</div>`;
+    }
+
+    body.innerHTML = htmlInterno;
+
+    header.addEventListener("click", () => {
+        body.classList.toggle("abierto");
+    });
+
+    tableroBox.appendChild(header);
+    tableroBox.appendChild(body);
+    contenedor.appendChild(tableroBox);
+});
 
 })
 .catch(error => {
