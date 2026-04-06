@@ -1,6 +1,6 @@
 console.log("MAIN NUEVO VERSION 2");
 let reservasActivas = [];
-document.addEventListener("DOMContentLoaded", () => {
+ddocument.addEventListener("DOMContentLoaded", async () => {
 
     if (!document.body.classList.contains("tablero")) return;
 
@@ -76,12 +76,20 @@ if (!tablerosGlobal[folio]) {
     localStorage.setItem("tableros", JSON.stringify(tablerosGlobal));
 }
 
-if (!fechaApertura) {
+try {
+    const resFecha = await fetch("/api/fecha-apertura/" + encodeURIComponent(folio));
+    const dataFecha = await resFecha.json();
+
+    if (dataFecha.ok && dataFecha.fecha) {
+        localStorage.setItem("fechaApertura", dataFecha.fecha);
+        fechaApertura = new Date(parseInt(dataFecha.fecha)).toLocaleString("es-MX");
+    } else {
+        localStorage.removeItem("fechaApertura");
+        fechaApertura = "Sin iniciar";
+    }
+} catch (error) {
+    console.log("Error obteniendo fecha de apertura:", error);
     fechaApertura = "Sin iniciar";
-} else {
-    // convertir timestamp a fecha legible
-    const fechaMostrar = new Date(parseInt(fechaApertura)).toLocaleString("es-MX");
-    fechaApertura = fechaMostrar;
 }
 
 
@@ -605,9 +613,8 @@ fetch("/api/pregunta/" + cell.dataset.id)
 
         modal.classList.add("hidden");
 
-        if (!localStorage.getItem("fechaApertura")) {
-            localStorage.setItem("fechaApertura", Date.now());
-        }
+        // 🚫 Ya no iniciar desde frontend
+// El inicio lo controla el backend (fechaPrimerPago)
 
         const tiempoFormateado = contador.textContent;
 

@@ -119,7 +119,6 @@ const MP_ACCESS_TOKEN = "c0E8HVNboWsJMBiRkHxKBW3pypue47uk";
 const DB_PATH = process.env.DB_PATH || "/var/data/usuarios.db";
 const db = new sqlite3.Database(DB_PATH);
 
-
 // ============================
 // BASE DE DATOS
 // ============================
@@ -153,96 +152,87 @@ function inicializarConfiguracion(callback){
                     id TEXT PRIMARY KEY,
                     completo INTEGER DEFAULT 0,
                     fechaCreacion INTEGER,
-                    fechaInicioConteo INTEGER,
-                    fechaLimiteConteo INTEGER
+                    fechaPrimerPago INTEGER
                 )
-            `, (err) => {
-                if(err){
-                    console.log("Error creando tabla tableros:", err.message);
-                    if(callback) return callback(err);
+            `, (errTableros) => {
+                if(errTableros){
+                    console.log("Error creando tabla tableros:", errTableros.message);
+                    if(callback) return callback(errTableros);
                 }
 
                 console.log("Tabla tableros creada correctamente");
 
                 db.run(`
-    CREATE TABLE IF NOT EXISTS configuracion (
-        clave TEXT PRIMARY KEY,
-        valor TEXT
-    )
-`, (err) => {
-    if(err){
-        console.log("Error creando tabla configuracion:", err.message);
-        if(callback) return callback(err);
-    }
+                    ALTER TABLE tableros
+                    ADD COLUMN fechaPrimerPago INTEGER
+                `, (errAlter) => {
 
-    console.log("Tabla configuracion creada correctamente");
+                    if(errAlter && !errAlter.message.includes("duplicate column name")){
+                        console.log("Error agregando columna fechaPrimerPago:", errAlter.message);
+                        if(callback) return callback(errAlter);
+                    }
 
-    db.run(`
-    CREATE TABLE IF NOT EXISTS configuracion (
-        clave TEXT PRIMARY KEY,
-        valor TEXT
-    )
-`, (err) => {
-    if(err){
-        console.log("Error creando tabla configuracion:", err.message);
-        if(callback) return callback(err);
-    }
+                    console.log("Columna fechaPrimerPago verificada correctamente");
 
-    console.log("Tabla configuracion creada correctamente");
+                    db.run(`
+                        CREATE TABLE IF NOT EXISTS configuracion (
+                            clave TEXT PRIMARY KEY,
+                            valor TEXT
+                        )
+                    `, (errConfig) => {
+                        if(errConfig){
+                            console.log("Error creando tabla configuracion:", errConfig.message);
+                            if(callback) return callback(errConfig);
+                        }
 
-    db.run(`
-        CREATE TABLE IF NOT EXISTS casillas (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            tableroId TEXT,
-            casilla INTEGER,
-            jugador TEXT,
-            email TEXT,
-            tiempo TEXT,
-            estado TEXT,
-            expira INTEGER,
-            fecha INTEGER
-        )
-    `, (errCasillas) => {
-        if(errCasillas){
-            console.log("Error creando tabla casillas:", errCasillas.message);
-            if(callback) return callback(errCasillas);
-        }
+                        console.log("Tabla configuracion creada correctamente");
 
-        console.log("Tabla casillas creada correctamente");
+                        db.run(`
+                            CREATE TABLE IF NOT EXISTS casillas (
+                                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                tableroId TEXT,
+                                casilla INTEGER,
+                                jugador TEXT,
+                                email TEXT,
+                                tiempo TEXT,
+                                estado TEXT,
+                                expira INTEGER,
+                                fecha INTEGER
+                            )
+                        `, (errCasillas) => {
+                            if(errCasillas){
+                                console.log("Error creando tabla casillas:", errCasillas.message);
+                                if(callback) return callback(errCasillas);
+                            }
 
-        db.run(`
-            CREATE TABLE IF NOT EXISTS rankings_tableros (
-                tableroId TEXT PRIMARY KEY,
-                ganadorId TEXT,
-                ganadorNombre TEXT,
-                mejorTiempoTexto TEXT,
-                mejorTiempoNumero REAL,
-                totalParticipantes INTEGER DEFAULT 0,
-                resumenJson TEXT,
-                fechaCierre INTEGER
-            )
-        `, (err2) => {
-            if(err2){
-                console.log("Error creando tabla rankings_tableros:", err2.message);
-                if(callback) return callback(err2);
-            }
+                            console.log("Tabla casillas creada correctamente");
 
-            console.log("Tabla rankings_tableros creada correctamente");
+                            db.run(`
+                                CREATE TABLE IF NOT EXISTS rankings_tableros (
+                                    tableroId TEXT PRIMARY KEY,
+                                    ganadorId TEXT,
+                                    ganadorNombre TEXT,
+                                    mejorTiempoTexto TEXT,
+                                    mejorTiempoNumero REAL,
+                                    totalParticipantes INTEGER DEFAULT 0,
+                                    resumenJson TEXT,
+                                    fechaCierre INTEGER
+                                )
+                            `, (errRankings) => {
+                                if(errRankings){
+                                    console.log("Error creando tabla rankings_tableros:", errRankings.message);
+                                    if(callback) return callback(errRankings);
+                                }
 
-            if(callback) callback(null);
-        });
-    });
+                                console.log("Tabla rankings_tableros creada correctamente");
 
-        console.log("Tabla rankings_tableros creada correctamente");
-
-        if(callback) callback(null);
-    });
-    });
-
+                                if(callback) callback(null);
+                            });
+                        });
+                    });
+                });
             });
-
         });
-
     });
 }
 // ============================
@@ -283,7 +273,7 @@ const transporter = nodemailer.createTransport({
 // ============================
 
 app.post("/enviar-codigo", async (req, res) => {
-    const email = (req.body.email || "").toLowerCase().trim();
+    const { email } = req.body;
 
     if (!email) {
         return res.json({ ok: false, mensaje: "Email requerido" });
@@ -298,16 +288,36 @@ app.post("/enviar-codigo", async (req, res) => {
         intentos: 0
     };
 
-    console.log("====================================");
-    console.log("MODO PRUEBAS - EMAIL SIMULADO");
-    console.log("Email destino:", email);
+    console.log("Enviando código a:", email);
     console.log("Código generado:", codigo);
-    console.log("Expira en 5 minutos");
-    console.log("====================================");
 
-    return res.json({
-    ok: true,
-    mensaje: "Código enviado"
+    const mailOptions = {
+        from: '"Quiz $1000" <juanjmichelena@outlook.com>',
+        to: email,
+        subject: "Código de verificación",
+        html: `
+            <h2>Tu código es: ${codigo}</h2>
+            <p>Este código expira en 5 minutos.</p>
+        `
+    };
+
+    res.json({
+        ok: true,
+        mensaje: "Código enviado"
+    });
+
+    transporter.sendMail(mailOptions)
+        .then(() => {
+            console.log("Código enviado por email:", codigo);
+        })
+        .catch((error) => {
+    console.error("ERROR ENVIANDO EMAIL:", error);
+
+    res.json({
+        ok: true,
+        mensaje: "Correo no enviado (modo pruebas)",
+        codigo: codigo
+    });
 });
 });
 // ============================
@@ -390,25 +400,15 @@ res.json({ ok:false });
 
 app.post("/validar-codigo", (req, res) => {
 
-    const email = (req.body.email || "").toLowerCase().trim();
-    const codigo = req.body.codigo;
-
-    console.log("====================================");
-    console.log("VALIDAR CODIGO");
-    console.log("Email recibido:", email);
-    console.log("Codigo recibido:", codigo);
-    console.log("Registro guardado:", codigosEmail[email] || null);
-    console.log("====================================");
+    const { email, codigo } = req.body;
 
     const registro = codigosEmail[email];
 
     if(!registro){
-        console.log("RESULTADO VALIDACION: no existe código para este email");
         return res.json({ ok:false, mensaje:"No existe código para este email" });
     }
 
     if(Date.now() > registro.expira){
-        console.log("RESULTADO VALIDACION: código expirado");
         delete codigosEmail[email];
         return res.json({ ok:false, mensaje:"El código expiró" });
     }
@@ -416,9 +416,6 @@ app.post("/validar-codigo", (req, res) => {
     if(registro.codigo != codigo){
 
         registro.intentos++;
-
-        console.log("RESULTADO VALIDACION: código incorrecto");
-        console.log("Intentos:", registro.intentos);
 
         if(registro.intentos >= 3){
 
@@ -437,8 +434,6 @@ app.post("/validar-codigo", (req, res) => {
         });
 
     }
-
-    console.log("RESULTADO VALIDACION: OK");
 
     delete codigosEmail[email];
 
@@ -918,6 +913,85 @@ console.log("Tableros iniciales verificados");
 }
 
 crearTablerosIniciales();
+function iniciarConteoTableroSiEsPrimerPago(tableroId){
+    return new Promise((resolve) => {
+
+        db.get(
+            `SELECT fechaPrimerPago
+             FROM tableros
+             WHERE id = ?`,
+            [tableroId],
+            (errTablero, tablero) => {
+
+                if(errTablero){
+                    console.log("❌ Error leyendo fechaPrimerPago del tablero:", errTablero.message);
+                    return resolve({ ok:false, iniciado:false });
+                }
+
+                if(!tablero){
+                    console.log("⚠️ Tablero no encontrado para iniciar contador:", tableroId);
+                    return resolve({ ok:false, iniciado:false });
+                }
+
+                if(tablero.fechaPrimerPago){
+                    return resolve({
+                        ok:true,
+                        iniciado:false,
+                        motivo:"El contador ya había sido iniciado"
+                    });
+                }
+
+                db.get(
+                    `SELECT COUNT(*) AS totalPagadas
+                     FROM casillas
+                     WHERE tableroId = ?
+                       AND estado = 'pagada'`,
+                    [tableroId],
+                    (errPagadas, row) => {
+
+                        if(errPagadas){
+                            console.log("❌ Error contando casillas pagadas para iniciar contador:", errPagadas.message);
+                            return resolve({ ok:false, iniciado:false });
+                        }
+
+                        const totalPagadas = row ? row.totalPagadas : 0;
+
+                        if(totalPagadas < 1){
+                            return resolve({
+                                ok:true,
+                                iniciado:false,
+                                motivo:"Aún no hay casillas pagadas"
+                            });
+                        }
+
+                        db.run(
+                            `UPDATE tableros
+                             SET fechaPrimerPago = ?
+                             WHERE id = ?
+                               AND (fechaPrimerPago IS NULL OR fechaPrimerPago = 0)`,
+                            [Date.now(), tableroId],
+                            function(errUpdate){
+
+                                if(errUpdate){
+                                    console.log("❌ Error iniciando contador de 10 días:", errUpdate.message);
+                                    return resolve({ ok:false, iniciado:false });
+                                }
+
+                                console.log("⏱️ CONTADOR DE 10 DÍAS INICIADO PARA TABLERO:", tableroId);
+                                console.log("⏱️ FILAS AFECTADAS INICIO CONTADOR:", this.changes);
+
+                                resolve({
+                                    ok:true,
+                                    iniciado:this.changes > 0
+                                });
+                            }
+                        );
+                    }
+                );
+            }
+        );
+    });
+}
 function calcularGanador(casillas){
 
     const tiempos = casillas.map(c => {
@@ -1205,95 +1279,49 @@ async function enviarCorreoRankingFinal(resumen){
             return;
         }
 
-        const ganador = resumen.ganador || null;
+        let filasParticipantes = "";
 
-        const filas = [];
+        resumen.participantes.forEach((p, index) => {
 
-        resumen.participantes.forEach((jugador) => {
+            const numeros = (p.numeros || []).join(", ");
+            const tiempos = (p.tiempos || [])
+                .map(t => `Casilla ${t.numero}: ${t.tiempo}`)
+                .join("<br>");
 
-            const nombre = (jugador.nombreSolo || jugador.nombre || "Jugador").trim();
-            const jugadorId = jugador.jugadorId || "Sin ID";
-            const tiempos = Array.isArray(jugador.tiempos) ? jugador.tiempos : [];
-
-            tiempos.forEach((t) => {
-                filas.push({
-                    nombre,
-                    jugadorId,
-                    casilla: Number(t.numero) || 0,
-                    tiempo: t.tiempo || "Sin registro",
-                    esGanador:
-                        ganador &&
-                        jugador.jugadorId === ganador.jugadorId &&
-                        t.tiempo === ganador.mejorTiempoTexto
-                });
-            });
-
-        });
-
-        filas.sort((a, b) => a.casilla - b.casilla);
-
-        let filasHtml = "";
-
-        filas.forEach((fila) => {
-
-            const estiloFila = fila.esGanador
-                ? "background:#d4edda;border:2px solid #28a745;font-weight:bold;"
-                : "background:#f5f7fb;border:1px solid #d8e0ea;";
-
-            const marcaGanador = fila.esGanador
-                ? `<div style="margin-top:6px;color:#1d6f2c;font-weight:bold;">🏆 Ganador</div>`
-                : "";
-
-            filasHtml += `
-                <div style="
-                    ${estiloFila}
-                    border-radius:10px;
-                    padding:12px;
-                    margin-bottom:10px;
-                ">
-                    <div style="margin-bottom:4px;"><strong>Nombre:</strong> ${fila.nombre}</div>
-                    <div style="margin-bottom:4px;"><strong>ID:</strong> ${fila.jugadorId}</div>
-                    <div style="margin-bottom:4px;"><strong>Casilla:</strong> ${fila.casilla}</div>
-                    <div><strong>Tiempo:</strong> ${fila.tiempo}</div>
-                    ${marcaGanador}
+            filasParticipantes += `
+                <div style="margin-bottom:18px; padding:12px; border:1px solid #ddd; border-radius:8px;">
+                    <p><strong>#${index + 1} ${p.nombreSolo || "Jugador"}</strong></p>
+                    <p><strong>Casillas pagadas:</strong> ${numeros || "Sin registro"}</p>
+                    <p><strong>Tiempos:</strong><br>${tiempos || "Sin registro"}</p>
+                    <p><strong>Mejor tiempo:</strong> ${p.mejorTiempoTexto || "Sin registro"}</p>
                 </div>
             `;
         });
 
-        const ganadorNombre = ganador ? (ganador.nombreSolo || ganador.nombre || "Jugador") : "Sin ganador";
-        const ganadorId = ganador?.jugadorId || "Sin ID";
-        const ganadorTiempo = ganador?.mejorTiempoTexto || "Sin registro";
+        const ganadorNombre = resumen.ganador?.nombreSolo || "Sin ganador";
+        const ganadorTiempo = resumen.ganador?.mejorTiempoTexto || "Sin registro";
 
         const html = `
-            <div style="font-family:Arial,sans-serif;color:#111;line-height:1.4;">
-                <h2 style="color:#0b1f5c;">🏆 Ranking final de QUIZ1000</h2>
+            <h2>🏆 Ranking final de QUIZ1000</h2>
 
-                <p><strong>Folio del tablero:</strong> ${resumen.tableroId}</p>
-                <p>El tablero ha sido completado y este es el ranking oficial final.</p>
+            <p><strong>Folio del tablero:</strong> ${resumen.tableroId}</p>
+            <p>El tablero ha sido completado con 50 casillas pagadas.</p>
 
-                <div style="
-                    background:#d4edda;
-                    border:2px solid #28a745;
-                    border-radius:10px;
-                    padding:14px;
-                    margin:16px 0;
-                ">
-                    <div style="font-size:18px;font-weight:bold;margin-bottom:8px;">🏆 Ganador del tablero</div>
-                    <div><strong>Nombre:</strong> ${ganadorNombre}</div>
-                    <div><strong>ID:</strong> ${ganadorId}</div>
-                    <div><strong>Mejor tiempo individual:</strong> ${ganadorTiempo}</div>
-                </div>
+            <h3>Ganador</h3>
+            <p>
+                <strong>${ganadorNombre}</strong><br>
+                Mejor tiempo: ${ganadorTiempo}
+            </p>
 
-                <h3 style="color:#0b1f5c;">Detalle de casillas pagadas</h3>
-                ${filasHtml || "<p>Sin registros.</p>"}
+            <h3>Participantes</h3>
+            ${filasParticipantes}
 
-                <p style="margin-top:20px;">
-                    Puedes consultar el ranking publicado aquí:
-                    <a href="https://quiz1000.onrender.com/ranking">
-                        Ver ranking oficial
-                    </a>
-                </p>
-            </div>
+            <p>
+                Puedes consultar el resultado en:
+                <a href="https://quiz1000.onrender.com/ranking?folio=${encodeURIComponent(resumen.tableroId)}">
+                    Ver ranking
+                </a>
+            </p>
         `;
 
         for(const participante of participantesConEmail){
@@ -1311,6 +1339,7 @@ async function enviarCorreoRankingFinal(resumen){
         console.log("❌ Error enviando correos de ranking final:", error.message);
     }
 }
+
 function revisarCierreTablero(tableroId){
     return new Promise((resolve) => {
 
@@ -1616,59 +1645,6 @@ app.get("/api/ranking/:folio", async (req, res) => {
         });
 
     }
-
-});
-app.get("/api/rankings", (req, res) => {
-
-    db.all(`
-        SELECT
-            tableroId,
-            ganadorId,
-            ganadorNombre,
-            mejorTiempoTexto,
-            mejorTiempoNumero,
-            totalParticipantes,
-            resumenJson,
-            fechaCierre
-        FROM rankings_tableros
-        ORDER BY fechaCierre DESC
-    `, [], (err, rows) => {
-
-        if(err){
-            console.log("ERROR LISTANDO RANKINGS:", err.message);
-            return res.json({
-                ok:false,
-                rankings:[]
-            });
-        }
-
-        const rankings = (rows || []).map(row => {
-            let resumen = null;
-
-            try{
-                resumen = row.resumenJson ? JSON.parse(row.resumenJson) : null;
-            }catch(e){
-                resumen = null;
-            }
-
-            return {
-                tableroId: row.tableroId,
-                ganadorId: row.ganadorId,
-                ganadorNombre: row.ganadorNombre,
-                mejorTiempoTexto: row.mejorTiempoTexto,
-                mejorTiempoNumero: row.mejorTiempoNumero,
-                totalParticipantes: row.totalParticipantes,
-                fechaCierre: row.fechaCierre,
-                ranking: resumen
-            };
-        });
-
-        res.json({
-            ok:true,
-            total: rankings.length,
-            rankings
-        });
-    });
 
 });
 app.get("/api/debug-resumen-tablero/:folio", async (req, res) => {
@@ -2099,6 +2075,9 @@ function(err){
     });
 setTimeout(async () => {
     try{
+        const inicio = await iniciarConteoTableroSiEsPrimerPago(folio);
+        console.log("🧾 RESULTADO INICIO CONTADOR:", inicio);
+
         const cierre = await revisarCierreTablero(folio);
         console.log("🧾 RESULTADO REVISAR CIERRE:", cierre);
     }catch(error){
@@ -2377,6 +2356,34 @@ app.get("/api/tableros", (req, res) => {
         });
     });
 });
+app.get("/api/fecha-apertura/:folio", (req, res) => {
+
+    const folio = req.params.folio;
+
+    if(!folio){
+        return res.json({ ok:false });
+    }
+
+    db.get(
+        `SELECT fechaPrimerPago
+         FROM tableros
+         WHERE id = ?`,
+        [folio],
+        (err, row) => {
+
+            if(err){
+                console.log("Error obteniendo fechaPrimerPago:", err.message);
+                return res.json({ ok:false });
+            }
+
+            res.json({
+                ok:true,
+                fecha: row ? row.fechaPrimerPago : null
+            });
+
+        }
+    );
+});
 app.get("/api/estado-casillas", (req, res) => {
 
     const folio = req.query.folio;
@@ -2488,5 +2495,6 @@ app.get("/api/mis-tableros/:jugadorId", (req, res) => {
     });
 
 });
+
 
 

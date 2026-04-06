@@ -190,7 +190,7 @@ body.pago .probabilidad-box p.nota-tipo-cambio-pago{
     <div id="listaPagos"></div>
 
     <button id="btnPagarTodo" class="pagarBtn" style="display:block; width:fit-content; margin:15px auto 0; padding:12px 22px;">
-    VOY POR 1,000 USD
+    VOY POR TODAS LAS CASILLAS
 </button>
 
 <div class="probabilidad-box">
@@ -273,7 +273,6 @@ const mensaje = document.getElementById("mensajeMotivacion");
 
 let carrito = JSON.parse(localStorage.getItem("carrito_" + folio)) || { items: [] };
 
-
 function renderPagos(){
     lista.innerHTML = "";
 
@@ -335,7 +334,7 @@ function calcularProbabilidad(){
 
 document.getElementById("btnPagarTodo").addEventListener("click", function(){
 
-   const folioCarrito = localStorage.getItem("folioTableroActual") || folio;
+    const folioCarrito = localStorage.getItem("folioTablero") || folio;
     const carritoActual = JSON.parse(localStorage.getItem("carrito_" + folioCarrito)) || { items: [] };
 
     console.log("CARRITO A PAGAR:", carritoActual);
@@ -415,3 +414,4 @@ renderPagos();
 
 </body>
 </html>
+
