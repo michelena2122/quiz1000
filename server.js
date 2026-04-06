@@ -306,10 +306,9 @@ app.post("/enviar-codigo", async (req, res) => {
     console.log("====================================");
 
     return res.json({
-        ok: true,
-        mensaje: "Correo simulado en modo pruebas",
-        codigo: codigo
-    });
+    ok: true,
+    mensaje: "Código enviado"
+});
 });
 // ============================
 // REGISTRO DE USUARIO
