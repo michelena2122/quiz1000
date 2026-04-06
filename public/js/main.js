@@ -224,17 +224,7 @@ actualizarBarraTiempo();
 setInterval(actualizarBarraTiempo,60000);
 
 if (folioSpan) {
-
-    let fechaMostrar = "Sin iniciar";
-
-    if (fechaApertura && fechaApertura !== "Sin iniciar") {
-        const fechaNum = Number(fechaApertura);
-        if (!isNaN(fechaNum)) {
-            fechaMostrar = new Date(fechaNum).toLocaleString("es-MX");
-        }
-    }
-
-    folioSpan.textContent = `Folio: ${folio} | Apertura: ${fechaMostrar}`;
+    folioSpan.textContent = `Folio: ${folio} | Apertura: ${fechaApertura}`;
 }
     // ==========================
     // ESTADO DEL TABLERO
