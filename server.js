@@ -946,6 +946,85 @@ console.log("Tableros iniciales verificados");
 }
 
 crearTablerosIniciales();
+function iniciarConteoTableroSiEsPrimerPago(tableroId){
+    return new Promise((resolve) => {
+
+        db.get(
+            `SELECT fechaPrimerPago
+             FROM tableros
+             WHERE id = ?`,
+            [tableroId],
+            (errTablero, tablero) => {
+
+                if(errTablero){
+                    console.log("❌ Error leyendo fechaPrimerPago del tablero:", errTablero.message);
+                    return resolve({ ok:false, iniciado:false });
+                }
+
+                if(!tablero){
+                    console.log("⚠️ Tablero no encontrado para iniciar contador:", tableroId);
+                    return resolve({ ok:false, iniciado:false });
+                }
+
+                if(tablero.fechaPrimerPago){
+                    return resolve({
+                        ok:true,
+                        iniciado:false,
+                        motivo:"El contador ya había sido iniciado"
+                    });
+                }
+
+                db.get(
+                    `SELECT COUNT(*) AS totalPagadas
+                     FROM casillas
+                     WHERE tableroId = ?
+                       AND estado = 'pagada'`,
+                    [tableroId],
+                    (errPagadas, row) => {
+
+                        if(errPagadas){
+                            console.log("❌ Error contando casillas pagadas para iniciar contador:", errPagadas.message);
+                            return resolve({ ok:false, iniciado:false });
+                        }
+
+                        const totalPagadas = row ? row.totalPagadas : 0;
+
+                        if(totalPagadas < 1){
+                            return resolve({
+                                ok:true,
+                                iniciado:false,
+                                motivo:"Aún no hay casillas pagadas"
+                            });
+                        }
+
+                        db.run(
+                            `UPDATE tableros
+                             SET fechaPrimerPago = ?
+                             WHERE id = ?
+                               AND (fechaPrimerPago IS NULL OR fechaPrimerPago = 0)`,
+                            [Date.now(), tableroId],
+                            function(errUpdate){
+
+                                if(errUpdate){
+                                    console.log("❌ Error iniciando contador de 10 días:", errUpdate.message);
+                                    return resolve({ ok:false, iniciado:false });
+                                }
+
+                                console.log("⏱️ CONTADOR DE 10 DÍAS INICIADO PARA TABLERO:", tableroId);
+                                console.log("⏱️ FILAS AFECTADAS INICIO CONTADOR:", this.changes);
+
+                                resolve({
+                                    ok:true,
+                                    iniciado:this.changes > 0
+                                });
+                            }
+                        );
+                    }
+                );
+            }
+        );
+    });
+}
 function calcularGanador(casillas){
 
     const tiempos = casillas.map(c => {
@@ -2029,6 +2108,9 @@ function(err){
     });
 setTimeout(async () => {
     try{
+        const inicio = await iniciarConteoTableroSiEsPrimerPago(folio);
+        console.log("🧾 RESULTADO INICIO CONTADOR:", inicio);
+
         const cierre = await revisarCierreTablero(folio);
         console.log("🧾 RESULTADO REVISAR CIERRE:", cierre);
     }catch(error){
