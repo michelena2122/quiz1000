@@ -391,15 +391,24 @@ res.json({ ok:false });
 app.post("/validar-codigo", (req, res) => {
 
     const email = (req.body.email || "").toLowerCase().trim();
-const codigo = req.body.codigo;
+    const codigo = req.body.codigo;
+
+    console.log("====================================");
+    console.log("VALIDAR CODIGO");
+    console.log("Email recibido:", email);
+    console.log("Codigo recibido:", codigo);
+    console.log("Registro guardado:", codigosEmail[email] || null);
+    console.log("====================================");
 
     const registro = codigosEmail[email];
 
     if(!registro){
+        console.log("RESULTADO VALIDACION: no existe código para este email");
         return res.json({ ok:false, mensaje:"No existe código para este email" });
     }
 
     if(Date.now() > registro.expira){
+        console.log("RESULTADO VALIDACION: código expirado");
         delete codigosEmail[email];
         return res.json({ ok:false, mensaje:"El código expiró" });
     }
@@ -407,6 +416,9 @@ const codigo = req.body.codigo;
     if(registro.codigo != codigo){
 
         registro.intentos++;
+
+        console.log("RESULTADO VALIDACION: código incorrecto");
+        console.log("Intentos:", registro.intentos);
 
         if(registro.intentos >= 3){
 
@@ -425,6 +437,8 @@ const codigo = req.body.codigo;
         });
 
     }
+
+    console.log("RESULTADO VALIDACION: OK");
 
     delete codigosEmail[email];
 
