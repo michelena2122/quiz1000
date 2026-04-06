@@ -1,6 +1,6 @@
 console.log("MAIN NUEVO VERSION 2");
 let reservasActivas = [];
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
 
     if (!document.body.classList.contains("tablero")) return;
 
@@ -62,7 +62,30 @@ if (!folio) {
     throw new Error("Folio no encontrado");
 }
 
-localStorage.setItem("folioTableroActual", folio);
+// ==========================
+// OBTENER FECHA DESDE BACKEND
+// ==========================
+async function cargarFechaAperturaDesdeBackend(){
+    try{
+        const res = await fetch("/api/fecha-apertura/" + encodeURIComponent(folio));
+        const data = await res.json();
+
+        if(data.ok && data.fecha){
+            localStorage.setItem("fechaApertura", data.fecha);
+            return data.fecha;
+        }
+
+        localStorage.removeItem("fechaApertura");
+        return null;
+
+    }catch(error){
+        console.log("Error obteniendo fecha de apertura:", error);
+        return null;
+    }
+}
+
+await cargarFechaAperturaDesdeBackend();
+fechaApertura = localStorage.getItem("fechaApertura");
 
 let tablerosGlobal = JSON.parse(localStorage.getItem("tableros")) || {};
 
@@ -79,7 +102,6 @@ if (!tablerosGlobal[folio]) {
 if (!fechaApertura) {
     fechaApertura = "Sin iniciar";
 } else {
-    // convertir timestamp a fecha legible
     const fechaMostrar = new Date(parseInt(fechaApertura)).toLocaleString("es-MX");
     fechaApertura = fechaMostrar;
 }
@@ -604,9 +626,9 @@ fetch("/api/pregunta/" + cell.dataset.id)
 
         modal.classList.add("hidden");
 
-        if (!localStorage.getItem("fechaApertura")) {
-            localStorage.setItem("fechaApertura", Date.now());
-        }
+        //if (!localStorage.getItem("fechaApertura")) {
+        //    localStorage.setItem("fechaApertura", Date.now());
+        //}
 
         const tiempoFormateado = contador.textContent;
 
