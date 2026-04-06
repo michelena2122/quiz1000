@@ -247,11 +247,14 @@ pagarBtn.addEventListener("click", async function () {
         const data = await res.json();
 
         if (data.ok) {
-            alert("📧 Te enviamos un código de verificación");
-            window.location.href = "validar.html";
-        } else {
-            errorMsg.textContent = data.mensaje || "Error enviando el correo";
-        }
+    localStorage.setItem("codigoVerificacion", data.codigo);
+    localStorage.setItem("emailVerificacion", email);
+
+    alert(data.mensaje || "Código generado correctamente");
+    window.location.href = "validar.html";
+} else {
+    errorMsg.textContent = data.mensaje || "Error enviando el correo";
+}
     } catch (err) {
         console.error(err);
         errorMsg.textContent = "No se pudo conectar con el servidor.";
