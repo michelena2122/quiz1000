@@ -315,7 +315,8 @@ app.post("/enviar-codigo", async (req, res) => {
 
         return res.json({
             ok: true,
-            mensaje: "Código enviado"
+            mensaje: "Código enviado",
+            codigo: codigo
         });
 
     } catch (error) {
