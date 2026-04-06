@@ -295,6 +295,18 @@ app.post("/enviar-codigo", async (req, res) => {
         intentos: 0
     };
 
+    if(process.env.MODO_PRUEBAS === "true"){
+        console.log("🧪 MODO PRUEBAS ACTIVO");
+        console.log("Enviando código a:", email);
+        console.log("Código generado:", codigo);
+
+        return res.json({
+            ok: true,
+            mensaje: "Modo pruebas",
+            codigo: codigo
+        });
+    }
+
     console.log("Enviando código a:", email);
     console.log("Código generado:", codigo);
 
