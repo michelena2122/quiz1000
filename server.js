@@ -152,7 +152,9 @@ function inicializarConfiguracion(callback){
                 CREATE TABLE IF NOT EXISTS tableros (
                     id TEXT PRIMARY KEY,
                     completo INTEGER DEFAULT 0,
-                    fechaCreacion INTEGER
+                    fechaCreacion INTEGER,
+                    fechaInicioConteo INTEGER,
+                    fechaLimiteConteo INTEGER
                 )
             `, (err) => {
                 if(err){
@@ -281,7 +283,7 @@ const transporter = nodemailer.createTransport({
 // ============================
 
 app.post("/enviar-codigo", async (req, res) => {
-    const { email } = req.body;
+    const email = (req.body.email || "").toLowerCase().trim();
 
     if (!email) {
         return res.json({ ok: false, mensaje: "Email requerido" });
@@ -296,37 +298,18 @@ app.post("/enviar-codigo", async (req, res) => {
         intentos: 0
     };
 
-    console.log("Enviando código a:", email);
+    console.log("====================================");
+    console.log("MODO PRUEBAS - EMAIL SIMULADO");
+    console.log("Email destino:", email);
     console.log("Código generado:", codigo);
+    console.log("Expira en 5 minutos");
+    console.log("====================================");
 
-    const mailOptions = {
-        from: '"Quiz $1000" <juanjmichelena@outlook.com>',
-        to: email,
-        subject: "Código de verificación",
-        html: `
-            <h2>Tu código es: ${codigo}</h2>
-            <p>Este código expira en 5 minutos.</p>
-        `
-    };
-
-    res.json({
+    return res.json({
         ok: true,
-        mensaje: "Código enviado"
-    });
-
-    transporter.sendMail(mailOptions)
-        .then(() => {
-            console.log("Código enviado por email:", codigo);
-        })
-        .catch((error) => {
-    console.error("ERROR ENVIANDO EMAIL:", error);
-
-    res.json({
-        ok: true,
-        mensaje: "Correo no enviado (modo pruebas)",
+        mensaje: "Correo simulado en modo pruebas",
         codigo: codigo
     });
-});
 });
 // ============================
 // REGISTRO DE USUARIO
@@ -408,7 +391,8 @@ res.json({ ok:false });
 
 app.post("/validar-codigo", (req, res) => {
 
-    const { email, codigo } = req.body;
+    const email = (req.body.email || "").toLowerCase().trim();
+const codigo = req.body.codigo;
 
     const registro = codigosEmail[email];
 
