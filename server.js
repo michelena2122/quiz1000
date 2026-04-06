@@ -820,7 +820,33 @@ try {
 }
 
 });
+app.get("/api/fecha-apertura/:folio", (req, res) => {
 
+    const folio = req.params.folio;
+
+    if(!folio){
+        return res.json({ ok:false, fecha:null });
+    }
+
+    db.get(
+        `SELECT fechaPrimerPago
+         FROM tableros
+         WHERE id = ?`,
+        [folio],
+        (err, row) => {
+
+            if(err){
+                console.log("Error obteniendo fechaPrimerPago:", err.message);
+                return res.json({ ok:false, fecha:null });
+            }
+
+            res.json({
+                ok:true,
+                fecha: row ? row.fechaPrimerPago : null
+            });
+        }
+    );
+});
 // =============================
 // ADMIN - ESTADO DEL TABLERO
 // =============================
