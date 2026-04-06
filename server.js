@@ -308,24 +308,25 @@ app.post("/enviar-codigo", async (req, res) => {
         `
     };
 
-    res.json({
-        ok: true,
-        mensaje: "Código enviado"
-    });
+    try {
+        await transporter.sendMail(mailOptions);
 
-    transporter.sendMail(mailOptions)
-        .then(() => {
-            console.log("Código enviado por email:", codigo);
-        })
-        .catch((error) => {
-    console.error("ERROR ENVIANDO EMAIL:", error);
+        console.log("Código enviado por email:", codigo);
 
-    res.json({
-        ok: true,
-        mensaje: "Correo no enviado (modo pruebas)",
-        codigo: codigo
-    });
-});
+        return res.json({
+            ok: true,
+            mensaje: "Código enviado"
+        });
+
+    } catch (error) {
+        console.error("ERROR ENVIANDO EMAIL:", error);
+
+        return res.json({
+            ok: true,
+            mensaje: "Correo no enviado (modo pruebas)",
+            codigo: codigo
+        });
+    }
 });
 // ============================
 // REGISTRO DE USUARIO
@@ -2345,7 +2346,8 @@ inicializarConfiguracion((err) => {
     if(err){
         process.exit(1);
     }
-
+  console.log("Base de datos inicializada correctamente");
+});
     
 app.post("/api/crear-tablero", (req, res) => {
 
@@ -2453,7 +2455,6 @@ app.get("/api/estado-casillas", (req, res) => {
 app.listen(PORT, () => {
         console.log(`Servidor corriendo en http://localhost:${PORT}`);
     });
-});
 // =============================
 // MIS TABLEROS (PERFIL JUGADOR)
 // =============================
