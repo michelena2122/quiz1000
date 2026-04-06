@@ -1,6 +1,6 @@
 console.log("MAIN NUEVO VERSION 2");
 let reservasActivas = [];
-ddocument.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener("DOMContentLoaded", () => {
 
     if (!document.body.classList.contains("tablero")) return;
 
@@ -76,22 +76,13 @@ if (!tablerosGlobal[folio]) {
     localStorage.setItem("tableros", JSON.stringify(tablerosGlobal));
 }
 
-try {
-    const resFecha = await fetch("/api/fecha-apertura/" + encodeURIComponent(folio));
-    const dataFecha = await resFecha.json();
-
-    if (dataFecha.ok && dataFecha.fecha) {
-        localStorage.setItem("fechaApertura", dataFecha.fecha);
-        fechaApertura = new Date(parseInt(dataFecha.fecha)).toLocaleString("es-MX");
-    } else {
-        localStorage.removeItem("fechaApertura");
-        fechaApertura = "Sin iniciar";
-    }
-} catch (error) {
-    console.log("Error obteniendo fecha de apertura:", error);
+if (!fechaApertura) {
     fechaApertura = "Sin iniciar";
+} else {
+    // convertir timestamp a fecha legible
+    const fechaMostrar = new Date(parseInt(fechaApertura)).toLocaleString("es-MX");
+    fechaApertura = fechaMostrar;
 }
-
 
 // ==========================
 // BARRA PROGRESO 10 DIAS
@@ -613,8 +604,9 @@ fetch("/api/pregunta/" + cell.dataset.id)
 
         modal.classList.add("hidden");
 
-        // 🚫 Ya no iniciar desde frontend
-// El inicio lo controla el backend (fechaPrimerPago)
+        if (!localStorage.getItem("fechaApertura")) {
+            localStorage.setItem("fechaApertura", Date.now());
+        }
 
         const tiempoFormateado = contador.textContent;
 
@@ -729,6 +721,7 @@ board.appendChild(c);
 }
 
 });
+
 
 
 

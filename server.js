@@ -1,2500 +1,731 @@
-const express = require("express");
-const nodemailer = require("nodemailer");
-const cors = require("cors");
-const path = require("path");
-const fs = require("fs");
+console.log("MAIN NUEVO VERSION 2");
+let reservasActivas = [];
+document.addEventListener("DOMContentLoaded", () => {
 
-const sqlite3 = require("sqlite3").verbose();
-const bcrypt = require("bcrypt");
-const { MercadoPagoConfig, Preference } = require("mercadopago");
-const { Payment } = require("mercadopago");
-const client = new MercadoPagoConfig({
-    accessToken: "TEST-2663546958880234-110418-76e2aeb24b31137cb7f87b000963013f-153115257"
-});
+    if (!document.body.classList.contains("tablero")) return;
 
-const app = express();
-const PORT = process.env.PORT || 3000;
+    const grid = document.querySelector(".tablero-grid");
+    if (!grid) return;
 
-app.use(cors());
-app.use(express.json());
-app.use(express.static("public"));
+    // ==========================
+    // DETECTAR FOLIO DESDE URL
+    // ==========================
 
-app.get("/tablero", (req, res) => {
-res.sendFile(path.join(__dirname, "public", "tablero.html"));
-});
+    const params = new URLSearchParams(window.location.search);
+    const folioURL = params.get("folio");
 
-app.get("/", (req, res) => {
-res.sendFile(path.join(__dirname, "public", "portada.html"));
-});
-app.get("/portada", (req, res) => {
-res.sendFile(path.join(__dirname, "public", "portada.html"));
-});
-app.get("/", (req, res) => {
-res.sendFile(path.join(__dirname, "public", "carrito.html"));
-});
-app.get("/carrito", (req, res) => {
-res.sendFile(path.join(__dirname, "public", "carrito.html"));
-});
-app.get("/", (req, res) => {
-res.sendFile(path.join(__dirname, "public", "registro.html"));
-});
-app.get("/registro", (req, res) => {
-res.sendFile(path.join(__dirname, "public", "registro.html"));
-});
-app.get("/", (req, res) => {
-res.sendFile(path.join(__dirname, "public", "pago.html"));
-});
-app.get("/pago", (req, res) => {
-res.sendFile(path.join(__dirname, "public", "pago.html"));
-});
-app.get("/", (req, res) => {
-res.sendFile(path.join(__dirname, "public", "perfil.html"));
-});
-app.get("/perfil", (req, res) => {
-res.sendFile(path.join(__dirname, "public", "perfil.html"));
-});
-app.get("/", (req, res) => {
-res.sendFile(path.join(__dirname, "public", "login.html"));
-});
-app.get("/login", (req, res) => {
-res.sendFile(path.join(__dirname, "public", "login.html"));
-});
-app.get("/", (req, res) => {
-res.sendFile(path.join(__dirname, "public", "index.html"));
-});
-app.get("/index", (req, res) => {
-res.sendFile(path.join(__dirname, "public", "index.html"));
-});
-app.get("/", (req, res) => {
-res.sendFile(path.join(__dirname, "public", "legales.html"));
-});
-app.get("/legales", (req, res) => {
-res.sendFile(path.join(__dirname, "public", "legales.html"));
-});
-app.get("/", (req, res) => {
-res.sendFile(path.join(__dirname, "public", "lobby.html"));
-});
-app.get("/lobby", (req, res) => {
-res.sendFile(path.join(__dirname, "public", "lobby.html"));
-});
-app.get("/", (req, res) => {
-res.sendFile(path.join(__dirname, "public", "reglas.html"));
-});
-app.get("/reglas", (req, res) => {
-res.sendFile(path.join(__dirname, "public", "reglas.html"));
-});
-app.get("/", (req, res) => {
-res.sendFile(path.join(__dirname, "public", "nueva-password.html"));
-});
-app.get("/nueva-password", (req, res) => {
-res.sendFile(path.join(__dirname, "public", "nueva-password.html"));
-});
-app.get("/", (req, res) => {
-res.sendFile(path.join(__dirname, "public", "ranking.html"));
-});
-app.get("/ranking", (req, res) => {
-res.sendFile(path.join(__dirname, "public", "ranking.html"));
-});
-app.get("/", (req, res) => {
-res.sendFile(path.join(__dirname, "public", "recuperar.html"));
-});
-app.get("/recuperar", (req, res) => {
-res.sendFile(path.join(__dirname, "public", "recuperar.html"));
-});
-app.get("/", (req, res) => {
-res.sendFile(path.join(__dirname, "public", "admin.html"));
-});
-app.get("/admin", (req, res) => {
-res.sendFile(path.join(__dirname, "public", "admin.html"));
-});
-const FILE_PATH = path.join(__dirname, "public", "data", "preguntas.json");
-
-const codigosEmail = {};
-const preguntasAbiertas = {};
-const MP_ACCESS_TOKEN = "c0E8HVNboWsJMBiRkHxKBW3pypue47uk";
+    console.log("FOLIO DETECTADO:", folioURL);
 // ============================
-// BASE DE DATOS USUARIOS
+// VINCULAR TABLERO AL PERFIL
 // ============================
 
-const DB_PATH = process.env.DB_PATH || "/var/data/usuarios.db";
-const db = new sqlite3.Database(DB_PATH);
+if(document.body.classList.contains("tablero")){
 
-// ============================
-// BASE DE DATOS
-// ============================
-function inicializarConfiguracion(callback){
-    db.serialize(() => {
+    let jugadorActual = JSON.parse(localStorage.getItem("jugadorActual"));
 
-        db.run(`
-            CREATE TABLE IF NOT EXISTS usuarios (
-                id TEXT PRIMARY KEY,
-                nombre TEXT,
-                apellidos TEXT,
-                edad INTEGER,
-                nacionalidad TEXT,
-                telefono TEXT,
-                email TEXT UNIQUE,
-                password TEXT,
-                numeroComprado TEXT,
-                folioTablero TEXT,
-                mejorTiempoGlobal INTEGER
-            )
-        `, (err) => {
-            if(err){
-                console.log("Error creando tabla usuarios:", err.message);
-                if(callback) return callback(err);
-            }
+    if(jugadorActual && folioURL){
 
-            console.log("Tabla usuarios creada correctamente");
-
-            db.run(`
-                CREATE TABLE IF NOT EXISTS tableros (
-                    id TEXT PRIMARY KEY,
-                    completo INTEGER DEFAULT 0,
-                    fechaCreacion INTEGER,
-                    fechaPrimerPago INTEGER
-                )
-            `, (errTableros) => {
-                if(errTableros){
-                    console.log("Error creando tabla tableros:", errTableros.message);
-                    if(callback) return callback(errTableros);
-                }
-
-                console.log("Tabla tableros creada correctamente");
-
-                db.run(`
-                    ALTER TABLE tableros
-                    ADD COLUMN fechaPrimerPago INTEGER
-                `, (errAlter) => {
-
-                    if(errAlter && !errAlter.message.includes("duplicate column name")){
-                        console.log("Error agregando columna fechaPrimerPago:", errAlter.message);
-                        if(callback) return callback(errAlter);
-                    }
-
-                    console.log("Columna fechaPrimerPago verificada correctamente");
-
-                    db.run(`
-                        CREATE TABLE IF NOT EXISTS configuracion (
-                            clave TEXT PRIMARY KEY,
-                            valor TEXT
-                        )
-                    `, (errConfig) => {
-                        if(errConfig){
-                            console.log("Error creando tabla configuracion:", errConfig.message);
-                            if(callback) return callback(errConfig);
-                        }
-
-                        console.log("Tabla configuracion creada correctamente");
-
-                        db.run(`
-                            CREATE TABLE IF NOT EXISTS casillas (
-                                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                                tableroId TEXT,
-                                casilla INTEGER,
-                                jugador TEXT,
-                                email TEXT,
-                                tiempo TEXT,
-                                estado TEXT,
-                                expira INTEGER,
-                                fecha INTEGER
-                            )
-                        `, (errCasillas) => {
-                            if(errCasillas){
-                                console.log("Error creando tabla casillas:", errCasillas.message);
-                                if(callback) return callback(errCasillas);
-                            }
-
-                            console.log("Tabla casillas creada correctamente");
-
-                            db.run(`
-                                CREATE TABLE IF NOT EXISTS rankings_tableros (
-                                    tableroId TEXT PRIMARY KEY,
-                                    ganadorId TEXT,
-                                    ganadorNombre TEXT,
-                                    mejorTiempoTexto TEXT,
-                                    mejorTiempoNumero REAL,
-                                    totalParticipantes INTEGER DEFAULT 0,
-                                    resumenJson TEXT,
-                                    fechaCierre INTEGER
-                                )
-                            `, (errRankings) => {
-                                if(errRankings){
-                                    console.log("Error creando tabla rankings_tableros:", errRankings.message);
-                                    if(callback) return callback(errRankings);
-                                }
-
-                                console.log("Tabla rankings_tableros creada correctamente");
-
-                                if(callback) callback(null);
-                            });
-                        });
-                    });
-                });
-            });
-        });
-    });
-}
-// ============================
-// OBTENER CONFIGURACION
-// ============================
-function obtenerConfiguracion(clave){
-    return new Promise((resolve) => {
-        db.get(
-            `SELECT valor FROM configuracion WHERE clave = ?`,
-            [clave],
-            (err, row) => {
-                if(err){
-                    console.log("Error leyendo configuracion:", err);
-                    return resolve(null);
-                }
-
-                resolve(row ? row.valor : null);
-            }
-        );
-    });
-}
-// ============================
-// CONFIGURAR EMAIL OUTLOOK
-// ============================
-
-const transporter = nodemailer.createTransport({
-    host: "smtp.office365.com",
-    port: 587,
-    secure: false,
-    auth: {
-        user: "juanjmichelena@outlook.com",
-        pass: "xndzynqcazodcfjw"
-    }
-});
-
-// ============================
-// ENVIAR CODIGO
-// ============================
-
-app.post("/enviar-codigo", async (req, res) => {
-    const { email } = req.body;
-
-    if (!email) {
-        return res.json({ ok: false, mensaje: "Email requerido" });
-    }
-
-    const codigo = Math.floor(100000 + Math.random() * 900000);
-    const expiracion = Date.now() + (5 * 60 * 1000);
-
-    codigosEmail[email] = {
-        codigo,
-        expira: expiracion,
-        intentos: 0
-    };
-
-    console.log("Enviando código a:", email);
-    console.log("Código generado:", codigo);
-
-    const mailOptions = {
-        from: '"Quiz $1000" <juanjmichelena@outlook.com>',
-        to: email,
-        subject: "Código de verificación",
-        html: `
-            <h2>Tu código es: ${codigo}</h2>
-            <p>Este código expira en 5 minutos.</p>
-        `
-    };
-
-    res.json({
-        ok: true,
-        mensaje: "Código enviado"
-    });
-
-    transporter.sendMail(mailOptions)
-        .then(() => {
-            console.log("Código enviado por email:", codigo);
-        })
-        .catch((error) => {
-    console.error("ERROR ENVIANDO EMAIL:", error);
-
-    res.json({
-        ok: true,
-        mensaje: "Correo no enviado (modo pruebas)",
-        codigo: codigo
-    });
-});
-});
-// ============================
-// REGISTRO DE USUARIO
-// ============================
-
-app.post("/registro", async (req,res)=>{
-
-const {
-nombre,
-apellidos,
-edad,
-nacionalidad,
-telefono,
-email,
-password,
-numeroComprado,
-folioTablero
-} = req.body;
-
-console.log("BODY /registro:", req.body);
-
-try{
-
-const hash = await bcrypt.hash(password,10);
-
-const id = "JUG-" + Date.now();
-
-console.log("ID GENERADO /registro:", id);
-
-db.run(
-
-`INSERT INTO usuarios
-(id,nombre,apellidos,edad,nacionalidad,telefono,email,password,numeroComprado,folioTablero,mejorTiempoGlobal)
-VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
-
-[
-id,
-nombre,
-apellidos,
-edad,
-nacionalidad,
-telefono,
-email,
-hash,
-numeroComprado,
-folioTablero,
-null
-],
-
-function(err){
-
-if(err){
-console.log("ERROR INSERTANDO USUARIO:", err);
-return res.json({ ok:false, mensaje:"Usuario o email ya existen" });
-}
-
-console.log("USUARIO INSERTADO OK:", id);
-console.log("CHANGES /registro:", this.changes);
-
-res.json({
-ok:true,
-id:id
-});
-
-}
-
-);
-
-}catch(error){
-
-console.log("ERROR GENERAL /registro:", error);
-res.json({ ok:false });
-
-}
-
-});// ============================
-// VALIDAR CODIGO
-// ============================
-
-app.post("/validar-codigo", (req, res) => {
-
-    const { email, codigo } = req.body;
-
-    const registro = codigosEmail[email];
-
-    if(!registro){
-        return res.json({ ok:false, mensaje:"No existe código para este email" });
-    }
-
-    if(Date.now() > registro.expira){
-        delete codigosEmail[email];
-        return res.json({ ok:false, mensaje:"El código expiró" });
-    }
-
-    if(registro.codigo != codigo){
-
-        registro.intentos++;
-
-        if(registro.intentos >= 3){
-
-            delete codigosEmail[email];
-
-            return res.json({
-                ok:false,
-                mensaje:"Demasiados intentos. Solicita un nuevo código."
-            });
-
+        if(!jugadorActual.tableros){
+            jugadorActual.tableros = {};
         }
 
-        return res.json({
-            ok:false,
-            mensaje:"Código incorrecto"
-        });
-
-    }
-
-    delete codigosEmail[email];
-
-    res.json({ ok:true });
-
-});
-// ============================
-// LOGIN DE USUARIO
-// ============================
-
-app.post("/login", async (req,res)=>{
-
-const { email, password } = req.body;
-
-db.get(
-
-`SELECT * FROM usuarios WHERE email = ?`,
-
-[email],
-
-async (err, row)=>{
-
-if(err){
-    return res.json({ ok:false });
-}
-
-if(!row){
-    return res.json({ ok:false, mensaje:"Email no encontrado" });
-}
-
-const coincide = await bcrypt.compare(password, row.password);
-
-if(!coincide){
-    return res.json({ ok:false, mensaje:"Contraseña incorrecta" });
-}
-
-res.json({
-    ok:true,
-    usuario:{
-        id: row.id,
-        nombre: row.nombre,
-        apellidos: row.apellidos,
-        email: row.email,
-        telefono: row.telefono
-    }
-});
-
-}
-
-);
-
-});
-// ============================
-// OBTENER PERFIL DE USUARIO
-// ============================
-
-app.get("/usuario/:id",(req,res)=>{
-
-const id = req.params.id;
-
-db.get(
-
-`SELECT id,nombre,apellidos,edad,email,telefono
-FROM usuarios
-WHERE id = ?`,
-
-[id],
-
-(err,row)=>{
-
-if(err){
-return res.json({ok:false});
-}
-
-if(!row){
-return res.json({ok:false});
-}
-
-res.json({
-ok:true,
-usuario:row
-});
-
-}
-
-);
-
-});
-// ============================
-// ACTUALIZAR PERFIL
-// ============================
-
-app.post("/actualizar-perfil", async (req,res)=>{
-
-const { id, email, telefono, password } = req.body;
-
-let query;
-let params;
-
-if(password){
-
-const hash = await bcrypt.hash(password,10);
-
-query = `
-UPDATE usuarios
-SET email=?, telefono=?, password=?
-WHERE id=?`;
-
-params = [email,telefono,hash,id];
-
-}else{
-
-query = `
-UPDATE usuarios
-SET email=?, telefono=?
-WHERE id=?`;
-
-params = [email,telefono,id];
-
-}
-
-db.run(query,params,function(err){
-
-if(err){
-return res.json({ok:false});
-}
-
-res.json({ok:true});
-
-});
-
-});
-// ============================
-// CAMBIAR PASSWORD (RECUPERACION)
-// ============================
-
-app.post("/cambiar-password", async (req,res)=>{
-
-const email = req.body.email.toLowerCase().trim();
-const password = req.body.password;
-
-try{
-
-const hash = await bcrypt.hash(password,10);
-
-db.run(
-
-`UPDATE usuarios SET password=? WHERE email=?`,
-
-[hash,email],
-
-function(err){
-
-if(err){
-console.log("ERROR ACTUALIZANDO PASSWORD:", err);
-return res.json({ ok:false });
-}
-
-if(this.changes === 0){
-console.log("EMAIL NO ENCONTRADO:", email);
-return res.json({ ok:false });
-}
-
-console.log("PASSWORD ACTUALIZADO:", email);
-
-res.json({ ok:true });
-
-}
-
-);
-
-}catch(error){
-
-console.log("ERROR:", error);
-
-res.json({ ok:false });
-
-}
-
-});
-
-// =============================
-// OBTENER PREGUNTAS
-// =============================
-app.get("/api/preguntas", (req, res) => {
-
-    const filePath = path.join(__dirname, "public", "data", "preguntas.json");
-
-    fs.readFile(filePath, "utf8", (err, data) => {
-
-        if (err) {
-            return res.status(500).json({ error: "Error leyendo preguntas" });
-        }
-
-        const preguntas = JSON.parse(data);
-
-        res.json(preguntas);
-
-    });
-
-});
-// =============================
-// REGISTRAR APERTURA DE PREGUNTA
-// =============================
-app.post("/api/abrir-pregunta", (req, res) => {
-
-    const { id, jugador } = req.body;
-
-    const clave = jugador + "_" + id;
-    // evitar abrir la misma pregunta dos veces
-    if(preguntasAbiertas[clave]){
-        return res.json({ ok:false });
-    }
-
-    preguntasAbiertas[clave] = Date.now();
-
-    res.json({ ok:true });
-
-});
-
-// =============================
-// GUARDAR PREGUNTAS (ADMIN)
-// =============================
-app.post("/api/preguntas", (req, res) => {
-
-    const lista = req.body;
-
-    if (!Array.isArray(lista)) {
-        return res.status(400).json({ error: "Formato inválido." });
-    }
-
-    if (lista.length !== 50) {
-        return res.status(400).json({ error: "Debe haber exactamente 50 preguntas." });
-    }
-
-    const resultados = lista.map(p => p.resultado);
-    const setResultados = new Set(resultados);
-
-    if (setResultados.size !== 50) {
-        return res.status(400).json({ error: "Hay resultados repetidos." });
-    }
-
-    if (!resultados.every(r => r >= 1 && r <= 50)) {
-        return res.status(400).json({ error: "Los resultados deben estar entre 1 y 50." });
-    }
-
-    try {
-        fs.writeFileSync(FILE_PATH, JSON.stringify(lista, null, 2));
-        res.json({ success: true });
-    } catch (error) {
-        res.status(500).json({ error: "Error guardando archivo." });
-    }
-});
-// =============================
-// ESTADO DEL TABLERO
-// =============================
-
-app.get("/api/tablero", (req, res) => {
-
-db.all(
-
-`SELECT casilla
-FROM casillas
-WHERE estado = 'ocupada'`,
-
-[],
-
-(err,rows)=>{
-
-if(err){
-return res.json({ casillas:[] });
-}
-
-res.json({
-completo:false,
-casillas:rows
-});
-
-}
-
-);
-
-});
-// =============================
-// OCUPAR CASILLA
-// =============================
-
-app.post("/api/ocupar-casilla", (req, res) => {
-
-const casilla = req.body.casilla;
-const jugador = req.body.jugador;
-const email = (req.body.email || "pendiente").toLowerCase();
-const tiempo = req.body.tiempo;
-const folio = req.body.folio;
-
-if(!folio){
-    return res.json({ ok:false, mensaje:"Folio no recibido" });
-}
-
-console.log("POST ocupar casilla:", casilla, jugador);
-
-const filePath = path.join(__dirname, "public", "data", "tablero.json");
-
-try {
-
-    const data = fs.readFileSync(filePath, "utf8");
-    const tablero = JSON.parse(data);
-
-    if(tablero.completo){
-        return res.json({ ok:false, mensaje:"Tablero cerrado" });
-    }
-
-    const ahora = Date.now();
-    const expiraReserva = ahora + 300000;
-
-    db.get(
-    `SELECT id
-     FROM casillas
-     WHERE tableroId = ?
-    AND casilla = ?
-    AND (
-          estado = 'pagada'
-          OR estado = 'ocupada'
-          OR (estado = 'reservada' AND expira > ?)
-     )`,
-    [folio,casilla, ahora],
-    (err, ocupada) => {
-
-        if(err){
-            console.error("ERROR VALIDANDO CASILLA:", err.message);
-            return res.status(500).json({ ok:false });
-        }
-
-        if(ocupada){
-            return res.json({ ok:false, mensaje:"Casilla ya ocupada o reservada" });
-        }
-
-        db.run(
-        `INSERT INTO casillas
-        (tableroId,casilla,jugador,email,tiempo,estado,expira,fecha)
-        VALUES (?,?,?,?,?,?,?,?)`,
-        [
-        folio,
-        casilla,
-        jugador,
-        email,
-        tiempo,
-        "reservada",
-        expiraReserva,
-        ahora
-        ],
-        function(err){
-
-            if(err){
-                console.error("ERROR INSERTANDO RESERVA:", err.message);
-                return res.status(500).json({ ok:false });
-            }
-
-            console.log("RESERVA GUARDADA EN DB:", casilla);
-
-            res.json({
-                ok:true,
-                expira: expiraReserva
-            });
-
-        }
-        );
-
-    }
-    );
-
-} catch(error){
-
-    console.error("ERROR OCUPANDO CASILLA:", error);
-    res.status(500).json({ ok:false });
-
-}
-
-});
-
-// =============================
-// ADMIN - ESTADO DEL TABLERO
-// =============================
-
-app.get("/admin/tablero", (req, res) => {
-
-    const filePath = path.join(__dirname, "public", "data", "tablero.json");
-
-    try {
-
-        const data = fs.readFileSync(filePath, "utf8");
-        const tablero = JSON.parse(data);
-
-        res.json({
-            completo: tablero.completo || false,
-            ocupadas: tablero.casillas.length,
-            restantes: 50 - tablero.casillas.length,
-            casillas: tablero.casillas
-        });
-
-    } catch (error) {
-
-        console.error("Error leyendo tablero admin:", error);
-
-        res.status(500).json({
-            error: "Error leyendo tablero"
-        });
-
-    }
-
-});
-app.post("/admin/reset", (req,res)=>{
-
-    db.run(`DELETE FROM usuarios`);
-    db.run(`DELETE FROM casillas`);
-    db.run(`DELETE FROM tableros`);
-
-    const filePath = path.join(__dirname, "public", "data", "tablero.json");
-
-    const nuevoTablero = {
-        completo:false,
-        casillas:[]
-    };
-
-    fs.writeFileSync(filePath, JSON.stringify(nuevoTablero, null, 2));
-
-    res.json({ ok:true, mensaje:"Sistema reiniciado" });
-
-});
-// ============================
-// CREAR TABLEROS INICIALES
-// ============================
-
-function crearTablerosIniciales(){
-
-db.get(
-
-`SELECT COUNT(*) as total FROM tableros`,
-
-(err,row)=>{
-
-if(err){
-    console.log("Error consultando tableros iniciales:", err.message);
-    return;
-}
-
-if(!row){
-    console.log("No se pudo leer COUNT(*) de tableros");
-    return;
-}
-
-if(row.total < 3){
-
-for(let i=1;i<=3;i++){
-
-const id = "TAB-"+(1000+i);
-
-db.run(
-
-`INSERT OR IGNORE INTO tableros (id,fechaCreacion)
-VALUES (?,?)`,
-
-[id,Date.now()]
-
-);
-
-}
-
-}
-
-console.log("Tableros iniciales verificados");
-
-}
-
-);
-
-}
-
-crearTablerosIniciales();
-function iniciarConteoTableroSiEsPrimerPago(tableroId){
-    return new Promise((resolve) => {
-
-        db.get(
-            `SELECT fechaPrimerPago
-             FROM tableros
-             WHERE id = ?`,
-            [tableroId],
-            (errTablero, tablero) => {
-
-                if(errTablero){
-                    console.log("❌ Error leyendo fechaPrimerPago del tablero:", errTablero.message);
-                    return resolve({ ok:false, iniciado:false });
-                }
-
-                if(!tablero){
-                    console.log("⚠️ Tablero no encontrado para iniciar contador:", tableroId);
-                    return resolve({ ok:false, iniciado:false });
-                }
-
-                if(tablero.fechaPrimerPago){
-                    return resolve({
-                        ok:true,
-                        iniciado:false,
-                        motivo:"El contador ya había sido iniciado"
-                    });
-                }
-
-                db.get(
-                    `SELECT COUNT(*) AS totalPagadas
-                     FROM casillas
-                     WHERE tableroId = ?
-                       AND estado = 'pagada'`,
-                    [tableroId],
-                    (errPagadas, row) => {
-
-                        if(errPagadas){
-                            console.log("❌ Error contando casillas pagadas para iniciar contador:", errPagadas.message);
-                            return resolve({ ok:false, iniciado:false });
-                        }
-
-                        const totalPagadas = row ? row.totalPagadas : 0;
-
-                        if(totalPagadas < 1){
-                            return resolve({
-                                ok:true,
-                                iniciado:false,
-                                motivo:"Aún no hay casillas pagadas"
-                            });
-                        }
-
-                        db.run(
-                            `UPDATE tableros
-                             SET fechaPrimerPago = ?
-                             WHERE id = ?
-                               AND (fechaPrimerPago IS NULL OR fechaPrimerPago = 0)`,
-                            [Date.now(), tableroId],
-                            function(errUpdate){
-
-                                if(errUpdate){
-                                    console.log("❌ Error iniciando contador de 10 días:", errUpdate.message);
-                                    return resolve({ ok:false, iniciado:false });
-                                }
-
-                                console.log("⏱️ CONTADOR DE 10 DÍAS INICIADO PARA TABLERO:", tableroId);
-                                console.log("⏱️ FILAS AFECTADAS INICIO CONTADOR:", this.changes);
-
-                                resolve({
-                                    ok:true,
-                                    iniciado:this.changes > 0
-                                });
-                            }
-                        );
-                    }
-                );
-            }
-        );
-    });
-}
-function calcularGanador(casillas){
-
-    const tiempos = casillas.map(c => {
-
-        const tiempoTexto = c.tiempo;
-
-        const partes = tiempoTexto.split(":");
-
-    const minutos = parseFloat(partes[0]) || 0;
-    const segundos = parseFloat(partes[1]) || 0;
-    const decimas = parseFloat(partes[2]) || 0;
-    const centesimas = parseFloat(partes[3]) || 0;
-
-const tiempoTotal =
-    (minutos * 60) +
-    segundos +
-    (decimas / 10) +
-    (centesimas / 100);
-
-        return {
-    jugador: c.jugador,
-    email: c.email,
-    casilla: c.casilla,
-    tiempo: tiempoTotal,
-    tiempoTexto: tiempoTexto
-};
-
-    });
-
-    tiempos.sort((a,b)=> a.tiempo - b.tiempo);
-
-    const ganador = tiempos[0];
-
-    console.log("GANADOR:", ganador);
-
-    enviarCorreos(casillas, ganador);
-
-}
-async function enviarCorreos(casillas, ganador){
-
-    const participantes = [...new Set(casillas.map(c=>c.email))];
-
-    let listaResultados = "";
-
-    casillas.forEach(c=>{
-
-        listaResultados += `
-        ${c.jugador} — Número ${c.casilla} — Tiempo ${c.tiempo}<br>
-        `;
-
-    });
-
-    const html = `
-    <h2>Resultados QUIZ1000</h2>
-
-    <p>El tablero ha sido completado.</p>
-
-    <h3>Participaciones</h3>
-    ${listaResultados}
-
-    <h3>GANADOR</h3>
-
-    <p>
-    ${ganador.jugador}<br>
-    Número ${ganador.casilla}<br>
-    Tiempo ${ganador.tiempoTexto}
-    </p>
-    `;
-
-    crearNuevoTablero();
-
-    for(const email of participantes){
-
-        await transporter.sendMail({
-
-            from: '"Quiz $1000" <juanjmichelena@outlook.com>',
-            to: email,
-            subject: "Resultado del tablero QUIZ1000",
-            html: html
-
-        });
-
-    }
-
-    console.log("Correos enviados");
-
-}
-function crearNuevoTablero(){
-
-    const filePath = path.join(__dirname, "public", "data", "tablero.json");
-
-    const nuevoTablero = {
-        completo:false,
-        casillas:[]
-    };
-
-    fs.writeFileSync(filePath, JSON.stringify(nuevoTablero, null, 2));
-
-    console.log("Nuevo tablero creado en JSON");
-
-    // =========================
-    // CREAR NUEVO TABLERO EN DB
-    // =========================
-
-    const nuevoId = "TAB-" + Date.now();
-
-    db.run(
-
-        `INSERT INTO tableros (id,fechaCreacion)
-         VALUES (?,?)`,
-
-        [nuevoId,Date.now()],
-
-        function(err){
-
-            if(err){
-                console.log("Error creando tablero DB");
-                return;
-            }
-
-            console.log("Nuevo tablero creado en DB:", nuevoId);
-
-        }
-
-    );
-
-}
-function convertirTiempoATotal(tiempoTexto){
-
-    if(!tiempoTexto || typeof tiempoTexto !== "string"){
-        return Number.MAX_SAFE_INTEGER;
-    }
-
-    const partes = tiempoTexto.split(":");
-
-    const dias = parseInt(partes[0], 10) || 0;
-    const horas = parseInt(partes[1], 10) || 0;
-    const minutos = parseInt(partes[2], 10) || 0;
-    const segundos = parseInt(partes[3], 10) || 0;
-
-    return (dias * 86400) + (horas * 3600) + (minutos * 60) + segundos;
-}
-
-function obtenerResumenTablero(tableroId){
-    return new Promise((resolve, reject) => {
-
-        db.all(`
-            SELECT
-                c.tableroId,
-                c.casilla,
-                c.tiempo,
-                c.jugador AS jugadorId,
-                u.nombre,
-                u.apellidos,
-                u.email
-            FROM casillas c
-            LEFT JOIN usuarios u
-                ON u.id = c.jugador
-            WHERE c.tableroId = ?
-              AND c.estado = 'pagada'
-            ORDER BY c.casilla ASC
-        `, [tableroId], (err, rows) => {
-
-            if(err){
-                return reject(err);
-            }
-
-            const participantesMap = {};
-
-            rows.forEach(r => {
-
-                const jugadorId = r.jugadorId || "sin-id";
-
-                if(!participantesMap[jugadorId]){
-                    const emailReal = (r.email || "").trim().toLowerCase();
-
-let nombreReal = (r.nombre || "").trim();
-
-if(!nombreReal && emailReal){
-    nombreReal = emailReal.split("@")[0];
-}
-
-if(!nombreReal){
-    nombreReal = "Jugador";
-}
-
-participantesMap[jugadorId] = {
-    jugadorId: jugadorId,
-    nombre: nombreReal,
-    nombreSolo: nombreReal,
-    apellidos: (r.apellidos || "").trim(),
-    email: emailReal,
-                        numeros: [],
-                        tiempos: [],
-                        mejorTiempoNumero: Number.MAX_SAFE_INTEGER,
-                        mejorTiempoTexto: null
-                    };
-                }
-
-                participantesMap[jugadorId].numeros.push(r.casilla);
-                participantesMap[jugadorId].tiempos.push({
-                    numero: r.casilla,
-                    tiempo: r.tiempo || "Sin registro"
-                });
-
-                const tiempoNumero = convertirTiempoATotal(r.tiempo);
-
-                if(tiempoNumero < participantesMap[jugadorId].mejorTiempoNumero){
-                    participantesMap[jugadorId].mejorTiempoNumero = tiempoNumero;
-                    participantesMap[jugadorId].mejorTiempoTexto = r.tiempo || "Sin registro";
-                }
-            });
-
-            const participantes = Object.values(participantesMap)
-                .map(p => ({
-                    ...p,
-                    nombreSolo: p.nombre || "Jugador"
-                }))
-                .sort((a, b) => a.mejorTiempoNumero - b.mejorTiempoNumero);
-
-            const ganador = participantes.length > 0 ? participantes[0] : null;
-
-            resolve({
-                tableroId,
-                totalCasillasPagadas: rows.length,
-                totalParticipantes: participantes.length,
-                participantes,
-                ganador
-            });
-        });
-    });
-}
-function guardarRankingCerrado(resumen){
-    return new Promise((resolve, reject) => {
-
-        db.run(`
-            INSERT OR REPLACE INTO rankings_tableros
-            (
-                tableroId,
-                ganadorId,
-                ganadorNombre,
-                mejorTiempoTexto,
-                mejorTiempoNumero,
-                totalParticipantes,
-                resumenJson,
-                fechaCierre
-            )
-            VALUES (?,?,?,?,?,?,?,?)
-        `,
-        [
-            resumen.tableroId,
-            resumen.ganador ? resumen.ganador.jugadorId : null,
-            resumen.ganador ? resumen.ganador.nombreSolo : null,
-            resumen.ganador ? resumen.ganador.mejorTiempoTexto : null,
-            resumen.ganador ? resumen.ganador.mejorTiempoNumero : null,
-            resumen.totalParticipantes || 0,
-            JSON.stringify(resumen),
-            Date.now()
-        ],
-        function(err){
-            if(err){
-                return reject(err);
-            }
-
-            resolve({
-                ok:true,
-                cambios: this.changes
-            });
-        });
-
-    });
-}
-async function enviarCorreoRankingFinal(resumen){
-    try{
-
-        if(!resumen || !resumen.participantes || resumen.participantes.length === 0){
-            console.log("⚠️ No hay participantes para enviar ranking final");
-            return;
-        }
-
-        const participantesConEmail = resumen.participantes.filter(p => p.email);
-
-        if(participantesConEmail.length === 0){
-            console.log("⚠️ No hay emails de participantes para ranking final");
-            return;
-        }
-
-        let filasParticipantes = "";
-
-        resumen.participantes.forEach((p, index) => {
-
-            const numeros = (p.numeros || []).join(", ");
-            const tiempos = (p.tiempos || [])
-                .map(t => `Casilla ${t.numero}: ${t.tiempo}`)
-                .join("<br>");
-
-            filasParticipantes += `
-                <div style="margin-bottom:18px; padding:12px; border:1px solid #ddd; border-radius:8px;">
-                    <p><strong>#${index + 1} ${p.nombreSolo || "Jugador"}</strong></p>
-                    <p><strong>Casillas pagadas:</strong> ${numeros || "Sin registro"}</p>
-                    <p><strong>Tiempos:</strong><br>${tiempos || "Sin registro"}</p>
-                    <p><strong>Mejor tiempo:</strong> ${p.mejorTiempoTexto || "Sin registro"}</p>
-                </div>
-            `;
-        });
-
-        const ganadorNombre = resumen.ganador?.nombreSolo || "Sin ganador";
-        const ganadorTiempo = resumen.ganador?.mejorTiempoTexto || "Sin registro";
-
-        const html = `
-            <h2>🏆 Ranking final de QUIZ1000</h2>
-
-            <p><strong>Folio del tablero:</strong> ${resumen.tableroId}</p>
-            <p>El tablero ha sido completado con 50 casillas pagadas.</p>
-
-            <h3>Ganador</h3>
-            <p>
-                <strong>${ganadorNombre}</strong><br>
-                Mejor tiempo: ${ganadorTiempo}
-            </p>
-
-            <h3>Participantes</h3>
-            ${filasParticipantes}
-
-            <p>
-                Puedes consultar el resultado en:
-                <a href="https://quiz1000.onrender.com/ranking?folio=${encodeURIComponent(resumen.tableroId)}">
-                    Ver ranking
-                </a>
-            </p>
-        `;
-
-        for(const participante of participantesConEmail){
-            await transporter.sendMail({
-                from: '"Quiz $1000" <juanjmichelena@outlook.com>',
-                to: participante.email,
-                subject: `Ranking final QUIZ1000 - ${resumen.tableroId}`,
-                html
-            });
-        }
-
-        console.log("✅ Correos de ranking final enviados:", participantesConEmail.length);
-
-    }catch(error){
-        console.log("❌ Error enviando correos de ranking final:", error.message);
-    }
-}
-
-function revisarCierreTablero(tableroId){
-    return new Promise((resolve) => {
-
-        db.get(`
-            SELECT COUNT(*) AS total
-            FROM casillas
-            WHERE tableroId = ?
-              AND estado = 'pagada'
-        `, [tableroId], async (err, row) => {
-
-            if(err){
-                console.log("❌ Error revisando cierre de tablero:", err.message);
-                return resolve({ ok:false, cerrado:false });
-            }
-
-            const totalPagadas = row ? row.total : 0;
-
-            console.log("📊 CASILLAS PAGADAS EN TABLERO:", {
-                tableroId,
-                totalPagadas
-            });
-
-            if(totalPagadas < 50){
-                return resolve({
-                    ok:true,
-                    cerrado:false,
-                    totalPagadas
-                });
-            }
-
-            db.get(`
-                SELECT tableroId
-                FROM rankings_tableros
-                WHERE tableroId = ?
-            `, [tableroId], async (err2, existente) => {
-
-                if(err2){
-                    console.log("❌ Error validando ranking existente:", err2.message);
-                    return resolve({ ok:false, cerrado:false });
-                }
-
-                if(existente){
-                    console.log("ℹ️ El ranking ya estaba guardado para este tablero:", tableroId);
-                    return resolve({
-                        ok:true,
-                        cerrado:true,
-                        repetido:true,
-                        totalPagadas
-                    });
-                }
-
-                try{
-
-                    const resumen = await obtenerResumenTablero(tableroId);
-                    const resultadoGuardado = await guardarRankingCerrado(resumen);
-
-                    db.run(`
-                        UPDATE tableros
-                        SET completo = 1
-                        WHERE id = ?
-                    `, [tableroId], async function(err3){
-
-                        if(err3){
-                            console.log("❌ Error marcando tablero como completo:", err3.message);
-                            return resolve({ ok:false, cerrado:false });
-                        }
-
-                        console.log("✅ Tablero marcado como completo:", tableroId);
-                        console.log("✅ Ranking guardado:", resultadoGuardado);
-
-                        await enviarCorreoRankingFinal(resumen);
-
-                        resolve({
-                            ok:true,
-                            cerrado:true,
-                            totalPagadas,
-                            resumen
-                        });
-                    });
-
-                }catch(error){
-                    console.log("❌ Error cerrando tablero:", error.message);
-                    resolve({ ok:false, cerrado:false });
-                }
-            });
-        });
-    });
-}
-// =============================
-// OBTENER UNA PREGUNTA
-// =============================
-
-app.get("/api/pregunta/:id", (req, res) => {
-
-    const id = parseInt(req.params.id);
-
-    const filePath = path.join(__dirname, "public", "data", "preguntas.json");
-
-    fs.readFile(filePath, "utf8", (err, data) => {
-
-        if (err) {
-            return res.status(500).json({ error: "Error leyendo preguntas" });
-        }
-
-        const preguntas = JSON.parse(data);
-
-        const pregunta = preguntas[Number(id)];
-
-        if(!pregunta){
-            return res.status(404).json({ error:"Pregunta no encontrada" });
-        }
-
-        // SOLO ENVIAMOS LA PREGUNTA
-        res.json({
-            id: id,
-            pregunta: pregunta.pregunta
-        });
-
-    });
-
-});
-// =============================
-// OBTENER TABLEROS DISPONIBLES
-// =============================
-
-app.get("/api/tableros", (req,res)=>{
-
-db.all(
-
-`SELECT id, completo
-FROM tableros
-WHERE completo = 0
-ORDER BY fechaCreacion ASC`,
-
-[],
-
-(err,rows)=>{
-
-if(err){
-return res.json({ ok:false });
-}
-
-res.json({
-ok:true,
-tableros:rows
-});
-
-}
-
-);
-
-});
-// =============================
-// VER CASILLAS EN BASE DE DATOS
-// =============================
-
-app.get("/api/debug-casillas", (req,res)=>{
-
-db.all(
-
-`SELECT tableroId,casilla,jugador,email,tiempo,estado,expira
-FROM casillas`,
-
-[],
-
-(err,rows)=>{
-
-if(err){
-return res.json({ ok:false });
-}
-
-res.json({
-ok:true,
-casillas:rows
-});
-
-}
-
-);
-
-});
-app.get("/api/debug-limpiar-duplicados", (req, res) => {
-
-    db.run(`
-        DELETE FROM casillas
-        WHERE id NOT IN (
-            SELECT MIN(id)
-            FROM casillas
-            GROUP BY tableroId, casilla
-        )
-    `, function(err){
-
-        if(err){
-            return res.json({ ok:false, error: err.message });
-        }
-
-        res.json({
-            ok:true,
-            eliminados: this.changes
-        });
-
-    });
-
-});
-app.get("/api/debug-rankings", (req, res) => {
-
-    db.all(`
-        SELECT name
-        FROM sqlite_master
-        WHERE type = 'table'
-        ORDER BY name ASC
-    `, [], (err, rows) => {
-
-        if(err){
-            return res.json({
-                ok:false,
-                error: err.message
-            });
-        }
-
-        res.json({
-            ok:true,
-            tablas: rows
-        });
-
-    });
-
-});
-app.get("/api/debug-db-status", (req, res) => {
-
-    db.serialize(() => {
-
-        db.get(`SELECT COUNT(*) AS total FROM usuarios`, [], (err1, usuarios) => {
-            if(err1){
-                return res.json({ ok:false, error: err1.message });
-            }
-
-            db.get(`SELECT COUNT(*) AS total FROM casillas`, [], (err2, casillas) => {
-                if(err2){
-                    return res.json({ ok:false, error: err2.message });
-                }
-
-                db.get(`SELECT COUNT(*) AS total FROM tableros`, [], (err3, tableros) => {
-                    if(err3){
-                        return res.json({ ok:false, error: err3.message });
-                    }
-
-                    db.all(`
-                        SELECT id, completo, fechaCreacion
-                        FROM tableros
-                        ORDER BY fechaCreacion DESC
-                        LIMIT 10
-                    `, [], (err4, ultimosTableros) => {
-                        if(err4){
-                            return res.json({ ok:false, error: err4.message });
-                        }
-
-                        res.json({
-                            ok:true,
-                            dbPath: path.resolve("./usuarios.db"),
-                            conteos: {
-                                usuarios: usuarios.total,
-                                casillas: casillas.total,
-                                tableros: tableros.total
-                            },
-                            ultimosTableros
-                        });
-                    });
-                });
-            });
-        });
-
-    });
-
-});
-app.get("/api/ranking/:folio", async (req, res) => {
-
-    const folio = req.params.folio;
-
-    try{
-
-        const resumen = await obtenerResumenTablero(folio);
-
-        if(!resumen || !resumen.participantes){
-            return res.json({
-                ok:false,
-                mensaje:"Sin datos de ranking"
-            });
-        }
-
-        res.json({
-            ok:true,
-            ranking: resumen
-        });
-
-    }catch(error){
-
-        console.log("ERROR RANKING:", error.message);
-
-        res.json({
-            ok:false,
-            mensaje:"Error generando ranking"
-        });
-
-    }
-
-});
-app.get("/api/debug-resumen-tablero/:folio", async (req, res) => {
-
-    const folio = req.params.folio;
-
-    try{
-
-        const resumen = await obtenerResumenTablero(folio);
-
-        res.json({
-            ok:true,
-            resumen
-        });
-
-    }catch(error){
-        console.log("ERROR DEBUG RESUMEN TABLERO:", error.message);
-
-        res.json({
-            ok:false,
-            error: error.message
-        });
-    }
-
-});
-app.get("/api/debug-guardar-ranking/:folio", async (req, res) => {
-
-    const folio = req.params.folio;
-
-    try{
-
-        const resumen = await obtenerResumenTablero(folio);
-
-        if(!resumen || resumen.totalCasillasPagadas === 0){
-            return res.json({
-                ok:false,
-                mensaje:"Ese tablero no tiene casillas pagadas para guardar ranking"
-            });
-        }
-
-        const resultado = await guardarRankingCerrado(resumen);
-
-        res.json({
-            ok:true,
-            mensaje:"Ranking guardado correctamente",
-            resultado,
-            resumen
-        });
-
-    }catch(error){
-        console.log("ERROR DEBUG GUARDAR RANKING:", error.message);
-
-        res.json({
-            ok:false,
-            error: error.message
-        });
-    }
-
-});
-app.get("/api/debug-ranking-guardado/:folio", (req, res) => {
-
-    const folio = req.params.folio;
-
-    db.get(`
-        SELECT *
-        FROM rankings_tableros
-        WHERE tableroId = ?
-    `, [folio], (err, row) => {
-
-        if(err){
-            return res.json({
-                ok:false,
-                error: err.message
-            });
-        }
-
-        if(!row){
-            return res.json({
-                ok:false,
-                mensaje:"No existe ranking guardado para ese tablero"
-            });
-        }
-
-        let resumenParseado = null;
-
-        try{
-            resumenParseado = JSON.parse(row.resumenJson);
-        }catch(error){
-            resumenParseado = null;
-        }
-
-        res.json({
-            ok:true,
-            ranking: row,
-            resumen: resumenParseado
-        });
-
-    });
-
-});
-app.get("/api/debug-db-status", (req, res) => {
-
-    db.serialize(() => {
-
-        db.get(`SELECT COUNT(*) AS total FROM usuarios`, [], (err1, usuarios) => {
-            if(err1){
-                return res.json({ ok:false, error: err1.message });
-            }
-
-            db.get(`SELECT COUNT(*) AS total FROM casillas`, [], (err2, casillas) => {
-                if(err2){
-                    return res.json({ ok:false, error: err2.message });
-                }
-
-                db.get(`SELECT COUNT(*) AS total FROM tableros`, [], (err3, tableros) => {
-                    if(err3){
-                        return res.json({ ok:false, error: err3.message });
-                    }
-
-                    db.all(`
-                        SELECT id, completo, fechaCreacion
-                        FROM tableros
-                        ORDER BY fechaCreacion DESC
-                        LIMIT 10
-                    `, [], (err4, ultimosTableros) => {
-                        if(err4){
-                            return res.json({ ok:false, error: err4.message });
-                        }
-
-                        res.json({
-                            ok:true,
-                            dbPath: path.resolve("./usuarios.db"),
-                            conteos: {
-                                usuarios: usuarios.total,
-                                casillas: casillas.total,
-                                tableros: tableros.total
-                            },
-                            ultimosTableros
-                        });
-                    });
-                });
-            });
-        });
-
-    });
-
-});
-// =============================
-// RESERVAS ACTIVAS
-// =============================
-
-app.get("/api/reservas", (req,res)=>{
-
-db.all(
-
-`SELECT casilla,expira
-FROM casillas
-WHERE estado = 'reservada'
-AND expira > ?`,
-
-[Date.now()],
-
-(err,rows)=>{
-
-if(err){
-return res.json({ ok:false });
-}
-
-res.json({
-ok:true,
-reservas:rows
-});
-
-}
-
-);
-
-});
-
-// =============================
-// VALIDAR RESPUESTA
-// =============================
-
-app.post("/api/responder", (req,res)=>{
-
-const { id, respuesta, jugador } = req.body;
-const clave = jugador + "_" + id;
-
-const inicio = preguntasAbiertas[clave];
-
-if(!inicio){
-return res.json({ ok:false });
-}
-
-const tiempoReal = Date.now() - inicio;
-
-delete preguntasAbiertas[clave];
-
-const filePath = path.join(__dirname, "public", "data", "preguntas.json");
-const data = fs.readFileSync(filePath,"utf8");
-const preguntas = JSON.parse(data);
-const pregunta = preguntas[Number(id)];
-
-if(!pregunta){
-return res.json({ ok:false });
-}
-
-if(Number(respuesta) === Number(pregunta.resultado)){
-res.json({
-ok:true,
-resultado: pregunta.resultado,
-tiempoReal: tiempoReal
-});
-}else{
-res.json({ ok:false });
-}
-
-});
-
-// =============================
-// LIMPIAR RESERVAS EXPIRADAS
-// =============================
-
-app.post("/api/limpiar-reservas", (req,res)=>{
-
-const ahora = Date.now();
-
-db.run(
-`DELETE FROM casillas
- WHERE estado = 'reservada'
- AND expira <= ?`,
-[ahora],
-function(err){
-
-if(err){
-return res.json({ ok:false });
-}
-
-res.json({
-ok:true,
-eliminadas:this.changes
-});
-
-});
-
-});
-
-// =============================
-// LIMPIEZA AUTOMATICA
-// =============================
-
-function limpiarReservasAutomatico(){
-
-const ahora = Date.now();
-
-db.run(
-`DELETE FROM casillas
- WHERE estado = 'reservada'
- AND expira <= ?`,
-[ahora],
-function(err){
-
-if(err){
-console.log("Error limpiando reservas");
-return;
-}
-
-if(this.changes > 0){
-console.log("Reservas liberadas:", this.changes);
-}
-
-});
-
-}
-
-setInterval(limpiarReservasAutomatico,60000);
-
-// =============================
-// WEBHOOK MERCADO PAGO
-// =============================
-
-app.post("/webhook/mercadopago", (req,res)=>{
-
-try{
-
-console.log("🔥 WEBHOOK RECIBIDO");
-console.log(req.body);
-
-// responder inmediato
-res.sendStatus(200);
-
-// procesar en segundo plano
-procesarPago(req.body);
-
-}catch(error){
-
-console.log("❌ ERROR WEBHOOK:",error);
-res.sendStatus(200);
-
-}
-
-});
-
-// =============================
-// PROCESAR PAGO (MULTICASILLA)
-// =============================
-
-async function procesarPago(webhookData){
-
-try{
-
-let paymentId = null;
-
-// webhook con body moderno: action + data.id
-if (
-    webhookData.data?.id &&
-    typeof webhookData.action === "string" &&
-    webhookData.action.startsWith("payment.")
-) {
-    paymentId = webhookData.data.id;
-}
-
-// webhook con type=payment
-if (!paymentId && webhookData.type === "payment" && webhookData.data?.id) {
-    paymentId = webhookData.data.id;
-}
-
-// webhook antiguo con resource
-if (!paymentId && webhookData.topic === "payment" && webhookData.resource) {
-    const parts = webhookData.resource.split("/");
-    paymentId = parts[parts.length - 1];
-}
-
-if (!paymentId) return;
-
-const payment = new Payment(client);
-
-const pago = await payment.get({
-    id: paymentId
-});
-
-console.log("PAYMENT GET EJECUTADO");
-
-const data = pago.body || pago;
-console.log("DATA COMPLETA MP:", JSON.stringify(data, null, 2));
-console.log("🧪 METADATA CRUDA MP:", data.metadata);
-
-const metadata = data.metadata || {};
-
-const folio = metadata.folio;
-const jugadorId = metadata.jugador_id || metadata.jugadorId || null;
-const casillasMetadata = metadata.casillas || [];
-const tiempos = metadata.tiempos || [];
-
-console.log("📦 METADATA RECIBIDA:", {
-    folio,
-    jugadorId,
-    casillas: casillasMetadata,
-    tiempos
-});
-
-if(data.status === "approved"){
-
-    const casillas = casillasMetadata;
-
-    if(!folio){
-        console.log("⚠️ Pago sin folio");
-        return;
-    }
-
-    if(casillas.length === 0){
-        console.log("⚠️ Pago sin casillas");
-        return;
-    }
-
-    casillas.forEach(casilla => {
-
-        const infoTiempo = tiempos.find(t => t.numero === casilla);
-
-        console.log("🧪 INTENTO UPDATE WEBHOOK:", {
-            folio: folio,
-            casilla: casilla,
-            jugadorId: jugadorId,
-            infoTiempo: infoTiempo ? infoTiempo.tiempo : null
-        });
-
-        db.run(
-`UPDATE casillas
- SET estado = 'pagada',
-     expira = NULL,
-     tiempo = ?,
-     jugador = ?
- WHERE tableroId = ?
-   AND casilla = ?
-   AND estado = 'reservada'`,
-[
-    infoTiempo ? infoTiempo.tiempo : null,
-    jugadorId,
-    folio,
-    casilla
-],
-function(err){
-    if(err){
-        console.log("Error actualizando pago:", casilla, err.message);
-        return;
-    }
-
-    console.log("FILAS AFECTADAS:", this.changes);
-    console.log("FILAS AFECTADAS UPDATE PAGO:", this.changes);
-
-    if(this.changes > 0){
-        console.log("✅ CASILLA PAGADA NUEVA VERSION:", {
-            folio,
-            casilla,
-            jugadorId,
-            tiempo: infoTiempo ? infoTiempo.tiempo : null
-        });
-    }else{
-        console.log("⚠️ No se encontró reserva para actualizar:", {
-            folio,
-            casilla,
-            jugadorId
-        });
-    }
-}
-);
-
-    });
-setTimeout(async () => {
-    try{
-        const inicio = await iniciarConteoTableroSiEsPrimerPago(folio);
-        console.log("🧾 RESULTADO INICIO CONTADOR:", inicio);
-
-        const cierre = await revisarCierreTablero(folio);
-        console.log("🧾 RESULTADO REVISAR CIERRE:", cierre);
-    }catch(error){
-        console.log("❌ Error al revisar cierre tras pago:", error.message);
-    }
-}, 1200);
-
-    if(jugadorId){
-
-        db.get(
-        `SELECT nombre, apellidos, email
-         FROM usuarios
-         WHERE id = ?`,
-        [jugadorId],
-        async (err, usuario) => {
-
-            if(err){
-                console.log("❌ Error consultando usuario para correo:", err.message);
-                return;
-            }
-
-            if(!usuario || !usuario.email){
-                console.log("⚠️ No se encontró email para jugador:", jugadorId);
-                return;
-            }
-
-            const nombreCompleto = [usuario.nombre, usuario.apellidos]
-                .filter(Boolean)
-                .join(" ")
-                .trim() || "jugador";
-
-            const listaCasillas = casillas.join(", ");
-
-            try{
-
-                await transporter.sendMail({
-                    from: '"Quiz $1000" <juanjmichelena@outlook.com>',
-                    to: usuario.email,
-                    subject: "Confirmación de compra - QUIZ1000",
-                    html: `
-                        <h2>Compra confirmada</h2>
-                        <p>Hola ${nombreCompleto},</p>
-                        <p>Tu pago fue aprobado correctamente.</p>
-                        <p><strong>Folio:</strong> ${folio}</p>
-                        <p><strong>Casillas compradas:</strong> ${listaCasillas}</p>
-                        <p>
-                            Puedes revisar tus jugadas aquí:
-                            <a href="https://quiz1000.onrender.com/perfil">Mi perfil</a>
-                        </p>
-                    `
-                });
-
-                console.log("✅ Correo de confirmación enviado a:", usuario.email);
-
-            }catch(emailError){
-                console.log("❌ Error enviando correo de confirmación:", emailError.message);
-            }
-
-        });
-
-    }else{
-        console.log("⚠️ No llegó jugadorId; no se envió correo de confirmación");
-    }
-
-}
-
-}catch(error){
-
-console.log("❌ ERROR PROCESANDO PAGO:", error);
-
-}
-
-}
-
-// =============================
-// CREAR PAGO (MULTICASILLA)
-// =============================
-
-app.post("/crear-pago", async (req, res) => {
-
-    try {
-
-        const { folio, items, jugadorId } = req.body;
-
-        console.log("🧾 Crear pago múltiples casillas:", items);
-
-        if(!items || items.length === 0){
-            return res.status(400).json({ error: "Carrito vacío" });
-        }
-
-        const tipoCambioCobroRaw = await obtenerConfiguracion("tipoCambioCobro");
-        const tipoCambioCobro = Number(tipoCambioCobroRaw || 20);
-
-        const preference = {
-            items: items.map(item => ({
-                title: `SKU${item.numero}`,
-                quantity: 1,
-                unit_price: Number((Number(item.numero) * tipoCambioCobro).toFixed(2)),
-                currency_id: "MXN"
-            })),
-
-            external_reference: folio,
-
-            metadata: {
-    folio: folio,
-    jugador_id: jugadorId,
-    jugadorId: jugadorId,
-    casillas: items.map(item => item.numero),
-    tiempos: items.map(item => ({
-        numero: item.numero,
-        tiempo: item.tiempo
-    })),
-    tipoCambioCobro: tipoCambioCobro
-},
-
-back_urls: {
-    success: `https://quiz1000.onrender.com/perfil?folio=${folio}&pago=success`,
-    failure: `https://quiz1000.onrender.com/pago?folio=${folio}&pago=failure`,
-    pending: `https://quiz1000.onrender.com/perfil?folio=${folio}&pago=pending`
-},
-
-            auto_return: "approved",
-            notification_url: "https://quiz1000.onrender.com/webhook/mercadopago"
-        };
-
-        const preferenceClient = new Preference(client);
-
-        const response = await preferenceClient.create({
-            body: preference
-        });
-
-        res.json({
-            link: response.init_point
-        });
-
-    } catch (error) {
-
-        console.log("❌ ERROR SDK:", error);
-        res.status(500).json({ error: "Error creando pago" });
-
-    }
-
-});
-// =============================
-// ADMIN - OBTENER TIPO DE CAMBIO
-// =============================
-app.get("/api/admin/tipo-cambio", (req, res) => {
-    db.all(
-        `SELECT clave, valor FROM configuracion
-         WHERE clave IN ('tipoCambioCobro','tipoCambioPremio')`,
-        [],
-        (err, rows) => {
-            if(err){
-                console.log("Error leyendo tipo de cambio:", err);
-                return res.status(500).json({ ok:false });
-            }
-
-            const data = {
-                tipoCambioCobro: "20.00",
-                tipoCambioPremio: "19.50"
+        if(!jugadorActual.tableros[folioURL]){
+            jugadorActual.tableros[folioURL] = {
+                numeros: [],
+                mejorTiempo: null,
+                estado: "activo"
             };
 
-            rows.forEach(r => {
-                data[r.clave] = r.valor;
-            });
-
-            res.json({
-                ok: true,
-                ...data
-            });
+            localStorage.setItem("jugadorActual", JSON.stringify(jugadorActual));
         }
-    );
-});
+    }
+}
+    // ==========================
+    // FOLIO Y FECHA (LÓGICA ACTUAL)
+    // ==========================
 
-// =============================
-// ADMIN - GUARDAR TIPO DE CAMBIO
-// =============================
-app.post("/api/admin/tipo-cambio", (req, res) => {
+   // ==========================
+// FOLIO Y FECHA
+// ==========================
 
-    const tipoCambioCobro = Number(req.body.tipoCambioCobro);
-    const tipoCambioPremio = Number(req.body.tipoCambioPremio);
+const folioSpan = document.getElementById("folio");
 
-    if(
-        !tipoCambioCobro || tipoCambioCobro <= 0 ||
-        !tipoCambioPremio || tipoCambioPremio <= 0
-    ){
-        return res.status(400).json({
-            ok:false,
-            mensaje:"Valores inválidos"
-        });
+let folio = folioURL || localStorage.getItem("folioTableroActual");
+console.log("🧪 FOLIO URL:", folioURL);
+console.log("🧪 FOLIO LOCALSTORAGE:", localStorage.getItem("folioTableroActual"));
+console.log("🧪 FOLIO FINAL USADO:", folio);
+console.log("🧪 TIPO DE FOLIO:", typeof folio);
+let fechaApertura = localStorage.getItem("fechaApertura");
+
+if (!folio) {
+    alert("No se encontró folio del tablero");
+    throw new Error("Folio no encontrado");
+}
+
+localStorage.setItem("folioTableroActual", folio);
+
+let tablerosGlobal = JSON.parse(localStorage.getItem("tableros")) || {};
+
+if (!tablerosGlobal[folio]) {
+    tablerosGlobal[folio] = {
+        fechaCreacion: new Date().toLocaleString(),
+        casillasResueltas: [],
+        completo: false
+    };
+
+    localStorage.setItem("tableros", JSON.stringify(tablerosGlobal));
+}
+
+if (!fechaApertura) {
+    fechaApertura = "Sin iniciar";
+} else {
+    // convertir timestamp a fecha legible
+    const fechaMostrar = new Date(parseInt(fechaApertura)).toLocaleString("es-MX");
+    fechaApertura = fechaMostrar;
+}
+
+// ==========================
+// BARRA PROGRESO 10 DIAS
+// ==========================
+
+const barra = document.getElementById("barraTiempo");
+const textoTiempo = document.getElementById("textoTiempo");
+
+function actualizarBarraTiempo(){
+
+const fechaGuardada = localStorage.getItem("fechaApertura");
+
+if(!fechaGuardada || fechaGuardada === "Sin iniciar"){
+    if(textoTiempo){
+        textoTiempo.textContent = "El tablero inicia cuando se seleccione la primera casilla";
+    }
+    return;
+}
+
+const inicio = parseInt(fechaGuardada);
+const ahora = new Date();
+
+const diasTotal = 10;
+
+const msPorDia = 1000 * 60 * 60 * 24;
+
+const diasTranscurridos = (Date.now() - inicio) / msPorDia;
+
+let progreso = (diasTranscurridos / diasTotal) * 100;
+
+// ==========================
+// CIERRE AUTOMATICO TABLERO
+// ==========================
+
+if(progreso >= 100){
+
+    progreso = 100;
+
+    let tablerosGlobal = JSON.parse(localStorage.getItem("tableros")) || {};
+    const folioActual = localStorage.getItem("folioTablero");
+
+    if(tablerosGlobal[folioActual]){
+        tablerosGlobal[folioActual].cerrado = true;
+        localStorage.setItem("tableros", JSON.stringify(tablerosGlobal));
     }
 
-    const ahora = Date.now();
+    // bloquear todas las casillas
+    const celdas = document.querySelectorAll(".cell");
 
-    db.run(
-        `INSERT INTO configuracion (clave, valor, fecha)
-         VALUES ('tipoCambioCobro', ?, ?)
-         ON CONFLICT(clave) DO UPDATE SET
-         valor = excluded.valor,
-         fecha = excluded.fecha`,
-        [tipoCambioCobro.toFixed(2), ahora],
-        function(err){
-            if(err){
-                console.log("Error guardando tipoCambioCobro:", err);
-                return res.status(500).json({ ok:false });
+    celdas.forEach(celda=>{
+        celda.style.pointerEvents = "none";
+        celda.style.opacity = "0.5";
+    });
+
+}
+// ==========================
+// MARCAR TABLERO CERRADO
+// ==========================
+
+if(progreso >= 100){
+
+    let tablerosGlobal = JSON.parse(localStorage.getItem("tableros")) || {};
+    const folioActual = localStorage.getItem("folioTablero");
+
+    if(tablerosGlobal[folioActual]){
+        tablerosGlobal[folioActual].cerrado = true;
+        localStorage.setItem("tableros", JSON.stringify(tablerosGlobal));
+    }
+
+}
+
+if(barra){
+    barra.style.width = progreso + "%";
+
+    if(progreso < 25){
+        barra.style.background = "#2ecc71";
+    }
+    else if(progreso < 50){
+        barra.style.background = "#f1c40f";
+    }
+    else if(progreso < 75){
+        barra.style.background = "#e67e22";
+    }
+    else{
+        barra.style.background = "#e74c3c";
+    }
+}
+
+if(textoTiempo){
+
+let diasRestantes = Math.max(0, Math.ceil(diasTotal - diasTranscurridos));
+
+// evitar NaN cuando la fecha no se puede interpretar
+if (isNaN(diasRestantes)) {
+    diasRestantes = 10;
+}
+// si el tablero ya cerró
+if(progreso >= 100){
+
+textoTiempo.textContent =
+"TABLERO CERRADO – BONIFICACIÓN A JUGADORES";
+
+textoTiempo.style.color = "#e74c3c";
+
+return;
+
+}
+
+textoTiempo.textContent =
+`Este tablero se cierra en 10 dias. Tiempo restante: ${diasRestantes} días`;
+
+}
+
+}
+
+actualizarBarraTiempo();
+setInterval(actualizarBarraTiempo,60000);
+
+if (folioSpan) {
+
+    let fechaMostrar = "Sin iniciar";
+
+    if (fechaApertura && fechaApertura !== "Sin iniciar") {
+        const fechaNum = Number(fechaApertura);
+        if (!isNaN(fechaNum)) {
+            fechaMostrar = new Date(fechaNum).toLocaleString("es-MX");
+        }
+    }
+
+    folioSpan.textContent = `Folio: ${folio} | Apertura: ${fechaMostrar}`;
+}
+    // ==========================
+    // ESTADO DEL TABLERO
+    // ==========================
+
+   let tableroEstado = JSON.parse(localStorage.getItem("tableroEstado_" + folio)) || {
+        casillasResueltas: [],
+        mejorTiempo: null,
+        completo: false
+    };
+
+ // ==========================
+// CARGAR PREGUNTAS
+// ==========================
+
+fetch("/api/preguntas")
+.then(res => res.json())
+.then(data => {
+
+    fetch("/api/tablero")
+    .then(res => res.json())
+    .then(tableroData => {
+
+// ==========================
+// CONSULTAR RESERVAS
+// ==========================
+
+fetch("/api/reservas")
+.then(res => res.json())
+.then(data => {
+
+    if(!data.ok) return;
+
+    data.reservas.forEach(reserva => {
+
+        const numero = reserva.casilla;
+        const cell = document.querySelector(`.cell[data-id="${numero-1}"]`);
+
+        if(!cell) return;
+
+        // evitar sobrescribir robots
+        if(cell.classList.contains("resuelta")) return;
+
+        const tiempoRestante = reserva.expira - Date.now();
+
+        if(tiempoRestante <= 0) return;
+
+        const segundos = Math.floor(tiempoRestante / 1000);
+        const minutos = Math.floor(segundos / 60);
+        const seg = segundos % 60;
+
+        const texto = `${minutos}:${seg.toString().padStart(2,"0")}`;
+
+        cell.classList.add("resuelta");
+        cell.style.backgroundColor = "white";
+        cell.innerHTML = `<span class="contador-reserva">${texto}</span>`;
+
+    });
+
+});
+
+        const casillasOcupadas = tableroData.casillas.map(c => c.casilla);
+        // ==========================
+// SINCRONIZAR FECHA APERTURA
+// ==========================
+      
+        // ==========================
+// ACTUALIZAR CONTADOR DESDE BACKEND
+// ==========================
+
+const TOTAL_NUMEROS_TABLERO = 50;
+const resueltas = casillasOcupadas.length;
+const reservadas = data.reservas
+? data.reservas.filter(r => r.expira > Date.now()).length
+: 0;
+const faltantes = TOTAL_NUMEROS_TABLERO - resueltas;
+const estadoTableroEl = document.getElementById("estadoTablero");
+
+if(estadoTableroEl){
+
+estadoTableroEl.innerHTML = `
+<span class="estado-tablero">
+
+<span class="estado-celda estado-resueltas">${resueltas}</span>
+<span class="estado-label">RESUELTOS</span>
+
+<span class="estado-celda estado-reservadas">${reservadas}</span>
+<span class="estado-label">RESERVADAS</span>
+
+<span class="estado-celda estado-faltantes">${faltantes}</span>
+<span class="estado-label">POR COMPLETAR</span>
+
+</span>
+`;
+
+}
+
+        const preguntasMezcladas = [...data].sort(() => Math.random() - 0.5);
+
+const colores = [
+            "#e74c3c","#2ecc71","#3498db","#9b59b6","#f39c12",
+            "#1abc9c","#e67e22","#16a085","#8e44ad","#c0392b"
+        ];
+
+        preguntasMezcladas.forEach((item, index) => {
+
+            const cell = document.createElement("div");
+            cell.classList.add("cell");
+
+            const colorOriginal = colores[Math.floor(Math.random() * colores.length)];
+            cell.style.backgroundColor = colorOriginal;
+            cell.dataset.color = colorOriginal;
+            cell.dataset.id = data.indexOf(item);
+            
+
+            // estado guardado en localStorage
+            const numero = parseInt(cell.dataset.id) + 1;
+
+if (tableroEstado.casillasResueltas.includes(numero)) {
+
+    cell.classList.add("resuelta");
+    cell.style.backgroundColor = "transparent";
+
+    const robot = document.createElement("img");
+    robot.src = "/assets/images/robot2.png";
+    robot.classList.add("robot-mini");
+
+    cell.textContent = "";
+    cell.appendChild(robot);
+}
+
+            // estado guardado en backend
+            if (casillasOcupadas.includes(item.resultado)) {
+            
+
+                cell.classList.add("resuelta");
+                cell.style.backgroundColor = "transparent";
+
+                const robot = document.createElement("img");
+                robot.src = "/assets/images/robot2.png";
+                robot.classList.add("robot-mini");
+
+                cell.innerHTML = "";
+                cell.appendChild(robot);
             }
 
-            db.run(
-                `INSERT INTO configuracion (clave, valor, fecha)
-                 VALUES ('tipoCambioPremio', ?, ?)
-                 ON CONFLICT(clave) DO UPDATE SET
-                 valor = excluded.valor,
-                 fecha = excluded.fecha`,
-                [tipoCambioPremio.toFixed(2), ahora],
-                function(err2){
-                    if(err2){
-                        console.log("Error guardando tipoCambioPremio:", err2);
-                        return res.status(500).json({ ok:false });
-                    }
+            // 👇 EVENTO CLICK (ESTO FALTABA)
+            cell.addEventListener("click", () => {
+                if (cell.classList.contains("resuelta")) return;
 
-                    res.json({
-                        ok:true,
-                        tipoCambioCobro: tipoCambioCobro.toFixed(2),
-                        tipoCambioPremio: tipoCambioPremio.toFixed(2)
-                    });
-                }
-            );
-        }
-    );
-});
-inicializarConfiguracion((err) => {
-    if(err){
-        process.exit(1);
-    }
+                abrirPregunta(cell, tableroEstado);
+            });
 
-    
-app.post("/api/crear-tablero", (req, res) => {
+            grid.appendChild(cell);
 
-    const folio = "TAB-" + Math.floor(100000 + Math.random() * 900000);
-    const ahora = Date.now();
-
-    db.run(`
-        INSERT INTO tableros (id, completo, fechaCreacion)
-        VALUES (?, 0, ?)
-    `, [folio, ahora], function(err){
-
-        if(err){
-            console.error("ERROR CREANDO TABLERO:", err.message);
-            return res.json({ ok:false });
-        }
-
-        console.log("TABLERO CREADO:", folio);
-
-        res.json({
-            ok:true,
-            folio: folio
         });
 
     });
 
 });
-app.get("/api/tableros", (req, res) => {
-    db.all(`
-        SELECT id, completo, fechaCreacion
-        FROM tableros
-        ORDER BY fechaCreacion DESC
-    `, [], (err, rows) => {
-        if (err) {
-            console.error("ERROR CONSULTANDO TABLEROS:", err.message);
-            return res.json({ ok:false, tableros: [] });
-        }
+// ==========================
+// ACTUALIZAR TABLERO AUTOMATICAMENTE
+// ==========================
+function actualizarContadorHeader(estados){
 
-        res.json({
-            ok: true,
-            tableros: rows || []
-        });
-    });
-});
-app.get("/api/fecha-apertura/:folio", (req, res) => {
+const TOTAL = 50;
 
-    const folio = req.params.folio;
+const resueltas = estados.filter(c => c.estado === "pagada").length;
+const reservadas = estados.filter(c => c.estado === "reservada" && c.expira > Date.now()).length;
+const faltantes = TOTAL - resueltas - reservadas;
 
-    if(!folio){
-        return res.json({ ok:false });
+const estado = document.getElementById("estadoTablero");
+
+if(!estado) return;
+
+estado.innerHTML = `
+<div class="resumen-casillas">
+
+  <div class="resumen-item">
+    <div class="resumen-num resumen-verde">${reservadas}</div>
+    <div class="resumen-texto">RESERVADAS</div>
+  </div>
+
+  <div class="resumen-item">
+    <div class="resumen-num resumen-azul">${resueltas}</div>
+    <div class="resumen-texto">RESUELTOS</div>
+  </div>
+
+  <div class="resumen-item">
+    <div class="resumen-num resumen-naranja">${faltantes}</div>
+    <div class="resumen-texto">POR COMPLETAR</div>
+  </div>
+
+</div>
+`;
+}
+setInterval(async () => {
+
+try{
+
+// ==========================
+// 1️⃣ OBTENER RESERVAS
+// ==========================
+
+const resEstado = await fetch("/api/estado-casillas?folio=" + encodeURIComponent(folio));
+const dataEstado = await resEstado.json();
+const estados = dataEstado.ok ? dataEstado.casillas : [];
+
+actualizarContadorHeader(estados);
+
+// ==========================
+// 3️⃣ RECORRER CELDAS
+// ==========================
+
+document.querySelectorAll(".cell").forEach(cell => {
+
+const numero = parseInt(cell.dataset.id) + 1;
+const estadoCasilla = estados.find(c => c.casilla === numero);
+
+// ==========================
+// CASILLA PAGADA
+// ==========================
+
+if(estadoCasilla && estadoCasilla.estado === "pagada"){
+
+    if(!cell.querySelector(".robot-mini")){
+
+        cell.classList.add("resuelta");
+        cell.style.backgroundColor = "transparent";
+        cell.style.pointerEvents = "none";
+
+        const robot = document.createElement("img");
+        robot.src = "/assets/images/robot2.png";
+        robot.classList.add("robot-mini");
+
+        cell.innerHTML = "";
+        cell.appendChild(robot);
     }
 
-    db.get(
-        `SELECT fechaPrimerPago
-         FROM tableros
-         WHERE id = ?`,
-        [folio],
-        (err, row) => {
+    return;
+}
 
-            if(err){
-                console.log("Error obteniendo fechaPrimerPago:", err.message);
-                return res.json({ ok:false });
-            }
+// ==========================
+// CASILLA RESERVADA
+// ==========================
 
-            res.json({
-                ok:true,
-                fecha: row ? row.fechaPrimerPago : null
-            });
+if(estadoCasilla && estadoCasilla.estado === "reservada"){
 
-        }
-    );
+    const tiempoRestante = estadoCasilla.expira - Date.now();
+
+    if(tiempoRestante > 0){
+
+        const segundos = Math.floor(tiempoRestante / 1000);
+        const minutos = Math.floor(segundos / 60);
+        const seg = segundos % 60;
+
+        const texto =
+        `${minutos.toString().padStart(2,"0")}:${seg.toString().padStart(2,"0")}`;
+
+        cell.classList.add("resuelta");
+        cell.style.backgroundColor = "white";
+        cell.style.pointerEvents = "none";
+        cell.innerHTML = `<span class="contador-reserva">${texto}</span>`;
+
+        return;
+    }
+}
+
+// ==========================
+// CASILLA LIBRE
+// ==========================
+
+if(cell.classList.contains("resuelta")){
+    cell.classList.remove("resuelta");
+}
+
+cell.innerHTML = "";
+cell.style.backgroundColor = cell.dataset.color;
+cell.style.pointerEvents = "";
+
 });
-app.get("/api/estado-casillas", (req, res) => {
 
-    const folio = req.query.folio;
+}catch(error){
 
-    if(!folio){
-        return res.json({ ok:false, mensaje:"Folio requerido", casillas:[] });
+console.log("Error actualizando tablero",error);
+
+}
+
+},1000);
+// ======================================
+// VARIABLES GLOBALES
+// ======================================
+
+let intervalo;
+let tiempoInicio;
+
+// ======================================
+// FUNCIÓN ABRIR PREGUNTA
+// ======================================
+
+function abrirPregunta(cell, tableroEstado) {
+
+    const modal = document.getElementById("modalPregunta");
+    const textoPregunta = document.getElementById("preguntaTexto");
+    const contador = document.getElementById("contador");
+    const input = document.getElementById("respuestaInput");
+    const boton = document.getElementById("btnResponder");
+
+    if (!modal || !textoPregunta || !contador || !input || !boton) {
+        console.error("Algún elemento del modal no existe");
+        return;
     }
 
-    const ahora = Date.now();
+    const jugadorActual = JSON.parse(localStorage.getItem("jugadorActual")) || {};
 
-    db.all(
-    `SELECT casilla, estado, expira, jugador, tiempo
-     FROM casillas
-     WHERE tableroId = ?
-     AND (
-         estado = 'pagada'
-         OR (estado = 'reservada' AND expira > ?)
-     )`,
-    [folio, ahora],
-    (err, rows) => {
+fetch("/api/abrir-pregunta",{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+    id: cell.dataset.id,
+    jugador: jugadorActual.nombre || "Invitado"
+})
+});
+fetch("/api/pregunta/" + cell.dataset.id)
+.then(res => res.json())
+.then(data => {
 
-        if(err){
-            console.log("Error leyendo estado de casillas:", err.message);
-            return res.json({ ok:false, casillas:[] });
+    textoPregunta.textContent = data.pregunta + " = ?";
+
+     });
+
+    input.value = "";
+    modal.classList.remove("hidden");
+
+    tiempoInicio = Date.now();
+
+    intervalo = setInterval(() => {
+
+        const tiempoActual = Date.now() - tiempoInicio;
+
+        const minutos = Math.floor(tiempoActual / 60000);
+        const segundos = Math.floor((tiempoActual % 60000) / 1000);
+        const decimas = Math.floor((tiempoActual % 1000) / 100);
+        const centesimas = Math.floor((tiempoActual % 100) / 10);
+
+        contador.textContent =
+            `${String(minutos).padStart(2,'0')}:` +
+            `${String(segundos).padStart(2,'0')}:` +
+            `${String(decimas).padStart(2,'0')}:` +
+            `${String(centesimas).padStart(2,'0')}`;
+
+    }, 10);
+
+   boton.onclick = () => {
+
+    clearInterval(intervalo);
+
+    const respuestaUsuario = Number(input.value);
+
+    if (isNaN(respuestaUsuario)) {
+        alert("Escribe tu respuesta.");
+        return;
+    }
+
+    fetch("/api/responder",{
+    method:"POST",
+    headers:{
+    "Content-Type":"application/json"
+    },
+    body:JSON.stringify({
+        id: cell.dataset.id,
+        respuesta: respuestaUsuario,
+        jugador: jugadorActual.nombre || "Invitado"
+    })
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        if(!data.ok){
+            alert("❌ Incorrecto");
+            modal.classList.add("hidden");
+            mezclarCeldas();
+            return;
         }
 
-        const mapa = {};
+        const numeroPagado = data.resultado;
 
-        rows.forEach(row => {
-            const numero = row.casilla;
+        modal.classList.add("hidden");
 
-            if(row.estado === "pagada"){
-                mapa[numero] = {
-                    casilla: numero,
-                    estado: "pagada",
-                    jugador: row.jugador || null,
-                    tiempo: row.tiempo || null,
-                    expira: null
-                };
+        if (!localStorage.getItem("fechaApertura")) {
+            localStorage.setItem("fechaApertura", Date.now());
+        }
+
+        const tiempoFormateado = contador.textContent;
+
+        const folioCarrito = folioURL || localStorage.getItem("folioTableroActual");
+
+        fetch("/api/ocupar-casilla", {
+        method: "POST",
+        headers: {
+        "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+        casilla: numeroPagado,
+        jugador: jugadorActual.nombre || "Invitado",
+        email: jugadorActual.email || "pendiente",
+        tiempo: tiempoFormateado,
+        folio: folioCarrito 
+        })
+        })
+        .then(res => res.json())
+        .then(dataReserva => {
+
+            if(!dataReserva.ok){
+                alert("Esta casilla ya está reservada o pagada.");
                 return;
             }
 
-            if(!mapa[numero] && row.estado === "reservada"){
-                mapa[numero] = {
-                    casilla: numero,
-                    estado: "reservada",
-                    jugador: row.jugador || null,
-                    tiempo: row.tiempo || null,
-                    expira: row.expira
-                };
-            }
-        });
+            const tiempoRestante = dataReserva.expira - Date.now();
+            const segundos = Math.max(0, Math.floor(tiempoRestante / 1000));
+            const minutos = Math.floor(segundos / 60);
+            const seg = segundos % 60;
 
-        res.json({
-            ok:true,
-            folio,
-            casillas: Object.values(mapa)
-        });
-    });
+            const texto =
+            `${minutos.toString().padStart(2,"0")}:${seg.toString().padStart(2,"0")}`;
 
-});
-app.listen(PORT, () => {
-        console.log(`Servidor corriendo en http://localhost:${PORT}`);
-    });
-});
-// =============================
-// MIS TABLEROS (PERFIL JUGADOR)
-// =============================
-app.get("/api/mis-tableros/:jugadorId", (req, res) => {
+            cell.classList.add("resuelta");
+            cell.style.backgroundColor = "white";
+            cell.innerHTML = `<span class="contador-reserva">${texto}</span>`;
 
-    const jugadorId = req.params.jugadorId;
+            const folioCarrito = folioURL || localStorage.getItem("folioTableroActual");
 
-    db.all(`
-        SELECT tableroId, casilla, tiempo
-        FROM casillas
-        WHERE jugador = ?
-        AND estado = 'pagada'
-        ORDER BY tableroId ASC
-    `,
-    [jugadorId],
-    (err, rows) => {
+            let carrito = JSON.parse(localStorage.getItem("carrito_" + folioCarrito)) || { items: [] };
 
-        if(err){
-            console.error("ERROR PERFIL:", err.message);
-            return res.json({ ok:false });
-        }
+            const yaExiste = carrito.items.some(item => item.numero === numeroPagado);
 
-        // agrupar por folio
-        const tableros = {};
-
-        rows.forEach(r => {
-
-            if(!tableros[r.tableroId]){
-                tableros[r.tableroId] = [];
+            if (!yaExiste) {
+                carrito.items.push({
+                    numero: numeroPagado,
+                    tiempo: tiempoFormateado
+                });
+                localStorage.setItem("carrito_" + folioCarrito, JSON.stringify(carrito));
             }
 
-            tableros[r.tableroId].push({
-                numero: r.casilla,
-                tiempo: r.tiempo
-            });
+            localStorage.setItem("numeroSeleccionado", numeroPagado);
 
+            window.location.href = "carrito.html?folio=" + folioCarrito;
+
+        })
+        .catch(error => {
+            console.error("Error reservando casilla:", error);
+            alert("Error al reservar la casilla");
         });
 
-        res.json({
-            ok:true,
-            tableros: tableros
-        });
-
+    })
+    .catch(error => {
+        console.error("Error validando respuesta:", error);
+        alert("Error al validar la respuesta");
     });
 
+}; // cierre boton.onclick
+
+} // cierre abrirPregunta
+
+function responder(opcion){
+
+let respuesta = document.getElementById("respuesta");
+
+if(opcion === "jugar"){
+respuesta.innerHTML = "Para jugar selecciona una casilla del tablero y responde la pregunta matemática. la respuesta que obtengas será 1,2,3.. maximo 50, y esa es la cantidad a pagar por participar. Recuerda que pagas en MXN al tipo de caambio del dólar. Ejemplo: Si tu respuesta es 1, pagaras aprox $18.00 pesos";
+}
+
+if(opcion === "pagos"){
+respuesta.innerHTML = "El pago es con Mercado Pago y dependemos de esta plataforma. Si tu pago no aparece espera 2 minutos y recarga la página.";
+}
+
+if(opcion === "folio"){
+respuesta.innerHTML = "Tu folio se envía al correo registrado.";
+}
+
+if(opcion === "soporte"){
+respuesta.innerHTML = "Contacta soporte en el botón de WhatsApp.";
+}
+
+}
+// ==========================
+// MEZCLAR CELDAS TABLERO
+// ==========================
+
+function mezclarCeldas(){
+
+const board = document.getElementById("board");
+
+const celdas = Array.from(board.children);
+
+celdas.sort(()=>Math.random()-0.5);
+
+board.innerHTML = "";
+
+celdas.forEach(c=>{
+board.appendChild(c);
 });
+
+}
+
+});
+
+
+
+
+
 
 
 
