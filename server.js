@@ -2749,27 +2749,69 @@ app.post("/api/test/reembolsar-tablero", async (req, res) => {
             });
         }
 
-        console.log("🧪 TEST REEMBOLSO MANUAL INICIADO:", folio);
+        db.get(`
+            SELECT id, noReembolsable
+            FROM tableros
+            WHERE id = ?
+        `, [folio], async (err, tablero) => {
 
-        const resultado = await reembolsarPagosDeTablero(folio);
+            if (err) {
+                console.log("❌ ERROR CONSULTANDO TABLERO EN TEST REEMBOLSO:", err.message);
+                return res.status(500).json({
+                    ok: false,
+                    mensaje: "Error consultando tablero",
+                    error: err.message
+                });
+            }
 
-        return res.json({
-            ok: resultado.ok,
-            folio,
-            resultado
+            if (!tablero) {
+                return res.status(404).json({
+                    ok: false,
+                    mensaje: "Tablero no encontrado"
+                });
+            }
+
+            if (tablero.noReembolsable === 1) {
+                console.log("⛔ TABLERO NO REEMBOLSABLE:", folio);
+                return res.json({
+                    ok: false,
+                    folio,
+                    mensaje: "Este tablero ya es no reembolsable"
+                });
+            }
+
+            console.log("🧪 TEST REEMBOLSO MANUAL INICIADO:", folio);
+
+            try {
+                const resultado = await reembolsarPagosDeTablero(folio);
+
+                return res.json({
+                    ok: resultado.ok,
+                    folio,
+                    resultado
+                });
+
+            } catch (error) {
+                console.log("❌ ERROR EN TEST MANUAL REEMBOLSAR TABLERO:", error.message);
+
+                return res.status(500).json({
+                    ok: false,
+                    mensaje: "Error ejecutando reembolso manual",
+                    error: error.message
+                });
+            }
         });
 
     } catch (error) {
-        console.log("❌ ERROR EN TEST MANUAL REEMBOLSAR TABLERO:", error.message);
+        console.log("❌ ERROR GENERAL EN ENDPOINT TEST REEMBOLSO:", error.message);
 
         return res.status(500).json({
             ok: false,
-            mensaje: "Error ejecutando reembolso manual",
+            mensaje: "Error general en endpoint de reembolso manual",
             error: error.message
         });
     }
-});
-// =============================
+});// =============================
 // CREAR PAGO (MULTICASILLA)
 // =============================
 
