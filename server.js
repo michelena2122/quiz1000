@@ -2505,10 +2505,11 @@ async function reembolsarPagoMercadoPago(paymentId) {
 
         const response = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}/refunds`, {
             method: "POST",
-            headers: {
-                "Authorization": `Bearer ${MP_ACCESS_TOKEN}`,
-                "Content-Type": "application/json"
-            },
+               headers: {
+                 "Authorization": `Bearer ${MP_ACCESS_TOKEN}`,
+                 "Content-Type": "application/json",
+                  "X-Idempotency-Key": `refund-${paymentId}-${Date.now()}`
+                },
             body: JSON.stringify({})
         });
 
