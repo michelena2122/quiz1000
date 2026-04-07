@@ -69,11 +69,38 @@ localStorage.setItem("folioTableroActual", folio);
 fetch("/api/estado-tablero?folio=" + encodeURIComponent(folio))
 .then(res => res.json())
 .then(data => {
+
     console.log("🧪 ESTADO TABLERO BACKEND:", data);
+
+    // 🔥 sincronizar fecha desde backend
+    if (data.ok && data.tablero && data.tablero.fechaApertura) {
+        localStorage.setItem("fechaApertura", data.tablero.fechaApertura);
+        fechaApertura = String(data.tablero.fechaApertura);
+    }
+
+    // 🔥 pintar encabezado SIEMPRE desde este bloque
+    if (folioSpan) {
+
+        let fechaMostrar = "Sin iniciar";
+
+        if (fechaApertura && fechaApertura !== "Sin iniciar") {
+            const fechaNum = Number(fechaApertura);
+            if (!isNaN(fechaNum)) {
+                fechaMostrar = new Date(fechaNum).toLocaleString("es-MX");
+            }
+        }
+
+        folioSpan.textContent = `Folio: ${folio} | Apertura: ${fechaMostrar}`;
+    }
+
+    // 🔥 refrescar barra con la fecha correcta
+    actualizarBarraTiempo();
+
 })
 .catch(err => {
     console.log("❌ Error leyendo estado tablero:", err);
 });
+
 let tablerosGlobal = JSON.parse(localStorage.getItem("tableros")) || {};
 
 if (!tablerosGlobal[folio]) {
@@ -86,15 +113,10 @@ if (!tablerosGlobal[folio]) {
     localStorage.setItem("tableros", JSON.stringify(tablerosGlobal));
 }
 
+// 🔥 solo fallback si backend aún no ha definido apertura
 if (!fechaApertura) {
     fechaApertura = "Sin iniciar";
-} else {
-    // convertir timestamp a fecha legible
-    const fechaMostrar = new Date(parseInt(fechaApertura)).toLocaleString("es-MX");
-    fechaApertura = fechaMostrar;
 }
-
-
 // ==========================
 // BARRA PROGRESO 10 DIAS
 // ==========================
