@@ -2096,7 +2096,68 @@ if(data.status === "approved"){
         console.log("⚠️ Pago sin casillas");
         return;
     }
+// ==========================
+    // GUARDAR PAGO EN pagos_mp
+    // ==========================
+    db.get(
+    `SELECT paymentId FROM pagos_mp WHERE paymentId = ?`,
+    [paymentId],
+    (errExist, rowExist) => {
 
+        if(errExist){
+            console.log("❌ Error verificando pago existente:", errExist.message);
+            return;
+        }
+
+        if(rowExist){
+            console.log("ℹ️ Pago ya registrado, no se duplica:", paymentId);
+            return;
+        }
+
+        db.run(
+        `INSERT INTO pagos_mp (
+            paymentId,
+            tableroId,
+            jugadorId,
+            email,
+            montoTotal,
+            moneda,
+            estadoPago,
+            fechaPago,
+            casillasJson,
+            tiemposJson,
+            observaciones
+        )
+        VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
+        [
+            paymentId,
+            folio,
+            jugadorId,
+            data.payer?.email || null,
+            data.transaction_amount || 0,
+            data.currency_id || "MXN",
+            data.status,
+            Date.now(),
+            JSON.stringify(casillasMetadata),
+            JSON.stringify(tiempos),
+            "pago_aprobado"
+        ],
+        function(errInsert){
+
+            if(errInsert){
+                console.log("❌ Error guardando pago_mp:", errInsert.message);
+                return;
+            }
+
+            console.log("💾 Pago guardado en pagos_mp:", {
+                paymentId,
+                folio,
+                jugadorId
+            });
+
+        });
+
+    });
     casillas.forEach(casilla => {
 
         const infoTiempo = tiempos.find(t => t.numero === casilla);
