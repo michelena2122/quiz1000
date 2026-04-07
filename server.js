@@ -2062,6 +2062,38 @@ app.get("/api/debug-forzar-vencimiento/:folio", (req, res) => {
     });
 
 });
+app.get("/api/debug-restaurar-apertura/:folio", (req, res) => {
+
+    const folio = req.params.folio;
+    const ahora = Date.now();
+
+    db.run(`
+        UPDATE tableros
+        SET fechaApertura = ?,
+            estadoReembolso = 'pendiente',
+            fechaInicioReembolso = NULL,
+            fechaFinReembolso = NULL
+        WHERE id = ?
+    `, [ahora, folio], function(err){
+
+        if(err){
+            return res.json({
+                ok:false,
+                error: err.message
+            });
+        }
+
+        res.json({
+            ok:true,
+            mensaje:"fechaApertura restaurada",
+            folio,
+            nuevaFechaApertura: ahora,
+            cambios: this.changes
+        });
+
+    });
+
+});
 // =============================
 // RESERVAS ACTIVAS
 // =============================
