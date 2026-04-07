@@ -1595,13 +1595,13 @@ function revisarTablerosVencidos(){
 
             console.log("⏰ TABLERO VENCIDO DETECTADO:", tablero.id);
 
-            db.run(`
+                        db.run(`
     UPDATE tableros
     SET estadoReembolso = 'en_proceso',
         fechaInicioReembolso = ?
     WHERE id = ?
     AND (estadoReembolso = 'pendiente' OR estadoReembolso IS NULL)
-`, [ahora, tablero.id], function(errUpdate){
+`, [ahora, tablero.id], async function(errUpdate){
 
                 if(errUpdate){
                     console.log("❌ Error marcando tablero en_proceso:", errUpdate.message);
@@ -1610,11 +1610,28 @@ function revisarTablerosVencidos(){
 
                 if(this.changes > 0){
                     console.log("🚨 TABLERO MARCADO PARA REEMBOLSO:", tablero.id);
+
+                    try {
+                        const resultadoReembolso = await reembolsarPagosDeTablero(tablero.id);
+
+                        console.log("🧾 RESULTADO REEMBOLSO AUTOMÁTICO:", {
+                            tableroId: tablero.id,
+                            ok: resultadoReembolso.ok,
+                            totalPagos: resultadoReembolso.totalPagos,
+                            reembolsados: resultadoReembolso.reembolsados,
+                            fallidos: resultadoReembolso.fallidos
+                        });
+
+                    } catch (errorReembolso) {
+                        console.log("❌ ERROR LANZANDO REEMBOLSO AUTOMÁTICO:", {
+                            tableroId: tablero.id,
+                            error: errorReembolso.message
+                        });
+                    }
                 }
 
             });
-
-        });
+             });
 
     });
 
