@@ -153,6 +153,108 @@ function asegurarColumnaFechaApertura(callback){
     });
 
 }
+function asegurarColumnasReembolsoTablero(callback){
+
+    db.all(`PRAGMA table_info(tableros)`, [], (err, columnas) => {
+        if(err){
+            console.log("Error consultando columnas de reembolso en tableros:", err.message);
+            if(callback) return callback(err);
+            return;
+        }
+
+        const existeEstadoReembolso = columnas.some(col => col.name === "estadoReembolso");
+        const existeFechaInicioReembolso = columnas.some(col => col.name === "fechaInicioReembolso");
+        const existeFechaFinReembolso = columnas.some(col => col.name === "fechaFinReembolso");
+
+        const tareas = [];
+
+        if(!existeEstadoReembolso){
+            tareas.push((done) => {
+                db.run(
+                    `ALTER TABLE tableros ADD COLUMN estadoReembolso TEXT DEFAULT 'pendiente'`,
+                    [],
+                    (errAlter) => {
+                        if(errAlter){
+                            console.log("Error agregando columna estadoReembolso:", errAlter.message);
+                            return done(errAlter);
+                        }
+
+                        console.log("Columna estadoReembolso agregada correctamente en tableros");
+                        done(null);
+                    }
+                );
+            });
+        }else{
+            console.log("Columna estadoReembolso ya existe en tableros");
+        }
+
+        if(!existeFechaInicioReembolso){
+            tareas.push((done) => {
+                db.run(
+                    `ALTER TABLE tableros ADD COLUMN fechaInicioReembolso INTEGER`,
+                    [],
+                    (errAlter) => {
+                        if(errAlter){
+                            console.log("Error agregando columna fechaInicioReembolso:", errAlter.message);
+                            return done(errAlter);
+                        }
+
+                        console.log("Columna fechaInicioReembolso agregada correctamente en tableros");
+                        done(null);
+                    }
+                );
+            });
+        }else{
+            console.log("Columna fechaInicioReembolso ya existe en tableros");
+        }
+
+        if(!existeFechaFinReembolso){
+            tareas.push((done) => {
+                db.run(
+                    `ALTER TABLE tableros ADD COLUMN fechaFinReembolso INTEGER`,
+                    [],
+                    (errAlter) => {
+                        if(errAlter){
+                            console.log("Error agregando columna fechaFinReembolso:", errAlter.message);
+                            return done(errAlter);
+                        }
+
+                        console.log("Columna fechaFinReembolso agregada correctamente en tableros");
+                        done(null);
+                    }
+                );
+            });
+        }else{
+            console.log("Columna fechaFinReembolso ya existe en tableros");
+        }
+
+        if(tareas.length === 0){
+            if(callback) return callback(null);
+            return;
+        }
+
+        let index = 0;
+
+        function ejecutarSiguiente(error){
+            if(error){
+                if(callback) return callback(error);
+                return;
+            }
+
+            if(index >= tareas.length){
+                if(callback) return callback(null);
+                return;
+            }
+
+            const tarea = tareas[index];
+            index++;
+            tarea(ejecutarSiguiente);
+        }
+
+        ejecutarSiguiente(null);
+    });
+
+}
 // ============================
 // BASE DE DATOS
 // ============================
@@ -203,91 +305,98 @@ function inicializarConfiguracion(callback){
                         return;
                     }
 
-                    db.run(`
-                        CREATE TABLE IF NOT EXISTS configuracion (
-                            clave TEXT PRIMARY KEY,
-                            valor TEXT
-                        )
-                    `, (err) => {
-                        if(err){
-                            console.log("Error creando tabla configuracion:", err.message);
-                            if(callback) return callback(err);
+                    asegurarColumnasReembolsoTablero((errReembolsoCols) => {
+                        if(errReembolsoCols){
+                            if(callback) return callback(errReembolsoCols);
                             return;
                         }
 
-                        console.log("Tabla configuracion creada correctamente");
-
                         db.run(`
-                            CREATE TABLE IF NOT EXISTS casillas (
-                                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                                tableroId TEXT,
-                                casilla INTEGER,
-                                jugador TEXT,
-                                email TEXT,
-                                tiempo TEXT,
-                                estado TEXT,
-                                expira INTEGER,
-                                fecha INTEGER
+                            CREATE TABLE IF NOT EXISTS configuracion (
+                                clave TEXT PRIMARY KEY,
+                                valor TEXT
                             )
-                        `, (errCasillas) => {
-                            if(errCasillas){
-                                console.log("Error creando tabla casillas:", errCasillas.message);
-                                if(callback) return callback(errCasillas);
+                        `, (err) => {
+                            if(err){
+                                console.log("Error creando tabla configuracion:", err.message);
+                                if(callback) return callback(err);
                                 return;
                             }
 
-                            console.log("Tabla casillas creada correctamente");
+                            console.log("Tabla configuracion creada correctamente");
 
                             db.run(`
-                                CREATE TABLE IF NOT EXISTS rankings_tableros (
-                                    tableroId TEXT PRIMARY KEY,
-                                    ganadorId TEXT,
-                                    ganadorNombre TEXT,
-                                    mejorTiempoTexto TEXT,
-                                    mejorTiempoNumero REAL,
-                                    totalParticipantes INTEGER DEFAULT 0,
-                                    resumenJson TEXT,
-                                    fechaCierre INTEGER
+                                CREATE TABLE IF NOT EXISTS casillas (
+                                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                    tableroId TEXT,
+                                    casilla INTEGER,
+                                    jugador TEXT,
+                                    email TEXT,
+                                    tiempo TEXT,
+                                    estado TEXT,
+                                    expira INTEGER,
+                                    fecha INTEGER
                                 )
-                            `, (err2) => {
-                                if(err2){
-                                    console.log("Error creando tabla rankings_tableros:", err2.message);
-                                    if(callback) return callback(err2);
+                            `, (errCasillas) => {
+                                if(errCasillas){
+                                    console.log("Error creando tabla casillas:", errCasillas.message);
+                                    if(callback) return callback(errCasillas);
                                     return;
                                 }
 
-                                console.log("Tabla rankings_tableros creada correctamente");
+                                console.log("Tabla casillas creada correctamente");
 
                                 db.run(`
-                                    CREATE TABLE IF NOT EXISTS pagos_mp (
-                                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                                        paymentId TEXT UNIQUE,
-                                        tableroId TEXT,
-                                        jugadorId TEXT,
-                                        email TEXT,
-                                        montoTotal REAL,
-                                        moneda TEXT,
-                                        estadoPago TEXT,
-                                        estadoReembolso TEXT DEFAULT 'pendiente',
-                                        refundId TEXT,
-                                        refundAmount REAL,
-                                        refundResponse TEXT,
-                                        fechaPago INTEGER,
-                                        fechaReembolso INTEGER,
-                                        casillasJson TEXT,
-                                        tiemposJson TEXT,
-                                        observaciones TEXT
+                                    CREATE TABLE IF NOT EXISTS rankings_tableros (
+                                        tableroId TEXT PRIMARY KEY,
+                                        ganadorId TEXT,
+                                        ganadorNombre TEXT,
+                                        mejorTiempoTexto TEXT,
+                                        mejorTiempoNumero REAL,
+                                        totalParticipantes INTEGER DEFAULT 0,
+                                        resumenJson TEXT,
+                                        fechaCierre INTEGER
                                     )
-                                `, (errPagos) => {
-                                    if(errPagos){
-                                        console.log("Error creando tabla pagos_mp:", errPagos.message);
-                                        if(callback) return callback(errPagos);
+                                `, (err2) => {
+                                    if(err2){
+                                        console.log("Error creando tabla rankings_tableros:", err2.message);
+                                        if(callback) return callback(err2);
                                         return;
                                     }
 
-                                    console.log("Tabla pagos_mp creada correctamente");
+                                    console.log("Tabla rankings_tableros creada correctamente");
 
-                                    if(callback) callback(null);
+                                    db.run(`
+                                        CREATE TABLE IF NOT EXISTS pagos_mp (
+                                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                            paymentId TEXT UNIQUE,
+                                            tableroId TEXT,
+                                            jugadorId TEXT,
+                                            email TEXT,
+                                            montoTotal REAL,
+                                            moneda TEXT,
+                                            estadoPago TEXT,
+                                            estadoReembolso TEXT DEFAULT 'pendiente',
+                                            refundId TEXT,
+                                            refundAmount REAL,
+                                            refundResponse TEXT,
+                                            fechaPago INTEGER,
+                                            fechaReembolso INTEGER,
+                                            casillasJson TEXT,
+                                            tiemposJson TEXT,
+                                            observaciones TEXT
+                                        )
+                                    `, (errPagos) => {
+                                        if(errPagos){
+                                            console.log("Error creando tabla pagos_mp:", errPagos.message);
+                                            if(callback) return callback(errPagos);
+                                            return;
+                                        }
+
+                                        console.log("Tabla pagos_mp creada correctamente");
+
+                                        if(callback) callback(null);
+                                    });
                                 });
                             });
                         });
