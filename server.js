@@ -2724,6 +2724,40 @@ async function reembolsarPagosDeTablero(tableroId) {
         };
     }
 }
+// ==========================
+// TEST MANUAL - REEMBOLSAR TABLERO
+// ==========================
+app.post("/api/test/reembolsar-tablero", async (req, res) => {
+    try {
+        const folio = (req.body.folio || "").trim();
+
+        if (!folio) {
+            return res.status(400).json({
+                ok: false,
+                mensaje: "Folio requerido"
+            });
+        }
+
+        console.log("🧪 TEST REEMBOLSO MANUAL INICIADO:", folio);
+
+        const resultado = await reembolsarPagosDeTablero(folio);
+
+        return res.json({
+            ok: resultado.ok,
+            folio,
+            resultado
+        });
+
+    } catch (error) {
+        console.log("❌ ERROR EN TEST MANUAL REEMBOLSAR TABLERO:", error.message);
+
+        return res.status(500).json({
+            ok: false,
+            mensaje: "Error ejecutando reembolso manual",
+            error: error.message
+        });
+    }
+});
 // =============================
 // CREAR PAGO (MULTICASILLA)
 // =============================
