@@ -2730,6 +2730,15 @@ async function reembolsarPagosDeTablero(tableroId) {
 // TEST MANUAL - REEMBOLSAR TABLERO
 // ==========================
 app.post("/api/test/reembolsar-tablero", async (req, res) => {
+
+    // 🔒 PROTECCIÓN SIMPLE
+    if (req.headers["x-admin-key"] !== "QUIZ1000_ADMIN") {
+        return res.status(403).json({
+            ok: false,
+            mensaje: "No autorizado"
+        });
+    }
+
     try {
         const folio = (req.body.folio || "").trim();
 
