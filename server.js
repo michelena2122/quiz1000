@@ -165,7 +165,7 @@ function asegurarColumnasReembolsoTablero(callback){
         const existeEstadoReembolso = columnas.some(col => col.name === "estadoReembolso");
         const existeFechaInicioReembolso = columnas.some(col => col.name === "fechaInicioReembolso");
         const existeFechaFinReembolso = columnas.some(col => col.name === "fechaFinReembolso");
-
+        const existeReembolsoProcesado = columnas.some(col => col.name === "reembolsoProcesado");
         const tareas = [];
 
         if(!existeEstadoReembolso){
@@ -227,7 +227,25 @@ function asegurarColumnasReembolsoTablero(callback){
         }else{
             console.log("Columna fechaFinReembolso ya existe en tableros");
         }
+        if(!existeReembolsoProcesado){
+             tareas.push((done) => {
+            db.run(
+                    `ALTER TABLE tableros ADD COLUMN reembolsoProcesado INTEGER DEFAULT 0`,
+                    [],
+                    (errAlter) => {
+                    if(errAlter){
+                            console.log("Error agregando columna reembolsoProcesado:", errAlter.message);
+                            return done(errAlter);
+                        }
 
+                        console.log("Columna reembolsoProcesado agregada correctamente en tableros");
+                        done(null);
+                    }
+                 );
+            });
+        }else{
+            console.log("Columna reembolsoProcesado ya existe en tableros");
+        }
         if(tareas.length === 0){
             if(callback) return callback(null);
             return;
@@ -1223,6 +1241,39 @@ function convertirTiempoATotal(tiempoTexto){
     return (dias * 86400) + (horas * 3600) + (minutos * 60) + segundos;
 }
 
+function detectarTablerosVencidos(){
+
+    const ahora = Date.now();
+    const DIEZ_DIAS = 10 * 24 * 60 * 60 * 1000;
+
+    db.all(`
+        SELECT id, fechaApertura, completo, reembolsoProcesado
+        FROM tableros
+        WHERE completo = 0
+    `, [], (err, tableros) => {
+
+        if(err){
+            console.log("Error consultando tableros para vencimiento:", err.message);
+            return;
+        }
+
+        tableros.forEach(tablero => {
+
+            if(!tablero.fechaApertura) return;
+
+            const tiempoTranscurrido = ahora - tablero.fechaApertura;
+
+            if(tiempoTranscurrido >= DIEZ_DIAS){
+
+                console.log("⏰ TABLERO VENCIDO:", tablero.id);
+
+            }
+
+        });
+
+    });
+
+}
 function obtenerResumenTablero(tableroId){
     return new Promise((resolve, reject) => {
 
@@ -2942,7 +2993,7 @@ app.post("/api/admin/tipo-cambio", (req, res) => {
         [tipoCambioCobro.toFixed(2), ahora],
         function(err){
             if(err){
-                console.log("Error guardando tipoCambioCobro:", err);
+                console.log("❌ ERROR SQL tipoCambioCobro:", err.message, err);
                 return res.status(500).json({ ok:false });
             }
 
@@ -2955,7 +3006,7 @@ app.post("/api/admin/tipo-cambio", (req, res) => {
                 [tipoCambioPremio.toFixed(2), ahora],
                 function(err2){
                     if(err2){
-                        console.log("Error guardando tipoCambioPremio:", err2);
+                        console.log("❌ ERROR SQL tipoCambioPremio:", err2.message, err2);
                         return res.status(500).json({ ok:false });
                     }
 
@@ -3196,6 +3247,8 @@ app.get("/api/prueba-version", (req, res) => {
 });
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
+
+    setInterval(detectarTablerosVencidos, 60000);
 });
 
 });
