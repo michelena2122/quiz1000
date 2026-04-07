@@ -276,7 +276,7 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// ============================
+/// ============================
 // ENVIAR CODIGO
 // ============================
 
@@ -309,24 +309,19 @@ app.post("/enviar-codigo", async (req, res) => {
         `
     };
 
-    res.json({
-        ok: true,
-        mensaje: "Código enviado"
-    });
-
     transporter.sendMail(mailOptions)
         .then(() => {
             console.log("Código enviado por email:", codigo);
         })
         .catch((error) => {
-    console.error("ERROR ENVIANDO EMAIL:", error);
+            console.error("ERROR ENVIANDO EMAIL:", error);
+            console.log("Modo pruebas activo. Código disponible en log:", codigo);
+        });
 
-    res.json({
+    return res.json({
         ok: true,
-        mensaje: "Correo no enviado (modo pruebas)",
-        codigo: codigo
+        mensaje: "Código generado correctamente"
     });
-});
 });
 // ============================
 // REGISTRO DE USUARIO
