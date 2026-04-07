@@ -124,45 +124,47 @@ if (!fechaApertura) {
 const barra = document.getElementById("barraTiempo");
 const textoTiempo = document.getElementById("textoTiempo");
 
-function actualizarBarraTiempo(){
+async function actualizarBarraTiempo(){
 
-const fechaGuardada = localStorage.getItem("fechaApertura");
+    const folioEstado =
+        new URLSearchParams(window.location.search).get("folio") ||
+        localStorage.getItem("folioTableroActual");
 
-if(!fechaGuardada || fechaGuardada === "Sin iniciar"){
-    if(textoTiempo){
-        textoTiempo.textContent = "El tablero inicia cuando se seleccione la primera casilla";
+    if(!folioEstado){
+        if(textoTiempo){
+            textoTiempo.textContent = "No se encontró folio del tablero";
+        }
+        return;
     }
-    return;
-}
 
-const inicio = parseInt(fechaGuardada);
-const ahora = new Date();
+    const respEstado = await fetch(`/api/estado-tablero?folio=${encodeURIComponent(folioEstado)}`);
+    const dataEstado = await respEstado.json();
 
-const diasTotal = 10;
+    if(!dataEstado.ok || !dataEstado.tablero || !dataEstado.tablero.fechaApertura){
+        if(textoTiempo){
+            textoTiempo.textContent = "El tablero inicia cuando se seleccione la primera casilla";
+        }
+        return;
+    }
 
-const msPorDia = 1000 * 60 * 60 * 24;
+    const inicio = parseInt(dataEstado.tablero.fechaApertura);
+    const cerradoPorTiempo = !!dataEstado.tablero.cerradoPorTiempo;
+    const ahora = new Date();
 
-const diasTranscurridos = (Date.now() - inicio) / msPorDia;
+    const diasTotal = 10;
+    const msPorDia = 1000 * 60 * 60 * 24;
+    const diasTranscurridos = (Date.now() - inicio) / msPorDia;
 
-let progreso = (diasTranscurridos / diasTotal) * 100;
+    let progreso = (diasTranscurridos / diasTotal) * 100;
 
-// ==========================
-// CIERRE AUTOMATICO TABLERO
-// ==========================
+    // ==========================
+    // CIERRE AUTOMATICO TABLERO
+    // ==========================
 
-if(progreso >= 100){
+    if(cerradoPorTiempo){
 
     progreso = 100;
 
-    let tablerosGlobal = JSON.parse(localStorage.getItem("tableros")) || {};
-    const folioActual = localStorage.getItem("folioTablero");
-
-    if(tablerosGlobal[folioActual]){
-        tablerosGlobal[folioActual].cerrado = true;
-        localStorage.setItem("tableros", JSON.stringify(tablerosGlobal));
-    }
-
-    // bloquear todas las casillas
     const celdas = document.querySelectorAll(".cell");
 
     celdas.forEach(celda=>{
@@ -171,63 +173,54 @@ if(progreso >= 100){
     });
 
 }
-// ==========================
-// MARCAR TABLERO CERRADO
-// ==========================
 
-if(progreso >= 100){
+    // ==========================
+    // MARCAR TABLERO CERRADO
+    // ==========================
 
-    let tablerosGlobal = JSON.parse(localStorage.getItem("tableros")) || {};
-    const folioActual = localStorage.getItem("folioTablero");
-
-    if(tablerosGlobal[folioActual]){
-        tablerosGlobal[folioActual].cerrado = true;
-        localStorage.setItem("tableros", JSON.stringify(tablerosGlobal));
-    }
-
+    if(cerradoPorTiempo){
+    progreso = 100;
 }
 
-if(barra){
-    barra.style.width = progreso + "%";
+    if(barra){
+        barra.style.width = progreso + "%";
 
-    if(progreso < 25){
-        barra.style.background = "#2ecc71";
+        if(progreso < 25){
+            barra.style.background = "#2ecc71";
+        }
+        else if(progreso < 50){
+            barra.style.background = "#f1c40f";
+        }
+        else if(progreso < 75){
+            barra.style.background = "#e67e22";
+        }
+        else{
+            barra.style.background = "#e74c3c";
+        }
     }
-    else if(progreso < 50){
-        barra.style.background = "#f1c40f";
-    }
-    else if(progreso < 75){
-        barra.style.background = "#e67e22";
-    }
-    else{
-        barra.style.background = "#e74c3c";
-    }
+
+    if(textoTiempo){
+
+        let diasRestantes = Math.max(0, Math.ceil(diasTotal - diasTranscurridos));
+
+        if(isNaN(diasRestantes)) {
+            diasRestantes = 10;
+        }
+
+        if(cerradoPorTiempo){
+
+    textoTiempo.textContent =
+    "TABLERO CERRADO – BONIFICACIÓN A JUGADORES";
+
+    textoTiempo.style.color = "#e74c3c";
+
+    return;
 }
 
-if(textoTiempo){
+        textoTiempo.textContent =
+        `Este tablero se cierra en 10 dias. Tiempo restante: ${diasRestantes} días`;
 
-let diasRestantes = Math.max(0, Math.ceil(diasTotal - diasTranscurridos));
-
-// evitar NaN cuando la fecha no se puede interpretar
-if (isNaN(diasRestantes)) {
-    diasRestantes = 10;
-}
-// si el tablero ya cerró
-if(progreso >= 100){
-
-textoTiempo.textContent =
-"TABLERO CERRADO – BONIFICACIÓN A JUGADORES";
-
-textoTiempo.style.color = "#e74c3c";
-
-return;
-
-}
-
-textoTiempo.textContent =
-`Este tablero se cierra en 10 dias. Tiempo restante: ${diasRestantes} días`;
-
-}
+    }
 
 }
 

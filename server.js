@@ -2519,7 +2519,7 @@ app.get("/api/estado-tablero", (req, res) => {
         }
 
         const ahora = Date.now();
-        const diezDiasMs = 10 * 24 * 60 * 60 * 1000;
+        const diezDiasMs = 2 * 60 * 1000;
 
         let msRestantes = null;
         let cerradoPorTiempo = false;
