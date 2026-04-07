@@ -2472,7 +2472,75 @@ console.log("❌ ERROR PROCESANDO PAGO:", error);
 }
 
 }
+// ==========================
+// REEMBOLSO TOTAL MERCADO PAGO
+// ==========================
+async function reembolsarPagoMercadoPago(paymentId) {
+    try {
+        if (!paymentId) {
+            return {
+                ok: false,
+                error: "paymentId vacío"
+            };
+        }
 
+        console.log("💸 INICIANDO REEMBOLSO MP:", paymentId);
+
+        const response = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}/refunds`, {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${process.env.MP_ACCESS_TOKEN}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({})
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            console.error("❌ ERROR REEMBOLSO MP:", {
+                paymentId,
+                status: response.status,
+                data
+            });
+
+            return {
+                ok: false,
+                paymentId,
+                status: response.status,
+                error: data
+            };
+        }
+
+        console.log("✅ REEMBOLSO MP OK:", {
+            paymentId,
+            refundId: data.id,
+            amount: data.amount,
+            status: data.status
+        });
+
+        return {
+            ok: true,
+            paymentId,
+            refundId: data.id,
+            amount: data.amount,
+            status: data.status,
+            raw: data
+        };
+
+    } catch (error) {
+        console.error("❌ EXCEPCIÓN REEMBOLSO MP:", {
+            paymentId,
+            error: error.message
+        });
+
+        return {
+            ok: false,
+            paymentId,
+            error: error.message
+        };
+    }
+}
 // =============================
 // CREAR PAGO (MULTICASILLA)
 // =============================
