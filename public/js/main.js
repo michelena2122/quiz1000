@@ -63,7 +63,17 @@ if (!folio) {
 }
 
 localStorage.setItem("folioTableroActual", folio);
-
+// ==========================
+// DEBUG FECHA APERTURA BACKEND
+// ==========================
+fetch("/api/estado-tablero?folio=" + encodeURIComponent(folio))
+.then(res => res.json())
+.then(data => {
+    console.log("🧪 ESTADO TABLERO BACKEND:", data);
+})
+.catch(err => {
+    console.log("❌ Error leyendo estado tablero:", err);
+});
 let tablerosGlobal = JSON.parse(localStorage.getItem("tableros")) || {};
 
 if (!tablerosGlobal[folio]) {

@@ -2400,6 +2400,7 @@ app.post("/api/crear-tablero", (req, res) => {
     });
 
 });
+
 app.get("/api/tableros", (req, res) => {
     db.all(`
         SELECT id, completo, fechaCreacion
@@ -2417,6 +2418,7 @@ app.get("/api/tableros", (req, res) => {
         });
     });
 });
+
 app.get("/api/estado-casillas", (req, res) => {
 
     const folio = req.query.folio;
@@ -2478,13 +2480,72 @@ app.get("/api/estado-casillas", (req, res) => {
     });
 
 });
-app.listen(PORT, () => {
-        console.log(`Servidor corriendo en http://localhost:${PORT}`);
+
+// =============================
+// ESTADO GENERAL DEL TABLERO
+// =============================
+app.get("/api/estado-tablero", (req, res) => {
+
+    console.log("✅ ENTRE A /api/estado-tablero", req.query.folio);
+
+    const folio = req.query.folio;
+
+    if(!folio){
+        return res.json({
+            ok:false,
+            mensaje:"Folio requerido"
+        });
+    }
+
+    db.get(`
+        SELECT id, completo, fechaCreacion, fechaApertura
+        FROM tableros
+        WHERE id = ?
+    `, [folio], (err, tablero) => {
+
+        if(err){
+            console.log("Error leyendo estado del tablero:", err.message);
+            return res.json({
+                ok:false,
+                mensaje:"Error leyendo tablero"
+            });
+        }
+
+        if(!tablero){
+            return res.json({
+                ok:false,
+                mensaje:"Tablero no encontrado"
+            });
+        }
+
+        const ahora = Date.now();
+        const diezDiasMs = 10 * 24 * 60 * 60 * 1000;
+
+        let msRestantes = null;
+        let cerradoPorTiempo = false;
+
+        if(tablero.fechaApertura){
+            const vencimiento = Number(tablero.fechaApertura) + diezDiasMs;
+            msRestantes = Math.max(0, vencimiento - ahora);
+            cerradoPorTiempo = ahora >= vencimiento;
+        }
+
+        res.json({
+            ok:true,
+            tablero:{
+                id: tablero.id,
+                completo: tablero.completo,
+                fechaCreacion: tablero.fechaCreacion,
+                fechaApertura: tablero.fechaApertura || null,
+                msRestantes,
+                cerradoPorTiempo
+            }
+        });
+
     });
+
 });
-// =============================
-// MIS TABLEROS (PERFIL JUGADOR)
-// =============================
+
 app.get("/api/mis-tableros/:jugadorId", (req, res) => {
 
     const jugadorId = req.params.jugadorId;
@@ -2504,7 +2565,6 @@ app.get("/api/mis-tableros/:jugadorId", (req, res) => {
             return res.json({ ok:false });
         }
 
-        // agrupar por folio
         const tableros = {};
 
         rows.forEach(r => {
@@ -2526,6 +2586,17 @@ app.get("/api/mis-tableros/:jugadorId", (req, res) => {
         });
 
     });
+
+});
+app.get("/api/prueba-version", (req, res) => {
+    res.json({
+        ok: true,
+        mensaje: "version nueva cargada"
+    });
+});
+app.listen(PORT, () => {
+    console.log(`Servidor corriendo en http://localhost:${PORT}`);
+});
 
 });
 
