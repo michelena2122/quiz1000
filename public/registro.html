@@ -163,15 +163,20 @@ document.getElementById("amountText").innerHTML =
 // Cambiar texto del botón
 const pagarBtn = document.getElementById("pagarBtn");
 pagarBtn.textContent =
-    `Tu número es ${numero} — págalo y sigue rumbo a los 1,000 USD`;
+    `Tu número es ${numero} — continúa a validar tu correo`;
 
 const errorMsg = document.getElementById("errorMsg");
+let enviandoCodigo = false;
 
 // ============================
 // BOTÓN REGISTRO
 // ============================
-
 pagarBtn.addEventListener("click", async function () {
+
+    if (enviandoCodigo) {
+        return;
+    }
+
     console.log("CLICK REGISTRO"); 
     const nombre = document.getElementById("nombre").value.trim();
     const apellidos = document.getElementById("apellidos").value.trim();
@@ -234,6 +239,8 @@ const folioTablero = localStorage.getItem("folioTablero");
 
     localStorage.setItem("registroPendiente", JSON.stringify(jugadorData));
     localStorage.setItem("emailRegistro", email);
+    enviandoCodigo = true;
+pagarBtn.disabled = true;
 
     try {
         const res = await fetch("/enviar-codigo", {
@@ -247,15 +254,19 @@ const folioTablero = localStorage.getItem("folioTablero");
         const data = await res.json();
 
         if (data.ok) {
-            alert("📧 Te enviamos un código de verificación");
-            window.location.href = "validar.html";
-        } else {
-            errorMsg.textContent = data.mensaje || "Error enviando el correo";
-        }
+    alert("Código de verificación generado. Revisa el log de Render.");
+    window.location.href = "validar.html";
+} else {
+    errorMsg.textContent = data.mensaje || "Error enviando el correo";
+    enviandoCodigo = false;
+    pagarBtn.disabled = false;
+}
     } catch (err) {
-        console.error(err);
-        errorMsg.textContent = "No se pudo conectar con el servidor.";
-    }
+    console.error(err);
+    errorMsg.textContent = "No se pudo conectar con el servidor.";
+    enviandoCodigo = false;
+    pagarBtn.disabled = false;
+}
 });
 </script>
 <footer class="footer-login">
