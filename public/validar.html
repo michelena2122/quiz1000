@@ -35,6 +35,12 @@ border-radius:12px;
 text-align:center;
 }
 
+#error{
+margin-top:16px;
+font-weight:bold;
+min-height:24px;
+}
+
 </style>
 
 </head>
@@ -138,9 +144,20 @@ return codigo;
 
 async function verificar(){
 
-const codigoUsuario = obtenerCodigo();
+const error = document.getElementById("error");
+error.innerText = "";
+error.style.color = "white";
 
+const codigoUsuario = obtenerCodigo();
 const email = localStorage.getItem("emailRegistro");
+
+if(!codigoUsuario || codigoUsuario.length < 6){
+error.innerText = "Ingresa el código completo.";
+error.style.color = "#f1c40f";
+return;
+}
+
+try{
 
 const res = await fetch("/validar-codigo",{
 
@@ -161,7 +178,8 @@ const data = await res.json();
 
 if(data.ok){
 
-alert("Correo verificado correctamente");
+error.innerText = "Correo verificado correctamente.";
+error.style.color = "#2ecc71";
 
 // obtener datos del registro
 const registroPendiente = JSON.parse(localStorage.getItem("registroPendiente"));
@@ -183,6 +201,7 @@ const dataRegistro = await resRegistro.json();
 
 console.log("RESPUESTA /registro:", dataRegistro);
 console.log("ID DEVUELTO:", dataRegistro.id);
+
 if(dataRegistro.ok){
 localStorage.setItem("jugadorId", dataRegistro.id);
 localStorage.removeItem("registroPendiente");
@@ -193,14 +212,23 @@ window.location.href = "pago.html?folio=" + folio;
 
 }else{
 
-document.getElementById("error").innerText =
-"No se pudo completar el registro";
+error.innerText = "No se pudo completar el registro";
+error.style.color = "#e74c3c";
 
 }
 
 }else{
 
-document.getElementById("error").innerText = data.mensaje;
+error.innerText = "El código capturado es erróneo.";
+error.style.color = "#e74c3c";
+
+}
+
+}catch(err){
+
+console.error("ERROR VALIDANDO CODIGO:", err);
+error.innerText = "No se pudo verificar el código.";
+error.style.color = "#e74c3c";
 
 }
 
@@ -212,7 +240,13 @@ document.getElementById("error").innerText = data.mensaje;
 
 async function reenviar(){
 
+const error = document.getElementById("error");
+error.innerText = "";
+error.style.color = "white";
+
 const email = localStorage.getItem("emailRegistro");
+
+try{
 
 const res = await fetch("/enviar-codigo",{
 
@@ -232,18 +266,26 @@ const data = await res.json();
 
 if(data.ok){
 
-const msg = document.getElementById("mensajeCodigo");
-if(msg){
-    msg.textContent = "Te enviamos un nuevo código a tu correo.";
-}
+error.innerText = "Se reenvió código al mail registrado.";
+error.style.color = "#2ecc71";
 
 tiempo = 300;
 
 }else{
 
-alert("Error enviando código");
+error.innerText = data.mensaje || "Error enviando código";
+error.style.color = "#e74c3c";
 
 }
+
+}catch(err){
+
+console.error("ERROR REENVIANDO CODIGO:", err);
+error.innerText = "No se pudo reenviar el código.";
+error.style.color = "#e74c3c";
+
+}
+
 }
 
 // ============================
@@ -281,4 +323,3 @@ contador.innerText = "El código expiró. Solicita uno nuevo.";
 
 </body>
 </html>
-
