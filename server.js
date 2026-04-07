@@ -258,7 +258,37 @@ function inicializarConfiguracion(callback){
 
                                 console.log("Tabla rankings_tableros creada correctamente");
 
-                                if(callback) callback(null);
+                                db.run(`
+                                    CREATE TABLE IF NOT EXISTS pagos_mp (
+                                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                        paymentId TEXT UNIQUE,
+                                        tableroId TEXT,
+                                        jugadorId TEXT,
+                                        email TEXT,
+                                        montoTotal REAL,
+                                        moneda TEXT,
+                                        estadoPago TEXT,
+                                        estadoReembolso TEXT DEFAULT 'pendiente',
+                                        refundId TEXT,
+                                        refundAmount REAL,
+                                        refundResponse TEXT,
+                                        fechaPago INTEGER,
+                                        fechaReembolso INTEGER,
+                                        casillasJson TEXT,
+                                        tiemposJson TEXT,
+                                        observaciones TEXT
+                                    )
+                                `, (errPagos) => {
+                                    if(errPagos){
+                                        console.log("Error creando tabla pagos_mp:", errPagos.message);
+                                        if(callback) return callback(errPagos);
+                                        return;
+                                    }
+
+                                    console.log("Tabla pagos_mp creada correctamente");
+
+                                    if(callback) callback(null);
+                                });
                             });
                         });
                     });
