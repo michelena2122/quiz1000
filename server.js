@@ -2103,12 +2103,28 @@ function(err){
     console.log("FILAS AFECTADAS UPDATE PAGO:", this.changes);
 
     if(this.changes > 0){
+
+        db.run(
+            `UPDATE tableros
+             SET fechaApertura = COALESCE(fechaApertura, ?)
+             WHERE id = ?`,
+            [Date.now(), folio],
+            function(errFecha){
+                if(errFecha){
+                    console.log("❌ Error guardando fechaApertura:", errFecha.message);
+                }else{
+                    console.log("🕒 fechaApertura verificada para tablero:", folio);
+                }
+            }
+        );
+
         console.log("✅ CASILLA PAGADA NUEVA VERSION:", {
             folio,
             casilla,
             jugadorId,
             tiempo: infoTiempo ? infoTiempo.tiempo : null
         });
+
     }else{
         console.log("⚠️ No se encontró reserva para actualizar:", {
             folio,
@@ -2120,14 +2136,15 @@ function(err){
 );
 
     });
-setTimeout(async () => {
-    try{
-        const cierre = await revisarCierreTablero(folio);
-        console.log("🧾 RESULTADO REVISAR CIERRE:", cierre);
-    }catch(error){
-        console.log("❌ Error al revisar cierre tras pago:", error.message);
-    }
-}, 1200);
+
+    setTimeout(async () => {
+        try{
+            const cierre = await revisarCierreTablero(folio);
+            console.log("🧾 RESULTADO REVISAR CIERRE:", cierre);
+        }catch(error){
+            console.log("❌ Error al revisar cierre tras pago:", error.message);
+        }
+    }, 1200);
 
     if(jugadorId){
 
