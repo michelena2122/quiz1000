@@ -1561,6 +1561,64 @@ function revisarCierreTablero(tableroId){
         });
     });
 }
+function revisarTablerosVencidos(){
+
+    const ahora = Date.now();
+    const DIEZ_DIAS = 10 * 24 * 60 * 60 * 1000;
+
+    db.all(`
+        SELECT id, fechaApertura, completo, estadoReembolso
+        FROM tableros
+        WHERE fechaApertura IS NOT NULL
+    `, [], (err, rows) => {
+
+        if(err){
+            console.log("❌ Error revisando tableros vencidos:", err.message);
+            return;
+        }
+
+        rows.forEach(tablero => {
+
+            if(tablero.completo === 1){
+                return;
+            }
+
+            if(tablero.estadoReembolso && tablero.estadoReembolso !== 'pendiente'){
+                return;
+            }
+
+            const tiempoTranscurrido = ahora - tablero.fechaApertura;
+
+            if(tiempoTranscurrido < DIEZ_DIAS){
+                return;
+            }
+
+            console.log("⏰ TABLERO VENCIDO DETECTADO:", tablero.id);
+
+            db.run(`
+    UPDATE tableros
+    SET estadoReembolso = 'en_proceso',
+        fechaInicioReembolso = ?
+    WHERE id = ?
+    AND (estadoReembolso = 'pendiente' OR estadoReembolso IS NULL)
+`, [ahora, tablero.id], function(errUpdate){
+
+                if(errUpdate){
+                    console.log("❌ Error marcando tablero en_proceso:", errUpdate.message);
+                    return;
+                }
+
+                if(this.changes > 0){
+                    console.log("🚨 TABLERO MARCADO PARA REEMBOLSO:", tablero.id);
+                }
+
+            });
+
+        });
+
+    });
+
+}
 // =============================
 // OBTENER UNA PREGUNTA
 // =============================
@@ -2107,6 +2165,7 @@ console.log("Reservas liberadas:", this.changes);
 }
 
 setInterval(limpiarReservasAutomatico,60000);
+setInterval(revisarTablerosVencidos, 60000);
 
 // =============================
 // WEBHOOK MERCADO PAGO
