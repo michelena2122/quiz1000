@@ -2036,6 +2036,32 @@ app.get("/api/debug-db-status", (req, res) => {
     });
 
 });
+app.get("/api/debug-forzar-vencimiento/:folio", (req, res) => {
+
+    const folio = req.params.folio;
+
+    db.run(`
+        UPDATE tableros
+        SET fechaApertura = 0
+        WHERE id = ?
+    `, [folio], function(err){
+
+        if(err){
+            return res.json({
+                ok:false,
+                error: err.message
+            });
+        }
+
+        res.json({
+            ok:true,
+            mensaje:"Tablero forzado a vencido",
+            cambios: this.changes
+        });
+
+    });
+
+});
 // =============================
 // RESERVAS ACTIVAS
 // =============================
