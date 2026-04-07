@@ -2963,7 +2963,27 @@ app.get("/api/admin/tipo-cambio", (req, res) => {
         }
     );
 });
+app.get("/api/debug/configuracion-esquema", (req, res) => {
+    db.all(`PRAGMA table_info(configuracion)`, [], (err, columnas) => {
+        if(err){
+            console.log("❌ ERROR PRAGMA configuracion:", err.message);
+            return res.status(500).json({ ok:false, error: err.message });
+        }
 
+        db.all(`PRAGMA index_list(configuracion)`, [], (err2, indices) => {
+            if(err2){
+                console.log("❌ ERROR INDEX LIST configuracion:", err2.message);
+                return res.status(500).json({ ok:false, error: err2.message });
+            }
+
+            res.json({
+                ok:true,
+                columnas,
+                indices
+            });
+        });
+    });
+});
 // =============================
 // ADMIN - GUARDAR TIPO DE CAMBIO
 // =============================
@@ -2982,15 +3002,12 @@ app.post("/api/admin/tipo-cambio", (req, res) => {
         });
     }
 
-    const ahora = Date.now();
-
     db.run(
-        `INSERT INTO configuracion (clave, valor, fecha)
-         VALUES ('tipoCambioCobro', ?, ?)
+        `INSERT INTO configuracion (clave, valor)
+         VALUES ('tipoCambioCobro', ?)
          ON CONFLICT(clave) DO UPDATE SET
-         valor = excluded.valor,
-         fecha = excluded.fecha`,
-        [tipoCambioCobro.toFixed(2), ahora],
+         valor = excluded.valor`,
+        [tipoCambioCobro.toFixed(2)],
         function(err){
             if(err){
                 console.log("❌ ERROR SQL tipoCambioCobro:", err.message, err);
@@ -2998,12 +3015,11 @@ app.post("/api/admin/tipo-cambio", (req, res) => {
             }
 
             db.run(
-                `INSERT INTO configuracion (clave, valor, fecha)
-                 VALUES ('tipoCambioPremio', ?, ?)
+                `INSERT INTO configuracion (clave, valor)
+                 VALUES ('tipoCambioPremio', ?)
                  ON CONFLICT(clave) DO UPDATE SET
-                 valor = excluded.valor,
-                 fecha = excluded.fecha`,
-                [tipoCambioPremio.toFixed(2), ahora],
+                 valor = excluded.valor`,
+                [tipoCambioPremio.toFixed(2)],
                 function(err2){
                     if(err2){
                         console.log("❌ ERROR SQL tipoCambioPremio:", err2.message, err2);
