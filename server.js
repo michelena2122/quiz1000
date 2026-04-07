@@ -2516,19 +2516,20 @@ async function reembolsarPagoMercadoPago(paymentId) {
         const data = await response.json();
 
         if (!response.ok) {
-            console.error("❌ ERROR REEMBOLSO MP:", {
-                paymentId,
-                status: response.status,
-                data
-            });
+    console.error("❌ ERROR REEMBOLSO MP:", {
+        paymentId,
+        status: response.status,
+        data
+    });
 
-            return {
-                ok: false,
-                paymentId,
-                status: response.status,
-                error: data
-            };
-        }
+    return {
+        ok: false,
+        paymentId,
+        status: response.status,
+        mensaje: data?.message || null,
+        error: data
+    };
+}
 
         console.log("✅ REEMBOLSO MP OK:", {
             paymentId,
