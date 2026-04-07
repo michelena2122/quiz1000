@@ -2660,20 +2660,21 @@ async function reembolsarPagosDeTablero(tableroId) {
         });
 
         if (fallidos === 0) {
-            db.run(
-                `UPDATE tableros
-                 SET estadoReembolso = 'reembolsado',
-                     fechaFinReembolso = ?
-                 WHERE id = ?`,
-                [Date.now(), tableroId],
-                function(errFin) {
-                    if (errFin) {
-                        console.log("❌ Error marcando tablero como reembolsado:", errFin.message);
-                    } else {
-                        console.log("✅ Tablero marcado como reembolsado:", tableroId);
-                    }
-                }
-            );
+    db.run(
+        `UPDATE tableros
+         SET estadoReembolso = 'reembolsado',
+             fechaFinReembolso = ?,
+             noReembolsable = 1
+         WHERE id = ?`,
+        [Date.now(), tableroId],
+        function(errFin) {
+            if (errFin) {
+                console.log("❌ Error marcando tablero como reembolsado:", errFin.message);
+            } else {
+                console.log("✅ Tablero marcado como reembolsado y NO REEMBOLSABLE:", tableroId);
+            }
+        }
+    );
         } else {
             db.run(
                 `UPDATE tableros
@@ -2811,7 +2812,8 @@ app.post("/api/test/reembolsar-tablero", async (req, res) => {
             error: error.message
         });
     }
-});// =============================
+});
+// =============================
 // CREAR PAGO (MULTICASILLA)
 // =============================
 
