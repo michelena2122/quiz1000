@@ -2541,6 +2541,172 @@ async function reembolsarPagoMercadoPago(paymentId) {
         };
     }
 }
+// ==========================
+// REEMBOLSAR TODOS LOS PAGOS DE UN TABLERO
+// ==========================
+async function reembolsarPagosDeTablero(tableroId) {
+    try {
+        if (!tableroId) {
+            return {
+                ok: false,
+                error: "tableroId vacío"
+            };
+        }
+
+        console.log("💰 INICIANDO REEMBOLSOS DEL TABLERO:", tableroId);
+
+        db.run(
+            `UPDATE tableros
+             SET estadoReembolso = 'reembolsando',
+                 fechaInicioReembolso = COALESCE(fechaInicioReembolso, ?)
+             WHERE id = ?`,
+            [Date.now(), tableroId],
+            function(errInicio) {
+                if (errInicio) {
+                    console.log("❌ Error marcando tablero como reembolsando:", errInicio.message);
+                } else {
+                    console.log("🟡 Tablero marcado como reembolsando:", tableroId);
+                }
+            }
+        );
+
+        const pagos = await new Promise((resolve, reject) => {
+            db.all(
+                `SELECT paymentId
+                 FROM pagos_mp
+                 WHERE tableroId = ?
+                 AND paymentId IS NOT NULL
+                 AND paymentId <> ''
+                 ORDER BY fechaPago ASC`,
+                [tableroId],
+                (err, rows) => {
+                    if (err) {
+                        reject(err);
+                        return;
+                    }
+                    resolve(rows || []);
+                }
+            );
+        });
+
+        if (pagos.length === 0) {
+            console.log("⚠️ No hay pagos_mp para reembolsar en tablero:", tableroId);
+
+            db.run(
+                `UPDATE tableros
+                 SET estadoReembolso = 'sin_pagos',
+                     fechaFinReembolso = ?
+                 WHERE id = ?`,
+                [Date.now(), tableroId],
+                function(errSinPagos) {
+                    if (errSinPagos) {
+                        console.log("❌ Error marcando tablero sin pagos:", errSinPagos.message);
+                    } else {
+                        console.log("ℹ️ Tablero marcado como sin_pagos:", tableroId);
+                    }
+                }
+            );
+
+            return {
+                ok: true,
+                tableroId,
+                totalPagos: 0,
+                reembolsados: 0,
+                fallidos: 0
+            };
+        }
+
+        const resultados = [];
+
+        for (const pago of pagos) {
+            const resultado = await reembolsarPagoMercadoPago(pago.paymentId);
+
+            resultados.push({
+                paymentId: pago.paymentId,
+                ok: resultado.ok,
+                refundId: resultado.refundId || null,
+                status: resultado.status || null,
+                error: resultado.error || null
+            });
+        }
+
+        const reembolsados = resultados.filter(r => r.ok).length;
+        const fallidos = resultados.filter(r => !r.ok).length;
+
+        console.log("📊 RESUMEN REEMBOLSOS TABLERO:", {
+            tableroId,
+            totalPagos: pagos.length,
+            reembolsados,
+            fallidos
+        });
+
+        if (fallidos === 0) {
+            db.run(
+                `UPDATE tableros
+                 SET estadoReembolso = 'reembolsado',
+                     fechaFinReembolso = ?
+                 WHERE id = ?`,
+                [Date.now(), tableroId],
+                function(errFin) {
+                    if (errFin) {
+                        console.log("❌ Error marcando tablero como reembolsado:", errFin.message);
+                    } else {
+                        console.log("✅ Tablero marcado como reembolsado:", tableroId);
+                    }
+                }
+            );
+        } else {
+            db.run(
+                `UPDATE tableros
+                 SET estadoReembolso = 'error_reembolso',
+                     fechaFinReembolso = ?
+                 WHERE id = ?`,
+                [Date.now(), tableroId],
+                function(errError) {
+                    if (errError) {
+                        console.log("❌ Error marcando tablero con error_reembolso:", errError.message);
+                    } else {
+                        console.log("⚠️ Tablero marcado como error_reembolso:", tableroId);
+                    }
+                }
+            );
+        }
+
+        return {
+            ok: fallidos === 0,
+            tableroId,
+            totalPagos: pagos.length,
+            reembolsados,
+            fallidos,
+            resultados
+        };
+
+    } catch (error) {
+        console.log("❌ ERROR REEMBOLSANDO TABLERO:", {
+            tableroId,
+            error: error.message
+        });
+
+        db.run(
+            `UPDATE tableros
+             SET estadoReembolso = 'error_reembolso',
+                 fechaFinReembolso = ?
+             WHERE id = ?`,
+            [Date.now(), tableroId],
+            function(errUpdate) {
+                if (errUpdate) {
+                    console.log("❌ Error actualizando error_reembolso:", errUpdate.message);
+                }
+            }
+        );
+
+        return {
+            ok: false,
+            tableroId,
+            error: error.message
+        };
+    }
+}
 // =============================
 // CREAR PAGO (MULTICASILLA)
 // =============================
