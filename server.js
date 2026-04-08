@@ -3418,9 +3418,15 @@ app.get("/api/prueba-version", (req, res) => {
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
 
+    asegurarColumnasReembolsoTablero((err) => {
+        if(err){
+            console.log("❌ ERROR asegurando columnas:", err);
+        }else{
+            console.log("✅ Columnas de tableros verificadas correctamente");
+        }
+    });
+
     setInterval(detectarTablerosVencidos, 60000);
 });
-
 });
-
 
