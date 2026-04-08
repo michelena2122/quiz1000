@@ -448,12 +448,89 @@ function renderizarTablerosCompletos(tableros) {
             <div><b>Folio:</b> ${tablero.id}</div>
             <div><b>Completo:</b> ${tablero.completo ? "Sí" : "No"}</div>
             <div><b>Casillas pagadas:</b> ${tablero.totalPagadas}</div>
+
+            <div style="margin-top:10px;">
+                <button type="button" onclick="verDetalleTableroCompleto('${tablero.id}')">
+                    Ver detalle
+                </button>
+                <button type="button" onclick="ocultarDetalleTableroCompleto('${tablero.id}')">
+                    Ocultar detalle
+                </button>
+            </div>
+
+            <div id="detalle-${tablero.id}" style="margin-top:15px;"></div>
         `;
 
         listaTablerosCompletos.appendChild(fila);
     });
 }
+async function verDetalleTableroCompleto(folio) {
+    const contenedor = document.getElementById(`detalle-${folio}`);
 
+    if (!contenedor) {
+        return;
+    }
+
+    contenedor.innerHTML = "Cargando detalle...";
+
+    try {
+        const res = await fetch(`/api/admin/tablero-detalle/${encodeURIComponent(folio)}`);
+        const data = await res.json();
+
+        if (!data.ok) {
+            contenedor.innerHTML = "<div style='color:red;'>Error cargando detalle.</div>";
+            return;
+        }
+
+        if (!data.casillas || data.casillas.length === 0) {
+            contenedor.innerHTML = "<div>No hay casillas pagadas en este tablero.</div>";
+            return;
+        }
+
+        let html = `
+            <table style="width:100%; margin-top:10px; border-collapse:collapse;">
+                <thead>
+                    <tr>
+                        <th style="border:1px solid #ccc; padding:8px;">Jugador</th>
+                        <th style="border:1px solid #ccc; padding:8px;">Casilla</th>
+                        <th style="border:1px solid #ccc; padding:8px;">Email</th>
+                        <th style="border:1px solid #ccc; padding:8px;">Tiempo</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        data.casillas.forEach(c => {
+            html += `
+                <tr>
+                    <td style="border:1px solid #ccc; padding:8px;">${c.jugador || ""}</td>
+                    <td style="border:1px solid #ccc; padding:8px;">${c.casilla || ""}</td>
+                    <td style="border:1px solid #ccc; padding:8px;">${c.email || ""}</td>
+                    <td style="border:1px solid #ccc; padding:8px;">${c.tiempo || ""}</td>
+                </tr>
+            `;
+        });
+
+        html += `
+                </tbody>
+            </table>
+        `;
+
+        contenedor.innerHTML = html;
+
+    } catch (error) {
+        console.log("ERROR DETALLE TABLERO COMPLETO:", error);
+        contenedor.innerHTML = "<div style='color:red;'>Error de conexión.</div>";
+    }
+}
+
+function ocultarDetalleTableroCompleto(folio) {
+    const contenedor = document.getElementById(`detalle-${folio}`);
+
+    if (contenedor) {
+        contenedor.innerHTML = "";
+    }
+}
 async function cargarTablerosCompletos() {
     try {
         mostrarMensajeTablerosCompletos("Cargando...", "blue");
