@@ -3038,6 +3038,38 @@ app.get("/api/debug/configuracion-esquema", (req, res) => {
     });
 });
 // =============================
+// ADMIN: TABLEROS COMPLETOS
+// =============================
+app.get("/api/admin/tableros-completos", (req, res) => {
+
+    db.all(`
+        SELECT 
+            t.id,
+            t.completo,
+            COUNT(c.id) as totalPagadas
+        FROM tableros t
+        LEFT JOIN casillas c 
+            ON t.id = c.tableroId 
+            AND c.estado = 'pagada'
+        GROUP BY t.id
+        HAVING totalPagadas = 50
+        ORDER BY t.fechaCreacion DESC
+    `, [], (err, rows) => {
+
+        if (err) {
+            console.error("ERROR TABLEROS COMPLETOS:", err.message);
+            return res.json({ ok:false });
+        }
+
+        res.json({
+            ok: true,
+            tableros: rows
+        });
+
+    });
+
+});
+// =============================
 // ADMIN - GUARDAR TIPO DE CAMBIO
 // =============================
 app.post("/api/admin/tipo-cambio", (req, res) => {
