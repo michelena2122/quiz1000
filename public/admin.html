@@ -153,8 +153,17 @@ button:hover{
     </thead>
 
     <tbody id="tabla"></tbody>
+</table>
+
 <div class="bloque-admin" style="margin-top:40px;">
     <h2>Tableros completos</h2>
+
+    <button id="btnCargarIncompletos">Ver tableros incompletos</button>
+    <button id="btnOcultarIncompletos">Ocultar</button>
+
+    <div id="listaIncompletos" style="margin-top:20px;"></div>
+
+</div>
 
     <button id="btnCargarTablerosCompletos">Cargar tableros completos</button>
     <button id="btnOcultarTablerosCompletos">Ocultar tableros completos</button>
@@ -582,6 +591,56 @@ if (btnOcultarTablerosCompletos) {
 cargarTablero();
 cargarTipoCambio();
 
+// =============================
+// TABLEROS INCOMPLETOS
+// =============================
+
+const tablaIncompletos = document.getElementById("tablaIncompletos");
+const btnCargarIncompletos = document.getElementById("btnCargarIncompletos");
+const btnOcultarIncompletos = document.getElementById("btnOcultarIncompletos");
+
+async function cargarTablerosIncompletos(){
+
+    const res = await fetch("/admin/tableros-incompletos");
+    const data = await res.json();
+
+    tablaIncompletos.innerHTML = "";
+
+    data.tableros.forEach(t => {
+
+        let color = "#00ffcc";
+
+        if(t.estatus === "vencido") color = "orange";
+        if(t.estatus === "reembolso_en_proceso") color = "gold";
+        if(t.estatus === "reembolsado") color = "red";
+
+        const fila = document.createElement("tr");
+
+        fila.innerHTML = `
+            <td>${t.id}</td>
+            <td style="color:${color}; font-weight:bold;">${t.estatus}</td>
+            <td>${t.estadoReembolso || "pendiente"}</td>
+            <td>${t.reembolsoProcesado}</td>
+            <td>${t.premioPagado}</td>
+        `;
+
+        tablaIncompletos.appendChild(fila);
+
+    });
+
+}
+
+function ocultarTablerosIncompletos(){
+    tablaIncompletos.innerHTML = "";
+}
+
+if (btnCargarIncompletos) {
+    btnCargarIncompletos.addEventListener("click", cargarTablerosIncompletos);
+}
+
+if (btnOcultarIncompletos) {
+    btnOcultarIncompletos.addEventListener("click", ocultarTablerosIncompletos);
+}
 setInterval(cargarTablero, 3000);
 
 </script>
