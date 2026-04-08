@@ -166,6 +166,7 @@ function asegurarColumnasReembolsoTablero(callback){
         const existeFechaInicioReembolso = columnas.some(col => col.name === "fechaInicioReembolso");
         const existeFechaFinReembolso = columnas.some(col => col.name === "fechaFinReembolso");
         const existeReembolsoProcesado = columnas.some(col => col.name === "reembolsoProcesado");
+        const existePremioPagado = columnas.some(col => col.name === "premioPagado");
         const tareas = [];
 
         if(!existeEstadoReembolso){
@@ -247,6 +248,25 @@ function asegurarColumnasReembolsoTablero(callback){
             console.log("Columna reembolsoProcesado ya existe en tableros");
         }
         if(tareas.length === 0){
+         if(!existePremioPagado){
+    tareas.push((done) => {
+        db.run(
+            `ALTER TABLE tableros ADD COLUMN premioPagado INTEGER DEFAULT 0`,
+            [],
+            (errAlter) => {
+                if(errAlter){
+                    console.log("Error agregando columna premioPagado:", errAlter.message);
+                    return done(errAlter);
+                }
+
+                console.log("Columna premioPagado agregada correctamente en tableros");
+                done(null);
+            }
+        );
+    });
+}else{
+    console.log("Columna premioPagado ya existe en tableros");
+}   
             if(callback) return callback(null);
             return;
         }
