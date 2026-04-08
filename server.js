@@ -3085,6 +3085,27 @@ app.get("/api/debug/configuracion-esquema", (req, res) => {
         });
     });
 });
+app.get("/api/debug/tableros-esquema", (req, res) => {
+    db.all(`PRAGMA table_info(tableros)`, [], (err, columnas) => {
+        if(err){
+            console.log("❌ ERROR PRAGMA tableros:", err.message);
+            return res.status(500).json({ ok:false, error: err.message });
+        }
+
+        db.all(`PRAGMA index_list(tableros)`, [], (err2, indices) => {
+            if(err2){
+                console.log("❌ ERROR INDEX LIST tableros:", err2.message);
+                return res.status(500).json({ ok:false, error: err2.message });
+            }
+
+            res.json({
+                ok:true,
+                columnas,
+                indices
+            });
+        });
+    });
+});
 // =============================
 // ADMIN: TABLEROS COMPLETOS
 // =============================
