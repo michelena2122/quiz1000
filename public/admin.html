@@ -170,10 +170,22 @@ button:hover{
 // =============================
 // TABLERO (YA EXISTENTE)
 // =============================
+// =============================
+// TABLERO (YA EXISTENTE)
+// =============================
 async function cargarTablero(){
 
+    console.log("ENTRANDO A cargarTablero()");
+    console.log("URL FETCH ADMIN:", "/admin/tablero");
+
     const res = await fetch("/admin/tablero");
-    const data = await res.json();
+    console.log("STATUS /admin/tablero:", res.status);
+
+    const textoCrudo = await res.text();
+    console.log("RESPUESTA CRUDA /admin/tablero:", textoCrudo);
+
+    const data = JSON.parse(textoCrudo);
+    console.log("DATA PARSEADA /admin/tablero:", data);
 
     document.getElementById("ocupadas").innerText = data.ocupadas;
 
