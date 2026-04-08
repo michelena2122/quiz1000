@@ -1125,6 +1125,70 @@ app.post("/admin/reset", (req,res)=>{
     res.json({ ok:true, mensaje:"Sistema reiniciado" });
 
 });
+// =============================
+// ADMIN: TABLEROS INCOMPLETOS + REEMBOLSOS
+// =============================
+app.get("/admin/tableros-incompletos", (req, res) => {
+
+    db.all(`
+        SELECT
+            id,
+            completo,
+            fechaCreacion,
+            fechaApertura,
+            estadoReembolso,
+            fechaInicioReembolso,
+            fechaFinReembolso,
+            reembolsoProcesado,
+            premioPagado
+        FROM tableros
+        WHERE completo = 0
+        ORDER BY fechaCreacion DESC
+    `, [], (err, rows) => {
+
+        if(err){
+            console.log("❌ ERROR TABLEROS INCOMPLETOS:", err.message);
+            return res.json({ ok:false });
+        }
+
+        const ahora = Date.now();
+        const DIEZ_DIAS = 10 * 24 * 60 * 60 * 1000;
+
+        const resultado = rows.map(t => {
+
+            let estatus = "activo";
+
+            if(t.fechaApertura){
+                const transcurrido = ahora - t.fechaApertura;
+
+                if(transcurrido >= DIEZ_DIAS){
+                    estatus = "vencido";
+                }
+            }
+
+            if(t.estadoReembolso === "en_proceso"){
+                estatus = "reembolso_en_proceso";
+            }
+
+            if(t.reembolsoProcesado === 1){
+                estatus = "reembolsado";
+            }
+
+            return {
+                ...t,
+                estatus
+            };
+        });
+
+        res.json({
+            ok:true,
+            total: resultado.length,
+            tableros: resultado
+        });
+
+    });
+
+});
 // ============================
 // CREAR TABLEROS INICIALES
 // ============================
