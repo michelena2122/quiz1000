@@ -821,6 +821,59 @@ app.get("/api/preguntas", (req, res) => {
 
 });
 // =============================
+// GUARDAR PREGUNTAS
+// =============================
+app.post("/api/preguntas", (req, res) => {
+
+    const preguntas = req.body;
+
+    if (!Array.isArray(preguntas)) {
+        return res.status(400).json({
+            ok: false,
+            error: "Formato inválido: se esperaba un arreglo"
+        });
+    }
+
+    for (let i = 0; i < preguntas.length; i++) {
+        const item = preguntas[i];
+
+        if (
+            !item ||
+            typeof item.pregunta !== "string" ||
+            item.pregunta.trim() === "" ||
+            typeof item.resultado !== "number"
+        ) {
+            return res.status(400).json({
+                ok: false,
+                error: `Pregunta inválida en posición ${i}`
+            });
+        }
+    }
+
+    fs.writeFile(
+        FILE_PATH,
+        JSON.stringify(preguntas, null, 2),
+        "utf8",
+        (err) => {
+            if (err) {
+                console.error("ERROR GUARDANDO PREGUNTAS:", err);
+                return res.status(500).json({
+                    ok: false,
+                    error: "Error guardando preguntas"
+                });
+            }
+
+            console.log("✅ PREGUNTAS ACTUALIZADAS:", preguntas.length);
+
+            res.json({
+                ok: true,
+                total: preguntas.length
+            });
+        }
+    );
+
+});
+// =============================
 // REGISTRAR APERTURA DE PREGUNTA
 // =============================
 app.post("/api/abrir-pregunta", (req, res) => {

@@ -125,6 +125,21 @@ button:hover{
 
     <div id="mensajeTipoCambio"></div>
 </div>
+<!-- ============================= -->
+<!-- ADMINISTRAR PREGUNTAS -->
+<!-- ============================= -->
+<div class="bloque-admin" style="margin-top:40px;">
+
+    <h2>Modificar preguntas</h2>
+
+    <button id="btnCargarPreguntas">Cargar preguntas</button>
+    <button id="btnGuardarPreguntas">Guardar preguntas</button>
+
+    <div id="mensajePreguntas" style="margin-top:10px;"></div>
+
+    <div id="listaPreguntas" style="margin-top:20px;"></div>
+
+</div>
 
 <table>
     <thead>
@@ -140,6 +155,10 @@ button:hover{
 </table>
 
 <script>
+
+// =============================
+// TABLERO (YA EXISTENTE)
+// =============================
 async function cargarTablero(){
 
     const res = await fetch("/admin/tablero");
@@ -217,6 +236,10 @@ async function cargarTablero(){
     }
 }
 
+
+// =============================
+// TIPO DE CAMBIO (YA EXISTENTE)
+// =============================
 async function cargarTipoCambio(){
     try{
         const res = await fetch("/api/admin/tipo-cambio");
@@ -271,10 +294,119 @@ document.getElementById("btnGuardarTipoCambio").addEventListener("click", async 
 
 });
 
+
+// =============================
+// 🔥 NUEVO: PREGUNTAS
+// =============================
+const btnCargarPreguntas = document.getElementById("btnCargarPreguntas");
+const btnGuardarPreguntas = document.getElementById("btnGuardarPreguntas");
+const listaPreguntas = document.getElementById("listaPreguntas");
+const mensajePreguntas = document.getElementById("mensajePreguntas");
+
+function mostrarMensajePreguntas(texto, color = "black") {
+    mensajePreguntas.textContent = texto;
+    mensajePreguntas.style.color = color;
+}
+
+function renderizarPreguntas(preguntas) {
+    listaPreguntas.innerHTML = "";
+
+    preguntas.forEach((item, index) => {
+
+        const fila = document.createElement("div");
+
+        fila.style.border = "1px solid #ccc";
+        fila.style.padding = "10px";
+        fila.style.marginBottom = "10px";
+        fila.style.borderRadius = "8px";
+
+        fila.innerHTML = `
+            <div><b>Resultado:</b> ${item.resultado}</div>
+
+            <input 
+                type="text"
+                value="${item.pregunta.replace(/"/g, "&quot;")}"
+                data-index="${index}"
+                class="input-pregunta"
+                style="width:100%; margin-top:5px; padding:5px;"
+            >
+        `;
+
+        listaPreguntas.appendChild(fila);
+
+    });
+}
+
+async function cargarPreguntas() {
+    try {
+        mostrarMensajePreguntas("Cargando...", "blue");
+
+        const res = await fetch("/api/preguntas");
+        const preguntas = await res.json();
+
+        renderizarPreguntas(preguntas);
+
+        mostrarMensajePreguntas("OK", "#00ffcc");
+
+    } catch (error) {
+        console.log(error);
+        mostrarMensajePreguntas("Error cargando", "red");
+    }
+}
+
+async function guardarPreguntas() {
+    try {
+
+        const inputs = document.querySelectorAll(".input-pregunta");
+
+        const preguntas = [];
+
+        inputs.forEach((input, i) => {
+            preguntas.push({
+                pregunta: input.value.trim(),
+                resultado: i + 1
+            });
+        });
+
+        mostrarMensajePreguntas("Guardando...", "blue");
+
+        const res = await fetch("/api/preguntas", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(preguntas)
+        });
+
+        const data = await res.json();
+
+        console.log(data);
+
+        mostrarMensajePreguntas("Guardado OK", "#00ffcc");
+
+    } catch (error) {
+        console.log(error);
+        mostrarMensajePreguntas("Error guardando", "red");
+    }
+}
+
+// listeners seguros
+if(btnCargarPreguntas){
+    btnCargarPreguntas.addEventListener("click", cargarPreguntas);
+}
+if(btnGuardarPreguntas){
+    btnGuardarPreguntas.addEventListener("click", guardarPreguntas);
+}
+
+
+// =============================
+// INIT
+// =============================
 cargarTablero();
 cargarTipoCambio();
 
 setInterval(cargarTablero, 3000);
+
 </script>
 
 </body>
