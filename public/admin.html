@@ -129,41 +129,7 @@ button:hover{
 <!-- ADMINISTRAR PREGUNTAS -->
 <!-- ============================= -->
 <div class="bloque-admin" style="margin-top:40px;">
-
-    <h2>Modificar preguntas</h2>
-
-    <button id="btnCargarPreguntas">Cargar preguntas</button>
-    <button id="btnOcultarPreguntas">Ocultar preguntas</button>
-    <button id="btnGuardarPreguntas">Guardar preguntas</button>
-
-    <div id="mensajePreguntas" style="margin-top:10px;"></div>
-
-    <div id="listaPreguntas" style="margin-top:20px;"></div>
-
-</div>
-
-<table>
-    <thead>
-        <tr>
-            <th>Jugador</th>
-            <th>Casilla</th>
-            <th>Email</th>
-            <th>Tiempo</th>
-        </tr>
-    </thead>
-
-    <tbody id="tabla"></tbody>
-</table>
-
-<div class="bloque-admin" style="margin-top:40px;">
     <h2>Tableros completos</h2>
-
-    <button id="btnCargarIncompletos">Ver tableros incompletos</button>
-    <button id="btnOcultarIncompletos">Ocultar</button>
-
-    <div id="listaIncompletos" style="margin-top:20px;"></div>
-
-</div>
 
     <button id="btnCargarTablerosCompletos">Cargar tableros completos</button>
     <button id="btnOcultarTablerosCompletos">Ocultar tableros completos</button>
@@ -172,7 +138,26 @@ button:hover{
 
     <div id="listaTablerosCompletos" style="margin-top:20px;"></div>
 </div>
-</table>
+
+<div class="bloque-admin" style="margin-top:40px;">
+    <h2>Tableros incompletos</h2>
+
+    <button id="btnCargarIncompletos">Ver tableros incompletos</button>
+    <button id="btnOcultarIncompletos">Ocultar</button>
+
+    <table style="margin-top:20px; width:100%; border-collapse:collapse;">
+        <thead>
+            <tr>
+                <th>Folio</th>
+                <th>Estatus</th>
+                <th>Estado Reembolso</th>
+                <th>Procesado</th>
+                <th>Premio Pagado</th>
+            </tr>
+        </thead>
+        <tbody id="tablaIncompletos"></tbody>
+    </table>
+</div>
 
 <script>
 
