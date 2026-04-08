@@ -133,6 +133,7 @@ button:hover{
     <h2>Modificar preguntas</h2>
 
     <button id="btnCargarPreguntas">Cargar preguntas</button>
+    <button id="btnOcultarPreguntas">Ocultar preguntas</button>
     <button id="btnGuardarPreguntas">Guardar preguntas</button>
 
     <div id="mensajePreguntas" style="margin-top:10px;"></div>
@@ -299,6 +300,7 @@ document.getElementById("btnGuardarTipoCambio").addEventListener("click", async 
 // 🔥 NUEVO: PREGUNTAS
 // =============================
 const btnCargarPreguntas = document.getElementById("btnCargarPreguntas");
+const btnOcultarPreguntas = document.getElementById("btnOcultarPreguntas");
 const btnGuardarPreguntas = document.getElementById("btnGuardarPreguntas");
 const listaPreguntas = document.getElementById("listaPreguntas");
 const mensajePreguntas = document.getElementById("mensajePreguntas");
@@ -336,7 +338,10 @@ function renderizarPreguntas(preguntas) {
 
     });
 }
-
+function ocultarPreguntas() {
+    listaPreguntas.innerHTML = "";
+    mostrarMensajePreguntas("Preguntas ocultas.", "#00ffcc");
+}
 async function cargarPreguntas() {
     try {
         mostrarMensajePreguntas("Cargando...", "blue");
@@ -394,10 +399,12 @@ async function guardarPreguntas() {
 if(btnCargarPreguntas){
     btnCargarPreguntas.addEventListener("click", cargarPreguntas);
 }
+if(btnOcultarPreguntas){
+    btnOcultarPreguntas.addEventListener("click", ocultarPreguntas);
+}
 if(btnGuardarPreguntas){
     btnGuardarPreguntas.addEventListener("click", guardarPreguntas);
 }
-
 
 // =============================
 // INIT
