@@ -153,6 +153,16 @@ button:hover{
     </thead>
 
     <tbody id="tabla"></tbody>
+<div class="bloque-admin" style="margin-top:40px;">
+    <h2>Tableros completos</h2>
+
+    <button id="btnCargarTablerosCompletos">Cargar tableros completos</button>
+    <button id="btnOcultarTablerosCompletos">Ocultar tableros completos</button>
+
+    <div id="mensajeTablerosCompletos" style="margin-top:10px;"></div>
+
+    <div id="listaTablerosCompletos" style="margin-top:20px;"></div>
+</div>
 </table>
 
 <script>
@@ -405,7 +415,78 @@ if(btnOcultarPreguntas){
 if(btnGuardarPreguntas){
     btnGuardarPreguntas.addEventListener("click", guardarPreguntas);
 }
+// =============================
+// TABLEROS COMPLETOS
+// =============================
+const btnCargarTablerosCompletos = document.getElementById("btnCargarTablerosCompletos");
+const btnOcultarTablerosCompletos = document.getElementById("btnOcultarTablerosCompletos");
+const mensajeTablerosCompletos = document.getElementById("mensajeTablerosCompletos");
+const listaTablerosCompletos = document.getElementById("listaTablerosCompletos");
 
+function mostrarMensajeTablerosCompletos(texto, color = "black") {
+    mensajeTablerosCompletos.textContent = texto;
+    mensajeTablerosCompletos.style.color = color;
+}
+
+function renderizarTablerosCompletos(tableros) {
+    listaTablerosCompletos.innerHTML = "";
+
+    if (!tableros || tableros.length === 0) {
+        listaTablerosCompletos.innerHTML = "<div>No hay tableros completos.</div>";
+        return;
+    }
+
+    tableros.forEach(tablero => {
+        const fila = document.createElement("div");
+
+        fila.style.border = "1px solid #ccc";
+        fila.style.padding = "12px";
+        fila.style.marginBottom = "10px";
+        fila.style.borderRadius = "8px";
+
+        fila.innerHTML = `
+            <div><b>Folio:</b> ${tablero.id}</div>
+            <div><b>Completo:</b> ${tablero.completo ? "Sí" : "No"}</div>
+            <div><b>Casillas pagadas:</b> ${tablero.totalPagadas}</div>
+        `;
+
+        listaTablerosCompletos.appendChild(fila);
+    });
+}
+
+async function cargarTablerosCompletos() {
+    try {
+        mostrarMensajeTablerosCompletos("Cargando...", "blue");
+
+        const res = await fetch("/api/admin/tableros-completos");
+        const data = await res.json();
+
+        if (!data.ok) {
+            mostrarMensajeTablerosCompletos("Error cargando tableros completos.", "red");
+            return;
+        }
+
+        renderizarTablerosCompletos(data.tableros);
+        mostrarMensajeTablerosCompletos("Tableros completos cargados correctamente.", "#00ffcc");
+
+    } catch (error) {
+        console.log("ERROR CARGANDO TABLEROS COMPLETOS:", error);
+        mostrarMensajeTablerosCompletos("Error de conexión.", "red");
+    }
+}
+
+function ocultarTablerosCompletos() {
+    listaTablerosCompletos.innerHTML = "";
+    mostrarMensajeTablerosCompletos("Tableros completos ocultos.", "#00ffcc");
+}
+
+if (btnCargarTablerosCompletos) {
+    btnCargarTablerosCompletos.addEventListener("click", cargarTablerosCompletos);
+}
+
+if (btnOcultarTablerosCompletos) {
+    btnOcultarTablerosCompletos.addEventListener("click", ocultarTablerosCompletos);
+}
 // =============================
 // INIT
 // =============================
