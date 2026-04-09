@@ -233,7 +233,7 @@ footer{
     <p>Cargando tableros...</p>
 </div>
 
-<div class="container" id="seccionTableros">
+<div class="container" id="seccionTableros" style="display:none;">
     <h2>Tableros Disponibles</h2>
 
     <div id="listaTableros">
@@ -266,11 +266,21 @@ const DIEZ_DIAS_MS = 10 * 24 * 60 * 60 * 1000;
 // =============================
 function irAListaTableros() {
     const seccion = document.getElementById("seccionTableros");
+
     if (seccion) {
-        seccion.scrollIntoView({
-            behavior: "smooth",
-            block: "start"
-        });
+        // Mostrar sección
+        seccion.style.display = "block";
+
+        // Cargar tableros SOLO cuando se abre
+        cargarTableros();
+
+        // Scroll suave hacia la lista
+        setTimeout(() => {
+            seccion.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+        }, 100);
     }
 }
 
@@ -535,8 +545,13 @@ async function crearNuevoTablero() {
 // =============================
 // INICIO
 // =============================
-cargarTableros();
-setInterval(cargarTableros, 60000);
+setInterval(() => {
+    const seccion = document.getElementById("seccionTableros");
+    if (seccion && seccion.style.display !== "none") {
+        cargarTableros();
+    }
+}, 60000);
+
 </script>
 
 </body>
