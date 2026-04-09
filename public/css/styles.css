@@ -1822,3 +1822,68 @@ body, html {
         padding:10px;
     }
 }
+/* =========================================
+   PERFIL MOBILE FIX FINAL
+   pegar al FINAL de styles.css
+   ========================================= */
+
+.perfil-contenedor{
+    width:min(92vw, 420px) !important;
+    margin:40px auto !important;
+    padding:24px 14px 24px 14px !important;
+    box-sizing:border-box !important;
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:center !important;
+    justify-content:flex-start !important;
+    text-align:center !important;
+}
+
+.icono-perfil{
+    display:block !important;
+    width:min(52vw, 220px) !important;
+    max-width:220px !important;
+    height:auto !important;
+    margin:0 auto 24px auto !important;
+}
+
+.robots-menu{
+    width:100% !important;
+    display:flex !important;
+    justify-content:center !important;
+    align-items:center !important;
+    gap:18px !important;
+    margin:0 auto 24px auto !important;
+    flex-wrap:nowrap !important;
+}
+
+.robot-btn{
+    display:block !important;
+    width:min(36vw, 140px) !important;
+    max-width:140px !important;
+    height:auto !important;
+    margin:0 !important;
+}
+
+@media(max-width:600px){
+    .perfil-contenedor{
+        width:min(94vw, 420px) !important;
+        padding:20px 10px 20px 10px !important;
+        margin:30px auto !important;
+    }
+
+    .icono-perfil{
+        width:min(50vw, 180px) !important;
+        max-width:180px !important;
+        margin:0 auto 20px auto !important;
+    }
+
+    .robots-menu{
+        gap:12px !important;
+    }
+
+    .robot-btn{
+        width:min(34vw, 125px) !important;
+        max-width:125px !important;
+    }
+}
