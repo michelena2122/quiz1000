@@ -3038,19 +3038,22 @@ app.post("/api/test/reembolsar-tablero", async (req, res) => {
 // =============================
 
 app.post("/crear-pago", async (req, res) => {
-
     try {
-
         const { folio, items, jugadorId } = req.body;
 
         console.log("🧾 Crear pago múltiples casillas:", items);
+        console.log("🧾 BODY /crear-pago:", { folio, jugadorId, totalItems: items?.length || 0 });
 
-        if(!items || items.length === 0){
+        if (!items || items.length === 0) {
             return res.status(400).json({ error: "Carrito vacío" });
         }
 
+        console.log("🧾 Antes de obtener tipoCambioCobro");
         const tipoCambioCobroRaw = await obtenerConfiguracion("tipoCambioCobro");
+        console.log("🧾 tipoCambioCobroRaw:", tipoCambioCobroRaw);
+
         const tipoCambioCobro = Number(tipoCambioCobroRaw || 20);
+        console.log("🧾 tipoCambioCobro final:", tipoCambioCobro);
 
         const preference = {
             items: items.map(item => ({
@@ -3063,44 +3066,57 @@ app.post("/crear-pago", async (req, res) => {
             external_reference: folio,
 
             metadata: {
-    folio: folio,
-    jugador_id: jugadorId,
-    jugadorId: jugadorId,
-    casillas: items.map(item => item.numero),
-    tiempos: items.map(item => ({
-        numero: item.numero,
-        tiempo: item.tiempo
-    })),
-    tipoCambioCobro: tipoCambioCobro
-},
+                folio: folio,
+                jugador_id: jugadorId,
+                jugadorId: jugadorId,
+                casillas: items.map(item => item.numero),
+                tiempos: items.map(item => ({
+                    numero: item.numero,
+                    tiempo: item.tiempo
+                })),
+                tipoCambioCobro: tipoCambioCobro
+            },
 
-back_urls: {
-    success: `https://quiz1000.onrender.com/perfil?folio=${folio}&pago=success`,
-    failure: `https://quiz1000.onrender.com/pago?folio=${folio}&pago=failure`,
-    pending: `https://quiz1000.onrender.com/perfil?folio=${folio}&pago=pending`
-},
+            back_urls: {
+                success: `https://quiz1000.onrender.com/perfil?folio=${folio}&pago=success`,
+                failure: `https://quiz1000.onrender.com/pago?folio=${folio}&pago=failure`,
+                pending: `https://quiz1000.onrender.com/perfil?folio=${folio}&pago=pending`
+            },
 
             auto_return: "approved",
             notification_url: "https://quiz1000.onrender.com/webhook/mercadopago"
         };
 
+        console.log("🧾 Preference lista para enviar:", JSON.stringify(preference, null, 2));
+
         const preferenceClient = new Preference(client);
 
+        console.log("🧾 Antes de preferenceClient.create");
         const response = await preferenceClient.create({
             body: preference
         });
+        console.log("🧾 Respuesta completa SDK:", JSON.stringify(response, null, 2));
 
-        res.json({
-            link: response.init_point
-        });
+        const link =
+            response?.body?.sandbox_init_point ||
+            response?.body?.init_point ||
+            response?.sandbox_init_point ||
+            response?.init_point ||
+            null;
+
+        console.log("🧾 LINK FINAL:", link);
+
+        if (!link) {
+            console.log("❌ No se recibió link de Mercado Pago");
+            return res.status(500).json({ error: "Mercado Pago no devolvió link" });
+        }
+
+        return res.json({ link });
 
     } catch (error) {
-
-        console.log("❌ ERROR SDK:", error);
-        res.status(500).json({ error: "Error creando pago" });
-
+        console.log("❌ ERROR SDK /crear-pago:", error);
+        return res.status(500).json({ error: "Error creando pago" });
     }
-
 });
 // =============================
 // ADMIN - OBTENER TIPO DE CAMBIO

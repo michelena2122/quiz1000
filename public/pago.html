@@ -335,7 +335,10 @@ function calcularProbabilidad(){
 
 document.getElementById("btnPagarTodo").addEventListener("click", function(){
 
-    const folioCarrito = localStorage.getItem("folioTablero") || folio;
+    const folioCarrito =
+    localStorage.getItem("folioTableroActual") ||
+    localStorage.getItem("folioTablero") ||
+    folio;
     const carritoActual = JSON.parse(localStorage.getItem("carrito_" + folioCarrito)) || { items: [] };
 
     console.log("CARRITO A PAGAR:", carritoActual);
