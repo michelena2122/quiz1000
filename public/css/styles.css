@@ -389,10 +389,19 @@ body.home {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(6px);
     border-radius: 20px;
-    padding: 18px 20px;
-    margin: 20px auto;
-    width: 100%;
-    max-width: 600px;
+
+    width: 90%;
+    max-width: 420px;
+
+    margin: 18px auto;
+    padding: 16px;
+
+    box-shadow: 
+        0 10px 25px rgba(0, 0, 0, 0.15),
+        0 0 40px rgba(255, 255, 255, 0.4);
+
+    box-sizing: border-box;
+
 
     box-shadow: 
         0 10px 25px rgba(0, 0, 0, 0.15),
@@ -1787,4 +1796,7 @@ header p {
     margin:0 0 30px 0 !important;
     flex-wrap:wrap !important;
     width:100% !important;
+}
+body, html {
+    overflow-x: hidden;
 }
