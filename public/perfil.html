@@ -18,28 +18,40 @@
     font-weight:bold;
 }
 
-/* CONTENEDOR GENERAL */
 .perfil-contenedor{
+    width:100%;
+    max-width:700px;
+    margin:0 auto;
+    padding:20px 15px 40px 15px;
     display:flex;
     flex-direction:column;
     align-items:center;
-    justify-content:center;
-    padding:20px;
+    text-align:center;
+    box-sizing:border-box;
 }
 
-/* ROBOTS */
+.icono-perfil{
+    display:block !important;
+    width:100%;
+    max-width:220px;
+    margin:0 auto 25px auto !important;
+}
+
 .robots-menu{
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    gap:40px;
-    margin:20px 0 30px 0;
+    width:100%;
+    display:flex !important;
+    justify-content:center !important;
+    align-items:flex-start !important;
+    gap:30px;
+    margin:0 auto 30px auto !important;
     flex-wrap:wrap;
 }
 
-/* BOTONES ROBOT */
 .robot-btn{
-    width:150px; /* 🔥 MÁS GRANDES */
+    display:block;
+    width:140px !important;
+    max-width:42vw;
+    height:auto;
     cursor:pointer;
     transition:transform 0.2s;
 }
@@ -48,21 +60,40 @@
     transform:scale(1.08);
 }
 
-/* LOGO PERFIL */
-.icono-perfil{
-    display:block;
-    margin:0 auto 20px auto;
-    max-width:220px;
+footer{
+    width:100%;
+    text-align:center !important;
+    font-size:12px;
+    color:#555;
+    margin:30px auto 20px auto !important;
+    padding:20px 15px 30px 15px;
+    box-sizing:border-box;
 }
 
-/* MOBILE */
 @media(max-width:600px){
-    .robot-btn{
-        width:120px; /* 🔥 MÁS GRANDES EN CELULAR */
+    .perfil-contenedor{
+        padding:20px 10px 30px 10px;
     }
 
     .icono-perfil{
         max-width:180px;
+        margin:0 auto 20px auto !important;
+    }
+
+    .robots-menu{
+        gap:18px;
+        margin:0 auto 20px auto !important;
+    }
+
+    .robot-btn{
+        width:130px !important;
+        max-width:40vw;
+    }
+
+    footer{
+        font-size:11px;
+        line-height:1.5;
+        padding:18px 12px 28px 12px;
     }
 }
 </style>
@@ -70,6 +101,10 @@
 <body>
 
 <div class="perfil-contenedor">
+
+    <img src="./assets/images/perfil.png"
+         class="icono-perfil"
+         alt="Mi Perfil">
 
     <!-- BOTONES ROBOT -->
     <div class="robots-menu">
@@ -83,10 +118,6 @@
              id="btnVerTableros"
              alt="Ver tableros">
     </div>
-
-    <img src="./assets/images/perfil.png"
-    class="icono-perfil"
-    alt="Mi Perfil">
 
     <form id="perfilForm" class="perfil-grid" style="display:none;">
 
@@ -138,17 +169,12 @@
 <a href="index" class="home-icon">
     <img src="./assets/images/home-icon.png" alt="Home">
 </a>
-<footer style="
-    text-align:center;
-    font-size:12px;
-    color:#555;
-    margin-top:40px;
-    padding:20px;
-">
+<footer>
 © 2026 Quiz1000 LLC.<br>
 All rights reserved. QUIZ1000 is a trademark of Quiz1000 LLC.<br>
 www.Quiz1000.llc
 </footer>
+
 <script>
 // PROTEGER PERFIL
 const usuario = JSON.parse(localStorage.getItem("usuarioLogueado"));
