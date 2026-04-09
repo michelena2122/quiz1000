@@ -120,9 +120,10 @@
     © 2026 Quiz $1000 | Plataforma Oficial | Todos los derechos reservados
 </footer>
 
-<script src="js/main.js"></script>
-
-<script>
+<script src="js/main.js"></script<script>
+// ===============================
+// 🎛 CONTROL CHATBOT (NO TOCAR)
+// ===============================
 const botonAbrirChatbot = document.getElementById("abrir-chatbot");
 const botonCerrarChatbot = document.getElementById("cerrar-chatbot");
 const chatbot = document.getElementById("chatbot");
@@ -139,26 +140,8 @@ if (botonCerrarChatbot && chatbot) {
     });
 }
 
-function abrirWhatsAppSoporte(tipo) {
-    let mensaje = "";
-
-    if (tipo === "jugar") {
-        mensaje = "Hola, necesito ayuda para saber cómo jugar en Quiz $1000.";
-    } else if (tipo === "pagos") {
-        mensaje = "Hola, tengo un problema con mi pago en Quiz $1000.";
-    } else if (tipo === "folio") {
-        mensaje = "Hola, necesito ayuda para recuperar mi folio en Quiz $1000.";
-    } else if (tipo === "soporte") {
-        mensaje = "Hola, necesito soporte técnico en Quiz $1000.";
-    } else {
-        mensaje = "Hola, necesito ayuda en Quiz $1000.";
-    }
-
-    const url = "https://wa.me/5215532004805?text=" + encodeURIComponent(mensaje);
-    window.open(url, "_blank");
-}
 // ===============================
-// 🧠 CONTEXTO USUARIO / TABLERO
+// 🧠 CONTEXTO USUARIO
 // ===============================
 function obtenerContextoUsuario() {
 
@@ -177,26 +160,7 @@ function obtenerContextoUsuario() {
 }
 
 // ===============================
-// 💬 GENERADOR DE MENSAJES
-// ===============================
-function obtenerContextoUsuario() {
-
-    let folio = localStorage.getItem("folioTableroActual");
-
-    let jugador = JSON.parse(localStorage.getItem("jugadorActual") || "null");
-    let usuario = JSON.parse(localStorage.getItem("usuarioLogueado") || "null");
-
-    let emailRegistro = localStorage.getItem("emailRegistro");
-
-    return {
-        folio: folio || "SIN_FOLIO",
-        nombre: jugador?.nombre || usuario?.nombre || "Jugador",
-        email: jugador?.email || usuario?.email || emailRegistro || "SIN_EMAIL"
-    };
-}
-
-// ===============================
-// 💬 MENSAJES INTELIGENTES
+// 💬 WHATSAPP INTELIGENTE
 // ===============================
 function abrirWhatsAppSoporte(tipo) {
 
@@ -212,7 +176,7 @@ function abrirWhatsAppSoporte(tipo) {
 
     if (tipo === "folio") {
         mensaje += "🔎 RECUPERAR FOLIO%0A";
-        mensaje += "No encuentro mi folio o lo perdí.%0A%0A";
+        mensaje += "No encuentro mi folio.%0A%0A";
     }
 
     if (tipo === "jugar") {
@@ -222,58 +186,21 @@ function abrirWhatsAppSoporte(tipo) {
 
     if (tipo === "soporte") {
         mensaje += "🛠 SOPORTE TÉCNICO%0A";
-        mensaje += "Estoy teniendo un problema técnico.%0A%0A";
+        mensaje += "Tengo un problema técnico.%0A%0A";
     }
 
     // 📊 CONTEXTO AUTOMÁTICO
-    mensaje += "📊 DATOS DEL JUGADOR:%0A";
+    mensaje += "📊 DATOS:%0A";
     mensaje += "Folio: " + ctx.folio + "%0A";
     mensaje += "Nombre: " + ctx.nombre + "%0A";
-    mensaje += "Email: " + ctx.email + "%0A";
+    mensaje += "Email: " + ctx.email;
 
-    const telefono = "521XXXXXXXXXX"; // 👈 PON TU NÚMERO REAL
-
-    const url = `https://wa.me/${telefono}?text=${mensaje}`;
-
-    window.open(url, "_blank");
-}
-
-// ===============================
-// 📲 ENVIAR A WHATSAPP
-// ===============================
-function enviarWhatsApp(tipo) {
-
-    const mensaje = generarMensajeWhatsApp(tipo);
-
-    const telefono = "521XXXXXXXXXX"; // 🔥 TU NÚMERO AQUÍ
+    const telefono = "5215532004805"; // ✅ YA PUSE TU NÚMERO REAL
 
     const url = `https://wa.me/${telefono}?text=${mensaje}`;
 
     window.open(url, "_blank");
 }
-
-// ===============================
-// 🔘 CONECTAR BOTONES (SIN ROMPER)
-// ===============================
-document.addEventListener("DOMContentLoaded", () => {
-
-    const btnPago = document.getElementById("wa_pago");
-    const btnNoReflejado = document.getElementById("wa_no_pago");
-    const btnGeneral = document.getElementById("wa_general");
-
-    if (btnPago) {
-        btnPago.addEventListener("click", () => enviarWhatsApp("pago"));
-    }
-
-    if (btnNoReflejado) {
-        btnNoReflejado.addEventListener("click", () => enviarWhatsApp("no_reflejado"));
-    }
-
-    if (btnGeneral) {
-        btnGeneral.addEventListener("click", () => enviarWhatsApp("general"));
-    }
-
-});
 </script>
 </body>
 </html>
