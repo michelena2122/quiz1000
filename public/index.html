@@ -1,75 +1,66 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Home - Quiz $1000</title>
-<link rel="stylesheet" href="css/styles.css?v=2">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Quiz $1000</title>
+    <link rel="stylesheet" href="css/styles.css?v=2">
 </head>
 
 <body class="home">
     <header class="home-header" style="text-align:center; padding:20px 0;">
-    <img src="./assets/images/logotipo.png"
-         alt="Quiz $1000"
-         style="max-width:320px; width:80%; height:auto;">
-</header>
+        <img src="./assets/images/logotipo.png"
+             alt="Quiz $1000"
+             style="max-width:320px; width:80%; height:auto;">
+    </header>
 
-<div class="container">
+    <div class="container">
 
+        <h1 class="home-titulo" style="font-size: clamp(22px, 5vw, 42px); margin-top:10px;">
+            Plataforma Oficial Quiz $1000
+        </h1>
 
-  <h1 class="home-titulo" style="font-size: clamp(22px, 5vw, 42px); margin-top:10px;">
-    Plataforma Oficial Quiz $1000
-</h1>
+        <!-- ===================== -->
+        <!-- BLOQUE MI CUENTA -->
+        <!-- ===================== -->
 
-    <!-- ===================== -->
-    <!-- BLOQUE MI CUENTA -->
-    <!-- ===================== -->
+        <div class="home-bloque">
+            <a href="perfil" class="perfil-link-home">
+                <img src="./assets/images/perfil.png"
+                     alt="Mi Perfil"
+                     class="perfil-icono-home">
+            </a>
+        </div>
 
-    <div class="home-bloque">
+        <div class="home-bloque">
+            <a href="lobby" class="tableros-link-home">
+                <img src="./assets/images/tableros.png"
+                     alt="Tableros Disponibles"
+                     class="tableros-icono-home">
+            </a>
+        </div>
 
-    <a href="perfil" class="perfil-link-home">
-        <img src="./assets/images/perfil.png" 
-             alt="Mi Perfil" 
-             class="perfil-icono-home">
-    </a>
+        <!-- ===================== -->
+        <!-- BLOQUE INFORMACIÓN -->
+        <!-- ===================== -->
 
-</div>
+        <div class="home-bloque">
+            <a href="reglas" class="info-link-home">
+                <img src="./assets/images/reglas.png"
+                     alt="Reglas del Juego"
+                     class="info-icono-home">
+            </a>
+        </div>
 
-<div class="home-bloque">
+        <div class="home-bloque">
+            <a href="legales" class="info-link-home">
+                <img src="./assets/images/legales.png"
+                     alt="Términos Legales"
+                     class="info-icono-home">
+            </a>
+        </div>
 
-    <a href="lobby" class="tableros-link-home">
-        <img src="./assets/images/tableros.png" 
-             alt="Tableros Disponibles" 
-             class="tableros-icono-home">
-    </a>
-
-</div>
-
-    <!-- ===================== -->
-    <!-- BLOQUE INFORMACIÓN -->
-    <!-- ===================== -->
-
-    <div class="home-bloque">
-
-    <a href="reglas" class="info-link-home">
-        <img src="./assets/images/reglas.png" 
-             alt="Reglas del Juego" 
-             class="info-icono-home">
-    </a>
-
-</div>
-
-<div class="home-bloque">
-
-    <a href="legales" class="info-link-home">
-        <img src="./assets/images/legales.png" 
-             alt="Términos Legales" 
-             class="info-icono-home">
-    </a>
-
-</div>
-
-</div>
+    </div>
 
     <!-- ===================== -->
     <!-- BLOQUE TRANSPARENCIA -->
@@ -77,10 +68,10 @@
 
     <div class="home-bloque transparencia">
         <h2 class="testimonios-titulo">
-    <img src="./assets/images/testimonios.png"
-         alt="Testimonios"
-         class="testimonios-icono-home">
-</h2>
+            <img src="./assets/images/testimonios.png"
+                 alt="Testimonios"
+                 class="testimonios-icono-home">
+        </h2>
 
         <p>Último tablero completado:</p>
         <p><strong>Próximamente visible aquí</strong></p>
@@ -88,119 +79,158 @@
         <p>Total premios entregados:</p>
         <p><strong>En construcción</strong></p>
     </div>
-<!-- BOTON WHATSAPP SOPORTE -->
 
-<!-- BOTON WHATSAPP SOPORTE -->
-<div class="whatsapp-soporte">
-    <button class="whatsapp-boton" id="abrir-chatbot" type="button">
-        <img src="/assets/images/whatsapp.png" alt="WhatsApp">
-    </button>
+    <!-- BOTÓN WHATSAPP / CHATBOT -->
+    <div class="whatsapp-soporte">
+        <button class="whatsapp-boton" id="abrir-chatbot" type="button">
+            <img src="/assets/images/whatsapp.png" alt="WhatsApp">
+        </button>
 
-    <p class="texto-whatsapp">Atención a Jugadores</p>
+        <p class="texto-whatsapp">Atención a Jugadores</p>
 
-    <div class="chatbot hidden" id="chatbot">
-        <div class="chatbot-header">
-            🤖 Ayuda a jugadores
-        </div>
+        <div class="chatbot hidden" id="chatbot">
+            <div class="chatbot-header">
+                🤖 Ayuda a jugadores
+            </div>
 
-        <div class="chatbot-body">
-            <p>Hola 👋 ¿En qué puedo ayudarte?</p>
+            <div class="chatbot-body">
+                <p>Hola 👋 ¿En qué puedo ayudarte?</p>
 
-            <button type="button" onclick="abrirWhatsAppSoporte('jugar')">¿Cómo jugar?</button>
-            <button type="button" onclick="abrirWhatsAppSoporte('pagos')">¿Problemas con pagos?</button>
-            <button type="button" onclick="abrirWhatsAppSoporte('folio')">¿Recuperar folio?</button>
-            <button type="button" onclick="abrirWhatsAppSoporte('soporte')">Soporte técnico</button>
+                <button type="button" onclick="mostrarAyuda('jugar')">¿Cómo jugar?</button>
+                <button type="button" onclick="mostrarAyuda('pagos')">¿Problemas con pagos?</button>
+                <button type="button" onclick="mostrarAyuda('folio')">¿Recuperar folio?</button>
+                <button type="button" onclick="abrirWhatsAppSoporte('soporte')">Soporte técnico</button>
 
-            <button type="button" class="cerrar-chatbot" id="cerrar-chatbot">Cerrar</button>
+                <div id="respuesta-chatbot" style="margin-top:15px; font-size:14px; text-align:left;"></div>
+
+                <button type="button" class="cerrar-chatbot" id="cerrar-chatbot">Cerrar</button>
+            </div>
         </div>
     </div>
-</div>
 
-<footer class="home-footer">
-    © 2026 Quiz $1000 | Plataforma Oficial | Todos los derechos reservados
-</footer>
+    <footer class="home-footer">
+        © 2026 Quiz $1000 | Plataforma Oficial | Todos los derechos reservados
+    </footer>
 
-<script src="js/main.js"></script<script>
-// ===============================
-// 🎛 CONTROL CHATBOT (NO TOCAR)
-// ===============================
-const botonAbrirChatbot = document.getElementById("abrir-chatbot");
-const botonCerrarChatbot = document.getElementById("cerrar-chatbot");
-const chatbot = document.getElementById("chatbot");
+    <script src="js/main.js"></script>
 
-if (botonAbrirChatbot && chatbot) {
-    botonAbrirChatbot.addEventListener("click", function () {
-        chatbot.classList.toggle("hidden");
-    });
-}
+    <script>
+    // ===============================
+    // 🎛 CONTROL CHATBOT
+    // ===============================
+    const botonAbrirChatbot = document.getElementById("abrir-chatbot");
+    const botonCerrarChatbot = document.getElementById("cerrar-chatbot");
+    const chatbot = document.getElementById("chatbot");
 
-if (botonCerrarChatbot && chatbot) {
-    botonCerrarChatbot.addEventListener("click", function () {
-        chatbot.classList.add("hidden");
-    });
-}
-
-// ===============================
-// 🧠 CONTEXTO USUARIO
-// ===============================
-function obtenerContextoUsuario() {
-
-    let folio = localStorage.getItem("folioTableroActual");
-
-    let jugador = JSON.parse(localStorage.getItem("jugadorActual") || "null");
-    let usuario = JSON.parse(localStorage.getItem("usuarioLogueado") || "null");
-
-    let emailRegistro = localStorage.getItem("emailRegistro");
-
-    return {
-        folio: folio || "SIN_FOLIO",
-        nombre: jugador?.nombre || usuario?.nombre || "Jugador",
-        email: jugador?.email || usuario?.email || emailRegistro || "SIN_EMAIL"
-    };
-}
-
-// ===============================
-// 💬 WHATSAPP INTELIGENTE
-// ===============================
-function abrirWhatsAppSoporte(tipo) {
-
-    const ctx = obtenerContextoUsuario();
-
-    let mensaje = "Hola, necesito ayuda en QUIZ1000.%0A%0A";
-
-    // 🔴 PRIORIDAD NEGOCIO: PAGOS
-    if (tipo === "pagos") {
-        mensaje += "🚨 PROBLEMA DE PAGO%0A";
-        mensaje += "No puedo completar mi pago o tuve un error.%0A%0A";
+    if (botonAbrirChatbot && chatbot) {
+        botonAbrirChatbot.addEventListener("click", function () {
+            chatbot.classList.toggle("hidden");
+        });
     }
 
-    if (tipo === "folio") {
-        mensaje += "🔎 RECUPERAR FOLIO%0A";
-        mensaje += "No encuentro mi folio.%0A%0A";
+    if (botonCerrarChatbot && chatbot) {
+        botonCerrarChatbot.addEventListener("click", function () {
+            chatbot.classList.add("hidden");
+        });
     }
 
-    if (tipo === "jugar") {
-        mensaje += "🎮 CÓMO JUGAR%0A";
-        mensaje += "Necesito ayuda para entender el juego.%0A%0A";
+    // ===============================
+    // 🧠 CONTEXTO USUARIO
+    // ===============================
+    function obtenerContextoUsuario() {
+        const folio = localStorage.getItem("folioTableroActual");
+        const emailRegistro = localStorage.getItem("emailRegistro");
+
+        let jugador = null;
+        let usuario = null;
+
+        try {
+            jugador = JSON.parse(localStorage.getItem("jugadorActual") || "null");
+        } catch (e) {
+            jugador = null;
+        }
+
+        try {
+            usuario = JSON.parse(localStorage.getItem("usuarioLogueado") || "null");
+        } catch (e) {
+            usuario = null;
+        }
+
+        return {
+            folio: folio || "SIN_FOLIO",
+            nombre: (jugador && jugador.nombre) || (usuario && usuario.nombre) || "Jugador",
+            email: (jugador && jugador.email) || (usuario && usuario.email) || emailRegistro || "SIN_EMAIL"
+        };
     }
 
-    if (tipo === "soporte") {
-        mensaje += "🛠 SOPORTE TÉCNICO%0A";
-        mensaje += "Tengo un problema técnico.%0A%0A";
+    // ===============================
+    // 📲 SOLO SOPORTE → WHATSAPP
+    // ===============================
+    function abrirWhatsAppSoporte() {
+        const ctx = obtenerContextoUsuario();
+
+        let mensaje = "Hola, necesito soporte en QUIZ1000.\n\n";
+        mensaje += "🛠 SOPORTE TÉCNICO\n";
+        mensaje += "Tengo un problema.\n\n";
+        mensaje += "📊 DATOS:\n";
+        mensaje += "Folio: " + ctx.folio + "\n";
+        mensaje += "Nombre: " + ctx.nombre + "\n";
+        mensaje += "Email: " + ctx.email;
+
+        const telefono = "5215532004805";
+        const url = "https://wa.me/" + telefono + "?text=" + encodeURIComponent(mensaje);
+
+        window.open(url, "_blank");
     }
 
-    // 📊 CONTEXTO AUTOMÁTICO
-    mensaje += "📊 DATOS:%0A";
-    mensaje += "Folio: " + ctx.folio + "%0A";
-    mensaje += "Nombre: " + ctx.nombre + "%0A";
-    mensaje += "Email: " + ctx.email;
+    // ===============================
+    // 🤖 RESPUESTAS AUTOMÁTICAS
+    // ===============================
+    function mostrarAyuda(tipo) {
+        const contenedor = document.getElementById("respuesta-chatbot");
+        if (!contenedor) return;
 
-    const telefono = "5215532004805"; // ✅ YA PUSE TU NÚMERO REAL
+        let html = "";
 
-    const url = `https://wa.me/${telefono}?text=${mensaje}`;
+        if (tipo === "jugar") {
+            html = `
+                <b>¿Cómo jugar?</b><br><br>
+                1. Selecciona una de las 50 casillas de tu tablero.<br>
+                2. Puedes jugar varias casillas; eso te da más oportunidades de ganar.<br>
+                3. Responde correctamente la pregunta en el menor tiempo posible, porque el mejor tiempo gana los 1,000 USD.<br>
+                4. Las casillas que selecciones quedarán reservadas por 5 minutos; después se liberan si no se pagan.<br>
+                5. Adquiere tu casilla; puede costar desde 1 dólar hasta 50 dólares.<br>
+                6. Tus casillas se cobran en pesos al tipo de cambio vigente y el premio se paga en pesos al tipo de cambio aplicable.<br>
+                7. El premio de 1,000 dólares se paga siempre que se completen las 50 casillas del tablero.<br>
+                8. Si el tablero no se completa en 10 días, el sistema reembolsa automáticamente a los jugadores que pagaron.<br>
+                9. Cuando se completa un tablero, los jugadores reciben un correo con números jugados, tiempos y evidencia del mejor tiempo del ganador.<br>
+                10. Si eres el ganador, tu premio se deposita automáticamente en la misma tarjeta con la que pagaste.<br>
+                11. QUIZ1000 busca que en cada tablero exista un ganador que reciba 1,000 dólares rápido, fácil y con poca inversión.
+                12. SI EL TABLERO SE COMPLETA NO APLICAN REEMBOLSOS, SI EL TABLERO NO SE COMPLETA EN 10 DÍAS, SE REEMBOLSA A LOS JUGADORES<br>
+                `;
+        }
 
-    window.open(url, "_blank");
-}
-</script>
+        if (tipo === "pagos") {
+            html = `
+                <b>Problemas con pagos</b><br><br>
+                • <b>No pude pagar:</b> intenta nuevamente y verifica tus datos bancarios.<br><br>
+                • <b>Ya pagué y no se ve reflejado:</b> espera unos segundos, actualiza la página y revisa tu perfil.<br><br>
+                • <b>¿Qué pasa si pago y no se completa mi tablero?</b><br>
+                Si el tablero no se completa dentro de 10 días, el sistema reembolsa automáticamente a los jugadores que pagaron.
+            `;
+        }
+
+        if (tipo === "folio") {
+            const folioActual = localStorage.getItem("folioTableroActual");
+
+            html = `
+                <b>Recuperar folio</b><br><br>
+                ${folioActual ? "Tu folio actual es: <b>" + folioActual + "</b>" : "No tienes un folio activo en este momento."}
+            `;
+        }
+
+        contenedor.innerHTML = html;
+    }
+    </script>
 </body>
 </html>
