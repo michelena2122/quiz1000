@@ -61,6 +61,9 @@ header{
 h2{
     text-align:center;
     color:#003366;
+    font-size:22px;       /* 👈 más pequeño para móvil */
+    line-height:1.3;      /* 👈 mejora ajuste en 2 líneas */
+    padding:0 10px;       /* 👈 evita que se pegue a bordes */
 }
 
 .item{
@@ -166,7 +169,8 @@ footer{
 <div id="lista"></div>
 
 <div class="total">
-   Total: <span id="total"></span> USD (Recuerda que pagas el equivalente en MXN)
+   <div>Total: <span id="total"></span> USD</div>
+   <div class="nota-total">(Recuerda que pagas el equivalente en MXN)</div>
 </div>
 
 <p class="leyenda-transparencia">
