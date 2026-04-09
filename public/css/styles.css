@@ -1887,3 +1887,6 @@ body, html {
         max-width:125px !important;
     }
 }
+footer {
+    text-align: center !important;
+}
