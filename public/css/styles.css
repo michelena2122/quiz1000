@@ -747,10 +747,23 @@ body.registro {
 }
 
 .whatsapp-boton{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
     background: transparent;
     border: none;
     padding: 0;
     cursor: pointer;
+    width: 100%;
+}
+
+.whatsapp-boton img{
+    width: 70px;
+    height: auto;
+    display: block;
+    margin: 0 auto;
 }
 
 .whatsapp-flotante{
