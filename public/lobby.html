@@ -26,6 +26,35 @@ header{
     width:120px;
 }
 
+.acciones-iniciales{
+    max-width:700px;
+    margin:0 auto 20px;
+    display:flex;
+    gap:12px;
+    padding:0 14px;
+    box-sizing:border-box;
+}
+
+.btn-principal{
+    flex:1;
+    padding:14px 16px;
+    border:none;
+    border-radius:12px;
+    cursor:pointer;
+    font-weight:bold;
+    font-size:15px;
+}
+
+.btn-tablero-curso{
+    background:#003366;
+    color:white;
+}
+
+.btn-tablero-nuevo{
+    background:#1e8e3e;
+    color:white;
+}
+
 .container{
     flex:1;
     max-width:700px;
@@ -43,13 +72,13 @@ h2{
 }
 
 .tablero-card{
-    padding:15px;
-    margin-bottom:14px;
+    padding:16px;
+    margin-bottom:16px;
     background:#f2f8ff;
-    border-radius:10px;
+    border-radius:12px;
     display:flex;
     justify-content:space-between;
-    align-items:center;
+    align-items:flex-start;
     gap:15px;
     flex-wrap:wrap;
 }
@@ -63,13 +92,14 @@ h2{
     font-size:18px;
     color:#003366;
     font-weight:bold;
+    margin-bottom:6px;
 }
 
 .tablero-detalle{
     margin-top:6px;
     font-size:14px;
     color:#333;
-    line-height:1.5;
+    line-height:1.6;
 }
 
 .activo{
@@ -119,14 +149,49 @@ button{
     color:#003366;
 }
 
+.barra-externa{
+    width:100%;
+    height:14px;
+    background:#d9e7f5;
+    border-radius:999px;
+    overflow:hidden;
+    margin:10px 0 8px;
+}
+
+.barra-interna{
+    height:100%;
+    background:linear-gradient(90deg, #1e8e3e, #43b866);
+    border-radius:999px;
+    transition:width 0.3s ease;
+}
+
+.progreso-texto{
+    font-size:13px;
+    color:#003366;
+    font-weight:bold;
+}
+
+.contador-tablero{
+    font-size:13px;
+    color:#444;
+    margin-top:6px;
+}
+
 footer{
-    background:#003366;
-    color:white;
+    background:transparent;
+    color:#003366;
     text-align:center;
-    padding:10px;
+    padding:18px 12px 24px;
+    font-size:13px;
+    line-height:1.5;
 }
 
 @media (max-width: 768px){
+    .acciones-iniciales{
+        flex-direction:column;
+        padding:0 14px;
+    }
+
     .container{
         margin:0 14px 25px;
         padding:20px;
@@ -153,24 +218,34 @@ footer{
     <img src="/assets/images/logotipo.png" class="logo" alt="Quiz 1000">
 </header>
 
+<div class="acciones-iniciales">
+    <button class="btn-principal btn-tablero-curso" onclick="irAListaTableros()">
+        Participar en Tablero en curso
+    </button>
+
+    <button class="btn-principal btn-tablero-nuevo" onclick="crearNuevoTablero()">
+        Abrir Nuevo Tablero
+    </button>
+</div>
+
 <div class="estado-rapido" id="estadoRapido">
     <h3>📊 Estado Actual</h3>
     <p>Cargando tableros...</p>
 </div>
 
-<div class="container">
+<div class="container" id="seccionTableros">
     <h2>Tableros Disponibles</h2>
 
     <div id="listaTableros">
         <p>Cargando tableros...</p>
     </div>
 
-    <button class="btn-crear" onclick="crearNuevoTablero()">Nuevo tablero</button>
+    <button class="btn-crear" onclick="crearNuevoTablero()">Abrir Nuevo Tablero</button>
 </div>
 
 <footer>
-© 2026 Quiz1000 LLC.
-All rights reserved. QUIZ1000 is a trademark of Quiz1000 LLC.
+© 2026 Quiz1000 LLC.<br>
+All rights reserved. QUIZ1000 is a trademark of Quiz1000 LLC.<br>
 www.Quiz1000.llc
 </footer>
 
@@ -184,6 +259,36 @@ if(!usuario){
 }
 
 const lista = document.getElementById("listaTableros");
+const DIEZ_DIAS_MS = 10 * 24 * 60 * 60 * 1000;
+
+// =============================
+// IR A LISTA DE TABLEROS
+// =============================
+function irAListaTableros() {
+    const seccion = document.getElementById("seccionTableros");
+    if (seccion) {
+        seccion.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+    }
+}
+
+// =============================
+// FORMATEAR TIEMPO RESTANTE
+// =============================
+function formatearTiempoRestante(msRestantes) {
+    if (msRestantes <= 0) {
+        return "Vencido";
+    }
+
+    const totalSegundos = Math.floor(msRestantes / 1000);
+    const dias = Math.floor(totalSegundos / 86400);
+    const horas = Math.floor((totalSegundos % 86400) / 3600);
+    const minutos = Math.floor((totalSegundos % 3600) / 60);
+
+    return `${dias}d ${horas}h ${minutos}m`;
+}
 
 // =============================
 // CARGAR TABLEROS DESDE BACKEND
@@ -213,29 +318,52 @@ async function cargarTableros() {
             return;
         }
 
-        const tarjetasHtml = await Promise.all(
+        const resumenes = await Promise.all(
             tablerosActivos.map(async (tablero) => {
                 const resumen = await obtenerResumenTablero(tablero.id);
-
-                return `
-                    <div class="tablero-card">
-                        <div class="tablero-info">
-                            <div class="tablero-folio">${tablero.id}</div>
-                            <div class="tablero-detalle">
-                                <span class="activo">En curso</span><br>
-                                Casillas pagadas: <strong>${resumen.pagadas}</strong><br>
-                                Casillas apartadas: <strong>${resumen.reservadas}</strong><br>
-                                Faltan por pagar: <strong>${resumen.faltantes}</strong>
-                            </div>
-                        </div>
-
-                        <button class="btn-entrar" onclick="abrirTableroEnCurso('${tablero.id}')">
-                            Jugar tablero en curso
-                        </button>
-                    </div>
-                `;
+                return {
+                    ...tablero,
+                    ...resumen
+                };
             })
         );
+
+        resumenes.sort((a, b) => {
+            return a.msRestantesOrden - b.msRestantesOrden;
+        });
+
+        const tarjetasHtml = resumenes.map((tablero) => {
+            return `
+                <div class="tablero-card">
+                    <div class="tablero-info">
+                        <div class="tablero-folio">${tablero.id}</div>
+
+                        <div class="tablero-detalle">
+                            <span class="activo">En curso</span><br>
+                            Casillas pagadas: <strong>${tablero.pagadas}</strong><br>
+                            Casillas apartadas: <strong>${tablero.reservadas}</strong><br>
+                            Faltan por pagar: <strong>${tablero.faltantes}</strong>
+                        </div>
+
+                        <div class="barra-externa">
+                            <div class="barra-interna" style="width:${tablero.porcentajePagado}%"></div>
+                        </div>
+
+                        <div class="progreso-texto">
+                            Progreso: ${tablero.pagadas}/50 (${tablero.porcentajePagado}%)
+                        </div>
+
+                        <div class="contador-tablero">
+                            ${tablero.textoVencimiento}
+                        </div>
+                    </div>
+
+                    <button class="btn-entrar" onclick="abrirTableroEnCurso('${tablero.id}')">
+                        Entrar
+                    </button>
+                </div>
+            `;
+        });
 
         lista.innerHTML = tarjetasHtml.join("");
 
@@ -259,25 +387,48 @@ async function cargarTableros() {
 // =============================
 async function obtenerResumenTablero(folio) {
     try {
-        const res = await fetch("/api/estado-casillas?folio=" + encodeURIComponent(folio));
-        const data = await res.json();
+        const [resCasillas, resEstado] = await Promise.all([
+            fetch("/api/estado-casillas?folio=" + encodeURIComponent(folio)),
+            fetch("/api/estado-tablero?folio=" + encodeURIComponent(folio))
+        ]);
 
-        if(!data.ok || !Array.isArray(data.casillas)){
-            return {
-                pagadas: 0,
-                reservadas: 0,
-                faltantes: 50
-            };
-        }
+        const dataCasillas = await resCasillas.json();
+        const dataEstado = await resEstado.json();
 
-        const pagadas = data.casillas.filter(c => c.estado === "pagada").length;
-        const reservadas = data.casillas.filter(c => c.estado === "reservada").length;
+        const casillas = (dataCasillas.ok && Array.isArray(dataCasillas.casillas))
+            ? dataCasillas.casillas
+            : [];
+
+        const pagadas = casillas.filter(c => c.estado === "pagada").length;
+        const reservadas = casillas.filter(c => c.estado === "reservada").length;
         const faltantes = 50 - pagadas;
+        const porcentajePagado = Math.round((pagadas / 50) * 100);
+
+        let msRestantes = Number.MAX_SAFE_INTEGER;
+        let textoVencimiento = "Aún no inicia contador de 10 días";
+
+        if (dataEstado.ok && dataEstado.tablero) {
+            if (typeof dataEstado.tablero.msRestantes === "number") {
+                msRestantes = dataEstado.tablero.msRestantes;
+                textoVencimiento = msRestantes > 0
+                    ? `Vence en: ${formatearTiempoRestante(msRestantes)}`
+                    : "Vencido";
+            } else if (dataEstado.tablero.fechaApertura) {
+                const msCalculados = (Number(dataEstado.tablero.fechaApertura) + DIEZ_DIAS_MS) - Date.now();
+                msRestantes = msCalculados;
+                textoVencimiento = msCalculados > 0
+                    ? `Vence en: ${formatearTiempoRestante(msCalculados)}`
+                    : "Vencido";
+            }
+        }
 
         return {
             pagadas,
             reservadas,
-            faltantes
+            faltantes,
+            porcentajePagado,
+            msRestantesOrden: msRestantes,
+            textoVencimiento
         };
 
     } catch (error) {
@@ -285,7 +436,10 @@ async function obtenerResumenTablero(folio) {
         return {
             pagadas: 0,
             reservadas: 0,
-            faltantes: 50
+            faltantes: 50,
+            porcentajePagado: 0,
+            msRestantesOrden: Number.MAX_SAFE_INTEGER,
+            textoVencimiento: "No se pudo consultar el vencimiento"
         };
     }
 }
@@ -382,6 +536,7 @@ async function crearNuevoTablero() {
 // INICIO
 // =============================
 cargarTableros();
+setInterval(cargarTableros, 60000);
 </script>
 
 </body>
