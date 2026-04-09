@@ -18,16 +18,24 @@
     font-weight:bold;
 }
 
+/* CONTENEDOR GENERAL */
+.perfil-contenedor{
+    text-align:center;
+}
+
+/* ROBOTS */
 .robots-menu{
     display:flex;
     justify-content:center;
-    gap:30px;
-    margin-bottom:30px;
+    align-items:center;
+    gap:40px;
+    margin:20px 0 30px 0;
     flex-wrap:wrap;
 }
 
+/* BOTONES ROBOT */
 .robot-btn{
-    width:120px;
+    width:150px; /* 🔥 MÁS GRANDES */
     cursor:pointer;
     transition:transform 0.2s;
 }
@@ -36,13 +44,36 @@
     transform:scale(1.08);
 }
 
+/* LOGO PERFIL */
+.icono-perfil{
+    display:block;
+    margin:0 auto 20px auto;
+    max-width:220px;
+}
+
+/* MOBILE */
 @media(max-width:600px){
     .robot-btn{
-        width:90px;
+        width:120px; /* 🔥 MÁS GRANDES EN CELULAR */
+    }
+
+    .icono-perfil{
+        max-width:180px;
     }
 }
 </style>
 </head>
+<footer style="
+    text-align:center;
+    font-size:12px;
+    color:#555;
+    margin-top:40px;
+    padding:20px;
+">
+© 2026 Quiz1000 LLC.<br>
+All rights reserved. QUIZ1000 is a trademark of Quiz1000 LLC.<br>
+www.Quiz1000.llc
+</footer>
 
 <body>
 
