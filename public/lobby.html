@@ -268,13 +268,9 @@ function irAListaTableros() {
     const seccion = document.getElementById("seccionTableros");
 
     if (seccion) {
-        // Mostrar sección
         seccion.style.display = "block";
-
-        // Cargar tableros SOLO cuando se abre
         cargarTableros();
 
-        // Scroll suave hacia la lista
         setTimeout(() => {
             seccion.scrollIntoView({
                 behavior: "smooth",
@@ -301,15 +297,14 @@ function formatearTiempoRestante(msRestantes) {
 }
 
 // =============================
-// CARGAR TABLEROS DESDE BACKEND
+// CARGAR SOLO ESTADO RAPIDO
 // =============================
-async function cargarTableros() {
+async function cargarEstadoRapido() {
     try {
         const res = await fetch("/api/tableros");
         const data = await res.json();
 
         if(!data.ok || !Array.isArray(data.tableros)){
-            lista.innerHTML = "<p>No se pudieron cargar los tableros.</p>";
             document.getElementById("estadoRapido").innerHTML = `
                 <h3>📊 Estado Actual</h3>
                 <p>No fue posible consultar tableros.</p>
@@ -319,12 +314,36 @@ async function cargarTableros() {
 
         const tablerosActivos = data.tableros.filter(t => Number(t.completo) === 0);
 
+        document.getElementById("estadoRapido").innerHTML = `
+            <h3>📊 Estado Actual</h3>
+            <p>Hay <strong>${tablerosActivos.length}</strong> tablero(s) en curso</p>
+        `;
+    } catch (error) {
+        console.error("ERROR CARGANDO ESTADO RAPIDO:", error);
+        document.getElementById("estadoRapido").innerHTML = `
+            <h3>📊 Estado Actual</h3>
+            <p>Error consultando el estado actual.</p>
+        `;
+    }
+}
+
+// =============================
+// CARGAR TABLEROS DESDE BACKEND
+// =============================
+async function cargarTableros() {
+    try {
+        const res = await fetch("/api/tableros");
+        const data = await res.json();
+
+        if(!data.ok || !Array.isArray(data.tableros)){
+            lista.innerHTML = "<p>No se pudieron cargar los tableros.</p>";
+            return;
+        }
+
+        const tablerosActivos = data.tableros.filter(t => Number(t.completo) === 0);
+
         if(tablerosActivos.length === 0){
             lista.innerHTML = "<p>No hay tableros en curso aún.</p>";
-            document.getElementById("estadoRapido").innerHTML = `
-                <h3>📊 Estado Actual</h3>
-                <p>No hay tableros activos por ahora.</p>
-            `;
             return;
         }
 
@@ -377,18 +396,9 @@ async function cargarTableros() {
 
         lista.innerHTML = tarjetasHtml.join("");
 
-        document.getElementById("estadoRapido").innerHTML = `
-            <h3>📊 Estado Actual</h3>
-            <p>Hay <strong>${tablerosActivos.length}</strong> tablero(s) en curso</p>
-        `;
-
     } catch (error) {
         console.error("ERROR CARGANDO TABLEROS:", error);
         lista.innerHTML = "<p>Error cargando tableros.</p>";
-        document.getElementById("estadoRapido").innerHTML = `
-            <h3>📊 Estado Actual</h3>
-            <p>Error consultando el estado actual.</p>
-        `;
     }
 }
 
@@ -462,7 +472,7 @@ function abrirTableroEnCurso(folio) {
 
     const carritoKey = "carrito_" + folio;
     if (!localStorage.getItem(carritoKey)) {
-        localStorage.setItem(carritoKey, JSON.stringify({
+        localStorage.setItem("carrito_" + folio, JSON.stringify({
             items: [],
             total: 0
         }));
@@ -545,13 +555,16 @@ async function crearNuevoTablero() {
 // =============================
 // INICIO
 // =============================
+cargarEstadoRapido();
+
 setInterval(() => {
+    cargarEstadoRapido();
+
     const seccion = document.getElementById("seccionTableros");
     if (seccion && seccion.style.display !== "none") {
         cargarTableros();
     }
 }, 60000);
-
 </script>
 
 </body>
