@@ -216,7 +216,10 @@ pagarBtn.addEventListener("click", async function () {
     // ============================
 
     const jugadorID = "JUG-" + Date.now();
-    const folioTablero = localStorage.getItem("folioTablero");
+
+    const folioTablero =
+    localStorage.getItem("folioTableroActual") ||
+    localStorage.getItem("folioTablero");
 
     const jugadorData = {
         id: jugadorID,
