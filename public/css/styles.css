@@ -389,19 +389,17 @@ body.home {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(6px);
     border-radius: 20px;
-    padding: 30px;
-    margin: 25px auto;
+    padding: 18px 20px;
+    margin: 20px auto;
     width: 100%;
     max-width: 600px;
 
-    /* Difuminado elegante */
     box-shadow: 
         0 10px 25px rgba(0, 0, 0, 0.15),
         0 0 40px rgba(255, 255, 255, 0.4);
 
     transition: 0.3s ease;
-}
-.cell img.robot-mini {
+}.cell img.robot-mini {
     width: 80%;
     height: auto;
     pointer-events: none;
@@ -581,7 +579,7 @@ body.registro {
 }
 
 .perfil-icono-home {
-    width: 150px;   /* más grande y visible */
+    width: 130px;   /* más grande y visible */
     height: auto;
     transition: 0.3s ease;
     cursor: pointer;
@@ -599,7 +597,7 @@ body.registro {
 }
 
 .tableros-icono-home {
-    width: 150px;   /* ligeramente más grande que el emoji original */
+    width: 130px;   /* ligeramente más grande que el emoji original */
     height: auto;
     transition: 0.3s ease;
     cursor: pointer;
@@ -612,19 +610,13 @@ body.registro {
 /* ===== INFO HOME ========= */
 /* ========================= */
 
-.info-iconos-home {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 40px;   /* espacio entre los dos iconos */
-}
 
 .info-link-home {
     display: inline-block;
 }
 
 .info-icono-home {
-    width: 150px;   /* más grande que el emoji original */
+    width: 130px;   /* más grande que el emoji original */
     height: auto;
     transition: 0.3s ease;
     cursor: pointer;
@@ -642,7 +634,7 @@ body.registro {
 }
 
 .testimonios-icono-home {
-    width: 150px;   /* más grande que el emoji anterior */
+    width: 130px;   /* más grande que el emoji anterior */
     height: auto;
     transition: 0.3s ease;
 }
