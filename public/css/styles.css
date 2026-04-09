@@ -1813,3 +1813,12 @@ body, html {
     font-weight:normal;
     margin-top:5px;
 }
+@media(max-width:600px){
+    .robots-menu{
+        gap:20px;
+    }
+
+    .perfil-contenedor{
+        padding:10px;
+    }
+}
