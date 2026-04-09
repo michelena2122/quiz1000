@@ -39,16 +39,37 @@ header{
 h2{
     text-align:center;
     color:#003366;
+    margin-top:0;
 }
 
 .tablero-card{
     padding:15px;
-    margin-bottom:10px;
+    margin-bottom:14px;
     background:#f2f8ff;
     border-radius:10px;
     display:flex;
     justify-content:space-between;
     align-items:center;
+    gap:15px;
+    flex-wrap:wrap;
+}
+
+.tablero-info{
+    flex:1;
+    min-width:220px;
+}
+
+.tablero-folio{
+    font-size:18px;
+    color:#003366;
+    font-weight:bold;
+}
+
+.tablero-detalle{
+    margin-top:6px;
+    font-size:14px;
+    color:#333;
+    line-height:1.5;
 }
 
 .activo{
@@ -62,9 +83,9 @@ h2{
 }
 
 button{
-    padding:8px 12px;
+    padding:10px 14px;
     border:none;
-    border-radius:6px;
+    border-radius:8px;
     cursor:pointer;
     font-weight:bold;
 }
@@ -72,6 +93,7 @@ button{
 .btn-entrar{
     background:#003366;
     color:white;
+    white-space:nowrap;
 }
 
 .btn-crear{
@@ -79,14 +101,9 @@ button{
     margin-top:20px;
     background:#1e8e3e;
     color:white;
+    font-size:16px;
 }
 
-footer{
-    background:#003366;
-    color:white;
-    text-align:center;
-    padding:10px;
-}
 .estado-rapido{
     max-width:700px;
     margin:0 auto 20px;
@@ -101,6 +118,32 @@ footer{
     margin-top:0;
     color:#003366;
 }
+
+footer{
+    background:#003366;
+    color:white;
+    text-align:center;
+    padding:10px;
+}
+
+@media (max-width: 768px){
+    .container{
+        margin:0 14px 25px;
+        padding:20px;
+    }
+
+    .estado-rapido{
+        margin:0 14px 20px;
+    }
+
+    .tablero-card{
+        align-items:flex-start;
+    }
+
+    .btn-entrar{
+        width:100%;
+    }
+}
 </style>
 </head>
 
@@ -110,19 +153,19 @@ footer{
     <img src="/assets/images/logotipo.png" class="logo" alt="Quiz 1000">
 </header>
 
-<div class="estado-rapido" id="estadoRapido"></div>
+<div class="estado-rapido" id="estadoRapido">
+    <h3>📊 Estado Actual</h3>
+    <p>Cargando tableros...</p>
+</div>
 
 <div class="container">
+    <h2>Tableros Disponibles</h2>
 
-<h2>Tableros Disponibles</h2>
-<button onclick="abrirTableroEnCurso('TAB-657891')">Jugar tablero en curso</button>
+    <div id="listaTableros">
+        <p>Cargando tableros...</p>
+    </div>
 
-<div id="listaTableros"></div>
-
-<button onclick="crearNuevoTablero()">Nuevo tablero</button>
-    Crear Nuevo Tablero
-</button>
-
+    <button class="btn-crear" onclick="crearNuevoTablero()">Nuevo tablero</button>
 </div>
 
 <footer>
@@ -132,116 +175,141 @@ www.Quiz1000.llc
 </footer>
 
 <script>
-    // PROTEGER LOBBY
+// =============================
+// PROTEGER LOBBY
+// =============================
 const usuario = JSON.parse(localStorage.getItem("usuarioLogueado"));
-
 if(!usuario){
     window.location.href = "login.html";
 }
 
-let tableros = JSON.parse(localStorage.getItem("tableros")) || {};
-
 const lista = document.getElementById("listaTableros");
 
-function renderTableros(){
+// =============================
+// CARGAR TABLEROS DESDE BACKEND
+// =============================
+async function cargarTableros() {
+    try {
+        const res = await fetch("/api/tableros");
+        const data = await res.json();
 
-    lista.innerHTML = "";
-
-    const claves = Object.keys(tableros);
-
-    if(claves.length === 0){
-        lista.innerHTML = "<p>No hay tableros activos aún.</p>";
-        return;
-    }
-
-    claves.forEach(folio => {
-
-        const tablero = tableros[folio];
-
-        const div = document.createElement("div");
-        div.classList.add("tablero-card");
-
-        const estadoTexto = tablero.completo ?
-            `<span class="completo">Completo</span>` :
-            `<span class="activo">Activo</span>`;
-
-        div.innerHTML = `
-            <div>
-                <strong>${folio}</strong><br>
-                ${estadoTexto}
-            </div>
-            <button class="btn-entrar" onclick="entrar('${folio}')">
-                Entrar
-            </button>
-        `;
-
-        lista.appendChild(div);
-    });
-}
-
-function entrar(folio){
-    window.location.href = "tablero.html?folio=" + folio;
-}
-document.getElementById("crearTablero").addEventListener("click", function(){
-
-    const nuevoFolio = "TAB-" + Math.floor(100000 + Math.random() * 900000);
-
-    tableros[nuevoFolio] = {
-        fechaCreacion: new Date().toLocaleString(),
-        casillasResueltas: [],
-        completo: false
-    };
-    // ============================
-    // ASOCIAR TABLERO AL JUGADOR
-    // ============================
-
-    let jugadorActual = JSON.parse(localStorage.getItem("jugadorActual"));
-
-    if(jugadorActual){
-
-        if(!jugadorActual.tableros){
-            jugadorActual.tableros = {};
+        if(!data.ok || !Array.isArray(data.tableros)){
+            lista.innerHTML = "<p>No se pudieron cargar los tableros.</p>";
+            document.getElementById("estadoRapido").innerHTML = `
+                <h3>📊 Estado Actual</h3>
+                <p>No fue posible consultar tableros.</p>
+            `;
+            return;
         }
 
-        jugadorActual.tableros[nuevoFolio] = {
-            numeros: [],
-            mejorTiempo: null,
-            estado: "activo"
-        };
+        const tablerosActivos = data.tableros.filter(t => Number(t.completo) === 0);
 
-        localStorage.setItem("jugadorActual", JSON.stringify(jugadorActual));
+        if(tablerosActivos.length === 0){
+            lista.innerHTML = "<p>No hay tableros en curso aún.</p>";
+            document.getElementById("estadoRapido").innerHTML = `
+                <h3>📊 Estado Actual</h3>
+                <p>No hay tableros activos por ahora.</p>
+            `;
+            return;
+        }
+
+        const tarjetasHtml = await Promise.all(
+            tablerosActivos.map(async (tablero) => {
+                const resumen = await obtenerResumenTablero(tablero.id);
+
+                return `
+                    <div class="tablero-card">
+                        <div class="tablero-info">
+                            <div class="tablero-folio">${tablero.id}</div>
+                            <div class="tablero-detalle">
+                                <span class="activo">En curso</span><br>
+                                Casillas pagadas: <strong>${resumen.pagadas}</strong><br>
+                                Casillas apartadas: <strong>${resumen.reservadas}</strong><br>
+                                Faltan por pagar: <strong>${resumen.faltantes}</strong>
+                            </div>
+                        </div>
+
+                        <button class="btn-entrar" onclick="abrirTableroEnCurso('${tablero.id}')">
+                            Jugar tablero en curso
+                        </button>
+                    </div>
+                `;
+            })
+        );
+
+        lista.innerHTML = tarjetasHtml.join("");
+
+        document.getElementById("estadoRapido").innerHTML = `
+            <h3>📊 Estado Actual</h3>
+            <p>Hay <strong>${tablerosActivos.length}</strong> tablero(s) en curso</p>
+        `;
+
+    } catch (error) {
+        console.error("ERROR CARGANDO TABLEROS:", error);
+        lista.innerHTML = "<p>Error cargando tableros.</p>";
+        document.getElementById("estadoRapido").innerHTML = `
+            <h3>📊 Estado Actual</h3>
+            <p>Error consultando el estado actual.</p>
+        `;
     }
-
-    localStorage.setItem("tableros", JSON.stringify(tableros));
-
-    window.location.href = "tablero.html?folio=" + nuevoFolio;
-});
-
-renderTableros();
-// =============================
-// ESTADO RAPIDO DEL JUGADOR
-// =============================
-
-// =============================
-// ESTADO RAPIDO DEL JUGADOR
-// =============================
-
-function cargarEstadoRapido(){
-
-    const contenedor = document.getElementById("estadoRapido");
-    if(!contenedor) return;
-
-    const tablerosGlobal = JSON.parse(localStorage.getItem("tableros")) || {};
-    const totalTablerosJugador = Object.keys(tablerosGlobal).length;
-
-    contenedor.innerHTML = `
-        <h3>📊 Estado Actual</h3>
-        <p>Participas en <strong>${totalTablerosJugador}</strong> tablero(s)</p>
-    `;
 }
 
-cargarEstadoRapido();
+// =============================
+// RESUMEN DE CADA TABLERO
+// =============================
+async function obtenerResumenTablero(folio) {
+    try {
+        const res = await fetch("/api/estado-casillas?folio=" + encodeURIComponent(folio));
+        const data = await res.json();
 
+        if(!data.ok || !Array.isArray(data.casillas)){
+            return {
+                pagadas: 0,
+                reservadas: 0,
+                faltantes: 50
+            };
+        }
+
+        const pagadas = data.casillas.filter(c => c.estado === "pagada").length;
+        const reservadas = data.casillas.filter(c => c.estado === "reservada").length;
+        const faltantes = 50 - pagadas;
+
+        return {
+            pagadas,
+            reservadas,
+            faltantes
+        };
+
+    } catch (error) {
+        console.error("ERROR LEYENDO ESTADO DE CASILLAS:", folio, error);
+        return {
+            pagadas: 0,
+            reservadas: 0,
+            faltantes: 50
+        };
+    }
+}
+
+// =============================
+// ABRIR TABLERO EN CURSO
+// =============================
+function abrirTableroEnCurso(folio) {
+    localStorage.setItem("folioTableroActual", folio);
+
+    const carritoKey = "carrito_" + folio;
+    if (!localStorage.getItem(carritoKey)) {
+        localStorage.setItem(carritoKey, JSON.stringify({
+            items: [],
+            total: 0
+        }));
+    }
+
+    window.location.href = "/tablero?folio=" + encodeURIComponent(folio);
+}
+
+// =============================
+// CREAR NUEVO TABLERO
+// =============================
 async function crearNuevoTablero() {
     try {
         const res = await fetch("/api/crear-tablero", {
@@ -268,6 +336,7 @@ async function crearNuevoTablero() {
         }
 
         let jugadorActual = JSON.parse(localStorage.getItem("jugadorActual"));
+        let usuarioLogueado = JSON.parse(localStorage.getItem("usuarioLogueado"));
 
         if (jugadorActual) {
             if (!jugadorActual.tableros) {
@@ -278,16 +347,30 @@ async function crearNuevoTablero() {
                 jugadorActual.tableros[folio] = {
                     numeros: [],
                     tiempos: [],
-                    fechaApertura: new Date().toLocaleString(),
                     estado: "activo"
                 };
             }
 
             localStorage.setItem("jugadorActual", JSON.stringify(jugadorActual));
-            localStorage.setItem("usuarioLogueado", JSON.stringify(jugadorActual));
         }
 
-        window.location.href = "/tablero?folio=" + folio;
+        if (usuarioLogueado) {
+            if (!usuarioLogueado.tableros) {
+                usuarioLogueado.tableros = {};
+            }
+
+            if (!usuarioLogueado.tableros[folio]) {
+                usuarioLogueado.tableros[folio] = {
+                    numeros: [],
+                    tiempos: [],
+                    estado: "activo"
+                };
+            }
+
+            localStorage.setItem("usuarioLogueado", JSON.stringify(usuarioLogueado));
+        }
+
+        window.location.href = "/tablero?folio=" + encodeURIComponent(folio);
 
     } catch (error) {
         console.error("Error creando tablero desde lobby:", error);
@@ -295,19 +378,10 @@ async function crearNuevoTablero() {
     }
 }
 
-function abrirTableroEnCurso(folio) {
-    localStorage.setItem("folioTableroActual", folio);
-
-    const carritoKey = "carrito_" + folio;
-    if (!localStorage.getItem(carritoKey)) {
-        localStorage.setItem(carritoKey, JSON.stringify({
-            items: [],
-            total: 0
-        }));
-    }
-
-    window.location.href = "/tablero?folio=" + folio;
-}
+// =============================
+// INICIO
+// =============================
+cargarTableros();
 </script>
 
 </body>
