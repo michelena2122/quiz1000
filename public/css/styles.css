@@ -1174,11 +1174,6 @@ header {
   text-align: center;
 }
 
-header img {
-  max-height: 80px;
-  margin-top: 10px;
-}
-
 header h1,
 header p {
   margin: 5px 0;
