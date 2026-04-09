@@ -88,40 +88,73 @@
     </div>
 <!-- BOTON WHATSAPP SOPORTE -->
 
-<div class="whatsapp-flotante">
-    <a href="https://wa.me/5215532004805" target="_blank">
+<!-- BOTON WHATSAPP SOPORTE -->
+<div class="whatsapp-soporte">
+    <button class="whatsapp-flotante whatsapp-boton" id="abrir-chatbot" type="button">
         <img src="/assets/images/whatsapp.png" alt="WhatsApp">
-    </a>
-    </div>
+    </button>
+
     <p class="texto-whatsapp">Atención a Jugadores</p>
+
+    <div class="chatbot hidden" id="chatbot">
+        <div class="chatbot-header">
+            🤖 Ayuda a jugadores
+        </div>
+
+        <div class="chatbot-body">
+            <p>Hola 👋 ¿En qué puedo ayudarte?</p>
+
+            <button type="button" onclick="abrirWhatsAppSoporte('jugar')">¿Cómo jugar?</button>
+            <button type="button" onclick="abrirWhatsAppSoporte('pagos')">¿Problemas con pagos?</button>
+            <button type="button" onclick="abrirWhatsAppSoporte('folio')">¿Recuperar folio?</button>
+            <button type="button" onclick="abrirWhatsAppSoporte('soporte')">Soporte técnico</button>
+
+            <button type="button" class="cerrar-chatbot" id="cerrar-chatbot">Cerrar</button>
+        </div>
+    </div>
 </div>
-</div>
+
 <footer class="home-footer">
     © 2026 Quiz $1000 | Plataforma Oficial | Todos los derechos reservados
 </footer>
 
-</a>
-
-</div>
-<div class="chatbot">
-
-    <div class="chatbot-header">
-        🤖 Ayuda a jugadores
-    </div>
-
-    <div class="chatbot-body" id="chatbot-body">
-        <p>Hola 👋 ¿En qué puedo ayudarte?</p>
-
-        <button onclick="responder('jugar')">¿Cómo jugar?</button>
-        <button onclick="responder('pagos')">¿Problemas con pagos?</button>
-        <button onclick="responder('folio')">¿Recuperar folio?</button>
-        <button onclick="responder('soporte')">Soporte técnico</button>
-
-      <div id="respuesta"></div>
-
-</div>
-</div>
-
 <script src="js/main.js"></script>
+
+<script>
+const botonAbrirChatbot = document.getElementById("abrir-chatbot");
+const botonCerrarChatbot = document.getElementById("cerrar-chatbot");
+const chatbot = document.getElementById("chatbot");
+
+if (botonAbrirChatbot && chatbot) {
+    botonAbrirChatbot.addEventListener("click", function () {
+        chatbot.classList.toggle("hidden");
+    });
+}
+
+if (botonCerrarChatbot && chatbot) {
+    botonCerrarChatbot.addEventListener("click", function () {
+        chatbot.classList.add("hidden");
+    });
+}
+
+function abrirWhatsAppSoporte(tipo) {
+    let mensaje = "";
+
+    if (tipo === "jugar") {
+        mensaje = "Hola, necesito ayuda para saber cómo jugar en Quiz $1000.";
+    } else if (tipo === "pagos") {
+        mensaje = "Hola, tengo un problema con mi pago en Quiz $1000.";
+    } else if (tipo === "folio") {
+        mensaje = "Hola, necesito ayuda para recuperar mi folio en Quiz $1000.";
+    } else if (tipo === "soporte") {
+        mensaje = "Hola, necesito soporte técnico en Quiz $1000.";
+    } else {
+        mensaje = "Hola, necesito ayuda en Quiz $1000.";
+    }
+
+    const url = "https://wa.me/5215532004805?text=" + encodeURIComponent(mensaje);
+    window.open(url, "_blank");
+}
+</script>
 </body>
 </html>

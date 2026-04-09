@@ -738,14 +738,26 @@ body.registro {
 
 }
 /* ========================= */
-/* ===== WHATSAPP BOTON ==== */
+/* ===== WHATSAPP SOPORTE == */
 /* ========================= */
+
+.whatsapp-soporte{
+    text-align: center;
+    margin: 40px 0 20px 0;
+}
+
+.whatsapp-boton{
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+}
 
 .whatsapp-flotante{
     position: relative;
     text-align: center;
-    margin: 40px 0;
-    z-index: 9999;
+    margin: 0 auto;
+    z-index: 1;
 }
 
 .whatsapp-flotante img{
@@ -757,52 +769,72 @@ body.registro {
 .whatsapp-flotante img:hover{
     transform: scale(1.1);
 }
+
 .texto-whatsapp{
     margin-top: 8px;
-    font-size: 16px;        /* texto más grande */
-    color: white;           /* texto blanco para contraste */
+    font-size: 16px;
+    color: white;
     font-weight: 600;
-    background-color: #0b2a5b;  /* azul obscuro */
-    display: inline-block;  /* hace que el fondo solo cubra el texto */
-    padding: 6px 12px;      /* espacio interno */
-    border-radius: 6px;     /* esquinas redondeadas */
+    background-color: #0b2a5b;
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 6px;
 }
+
 .chatbot{
-    position: fixed;
-    bottom: 120px;
-    right: 20px;
-    width: 260px;
+    width: 100%;
+    max-width: 420px;
+    margin: 20px auto 0 auto;
     background: white;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.2);
-    font-family: Arial;
+    border-radius: 16px;
+    box-shadow: 0 0 14px rgba(0,0,0,0.18);
+    font-family: Arial, sans-serif;
+    overflow: hidden;
 }
 
 .chatbot-header{
     background: #0b2a5b;
     color: white;
-    padding: 20px;
+    padding: 18px;
     font-weight: bold;
-    border-radius: 10px 10px 0 0;
+    font-size: 24px;
 }
 
 .chatbot-body{
-    padding: 10px;
+    padding: 18px;
+}
+
+.chatbot-body p{
+    font-size: 18px;
+    color: #111;
+    line-height: 1.4;
+    margin-top: 0;
+    margin-bottom: 16px;
 }
 
 .chatbot button{
     width: 100%;
-    margin-top: 6px;
-    padding: 8px;
+    margin-top: 10px;
+    padding: 14px;
     border: none;
-    border-radius: 6px;
+    border-radius: 10px;
     background: #25D366;
     color: white;
     cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
 }
 
 .chatbot button:hover{
     background: #1ebe5d;
+}
+
+.cerrar-chatbot{
+    background: #0b2a5b !important;
+}
+
+.hidden{
+    display: none !important;
 }
 #estadoTablero {
     white-space: pre-line;
