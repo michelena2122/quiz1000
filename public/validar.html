@@ -207,8 +207,14 @@ localStorage.setItem("jugadorId", dataRegistro.id);
 localStorage.removeItem("registroPendiente");
 
 const folio = localStorage.getItem("folioTableroActual");
+const origenRegistro = localStorage.getItem("origenRegistro");
 
+if(origenRegistro === "home"){
+localStorage.removeItem("origenRegistro");
+window.location.href = "portada.html";
+}else{
 window.location.href = "pago.html?folio=" + folio;
+}
 
 }else{
 
