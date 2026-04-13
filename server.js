@@ -435,8 +435,9 @@ function inicializarConfiguracion(callback){
                                             return;
                                         }
 
-                                        console.log("Tabla pagos_mp creada correctamente");
-                                        db.run(`
+console.log("Tabla pagos_mp creada correctamente");
+
+db.run(`
     CREATE TABLE IF NOT EXISTS solicitudes_premio (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         tableroId TEXT,
@@ -457,12 +458,14 @@ function inicializarConfiguracion(callback){
 `, (errPremio) => {
     if(errPremio){
         console.log("❌ Error creando tabla solicitudes_premio:", errPremio.message);
-    } else {
-        console.log("✅ Tabla solicitudes_premio creada correctamente");
+        if(callback) return callback(errPremio);
+        return;
     }
-});
 
-                                        if(callback) callback(null);
+    console.log("✅ Tabla solicitudes_premio creada correctamente");
+
+    if(callback) callback(null);
+});
                                     });
                                 });
                             });
