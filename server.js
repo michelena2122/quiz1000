@@ -436,6 +436,31 @@ function inicializarConfiguracion(callback){
                                         }
 
                                         console.log("Tabla pagos_mp creada correctamente");
+                                        db.run(`
+    CREATE TABLE IF NOT EXISTS solicitudes_premio (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        tableroId TEXT,
+        jugadorId TEXT,
+        email TEXT,
+        token TEXT UNIQUE,
+        nombreCompleto TEXT,
+        telefono TEXT,
+        banco TEXT,
+        clabe TEXT,
+        identificacionPath TEXT,
+        estatus TEXT DEFAULT 'pendiente',
+        fechaCreacion INTEGER,
+        fechaActualizacion INTEGER,
+        fechaRevision INTEGER,
+        observacionesAdmin TEXT
+    )
+`, (errPremio) => {
+    if(errPremio){
+        console.log("❌ Error creando tabla solicitudes_premio:", errPremio.message);
+    } else {
+        console.log("✅ Tabla solicitudes_premio creada correctamente");
+    }
+});
 
                                         if(callback) callback(null);
                                     });
@@ -2127,6 +2152,144 @@ app.get("/api/rankings", (req, res) => {
         });
     });
 
+});
+// =============================
+// PAGAR PREMIO DEL TABLERO
+// =============================
+app.post("/api/pagar-premio", async (req, res) => {
+    try {
+        const { folio } = req.body;
+
+        if (!folio) {
+            return res.status(400).json({
+                ok: false,
+                mensaje: "Folio requerido"
+            });
+        }
+
+        db.get(
+            `SELECT id, completo, premioPagado
+             FROM tableros
+             WHERE id = ?`,
+            [folio],
+            async (errTablero, tablero) => {
+                if (errTablero) {
+                    console.log("❌ ERROR CONSULTANDO TABLERO PARA PREMIO:", errTablero.message);
+                    return res.status(500).json({
+                        ok: false,
+                        mensaje: "Error consultando tablero",
+                        error: errTablero.message
+                    });
+                }
+
+                if (!tablero) {
+                    return res.status(404).json({
+                        ok: false,
+                        mensaje: "Tablero no encontrado"
+                    });
+                }
+
+                if (tablero.completo !== 1) {
+                    return res.status(400).json({
+                        ok: false,
+                        mensaje: "El tablero aún no está completo"
+                    });
+                }
+
+                if (tablero.premioPagado === 1) {
+                    return res.status(400).json({
+                        ok: false,
+                        mensaje: "El premio ya fue pagado para este tablero"
+                    });
+                }
+
+                try {
+                    const resumen = await obtenerResumenTablero(folio);
+
+                    if (!resumen || !resumen.ganador) {
+                        return res.status(400).json({
+                            ok: false,
+                            mensaje: "No se encontró ganador para este tablero"
+                        });
+                    }
+
+                    const tipoCambioPremioRaw = await obtenerConfiguracion("tipoCambioPremio");
+                    const tipoCambioPremio = Number(tipoCambioPremioRaw || 19.5);
+
+                    const ganador = resumen.ganador;
+                    const premioUsd = Number(1000);
+                    const premioMxn = Number((premioUsd * tipoCambioPremio).toFixed(2));
+
+                    // =====================================================
+                    // AQUI VA DESPUES LA LLAMADA REAL A MERCADO PAGO PAYOUT
+                    // =====================================================
+                    // Por ahora solo devolvemos la información lista
+                    // para que la pruebes sin romper el sistema.
+                    // Cuando me pases el formato exacto del destinatario
+                    // (CLABE/cuenta MP/documento), conectamos la API real.
+                    const resultadoPago = {
+                        ok: true,
+                        modo: "simulado",
+                        folio,
+                        ganadorId: ganador.jugadorId,
+                        ganadorNombre: ganador.nombreSolo || ganador.nombre || "Jugador",
+                        ganadorEmail: ganador.email || null,
+                        mejorTiempo: ganador.mejorTiempoTexto || null,
+                        premioUsd,
+                        tipoCambioPremio,
+                        premioMxn
+                    };
+
+                    db.run(
+                        `UPDATE tableros
+                         SET premioPagado = 1
+                         WHERE id = ?
+                         AND premioPagado = 0`,
+                        [folio],
+                        function (errUpdate) {
+                            if (errUpdate) {
+                                console.log("❌ ERROR MARCANDO PREMIO PAGADO:", errUpdate.message);
+                                return res.status(500).json({
+                                    ok: false,
+                                    mensaje: "No se pudo marcar premioPagado",
+                                    error: errUpdate.message
+                                });
+                            }
+
+                            if (this.changes === 0) {
+                                return res.status(400).json({
+                                    ok: false,
+                                    mensaje: "El premio ya había sido marcado como pagado"
+                                });
+                            }
+
+                            return res.json({
+                                ok: true,
+                                mensaje: "Premio procesado correctamente",
+                                resultado: resultadoPago
+                            });
+                        }
+                    );
+
+                } catch (errorResumen) {
+                    console.log("❌ ERROR GENERANDO PREMIO:", errorResumen.message);
+                    return res.status(500).json({
+                        ok: false,
+                        mensaje: "Error generando premio",
+                        error: errorResumen.message
+                    });
+                }
+            }
+        );
+
+    } catch (error) {
+        console.log("❌ ERROR GENERAL /api/pagar-premio:", error.message);
+        return res.status(500).json({
+            ok: false,
+            mensaje: "Error general pagando premio",
+            error: error.message
+        });
+    }
 });
 app.get("/api/debug-resumen-tablero/:folio", async (req, res) => {
 
