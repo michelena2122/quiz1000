@@ -1406,7 +1406,9 @@ function convertirTiempoATotal(tiempoTexto){
 
     return (dias * 86400) + (horas * 3600) + (minutos * 60) + segundos;
 }
-
+function generarTokenSeguro() {
+    return "PRM-" + Date.now() + "-" + Math.random().toString(36).substring(2, 10);
+}
 function detectarTablerosVencidos(){
 
     const ahora = Date.now();
@@ -3352,6 +3354,22 @@ app.get("/api/debug/tableros-esquema", (req, res) => {
             });
         });
     });
+});
+app.post("/api/test/crear-solicitud-premio", async (req, res) => {
+
+    const { folio } = req.body;
+
+    if(!folio){
+        return res.json({ ok:false, mensaje:"Folio requerido" });
+    }
+
+    await crearSolicitudPremio(folio);
+
+    res.json({
+        ok:true,
+        mensaje:"Solicitud de premio generada (revisar logs y correo)"
+    });
+
 });
 // =============================
 // ADMIN: TABLEROS COMPLETOS
