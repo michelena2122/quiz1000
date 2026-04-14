@@ -117,6 +117,7 @@ const MP_ACCESS_TOKEN = "TEST-2663546958880234-110418-76e2aeb24b31137cb7f87b0009
 // ============================
 
 const DB_PATH = process.env.DB_PATH || "/var/data/usuarios.db";
+console.log("📍 RUTA DB:", DB_PATH); 
 const db = new sqlite3.Database(DB_PATH);
 
 function asegurarColumnaFechaApertura(callback){
