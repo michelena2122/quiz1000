@@ -3477,9 +3477,10 @@ app.post("/api/admin/tipo-cambio", (req, res) => {
 });
 inicializarConfiguracion((err) => {
     if(err){
-        process.exit(1);
-    }
-
+    console.log("❌ ERROR EN INICIALIZACION:", err.message);
+    console.log("STACK:", err);
+    return;
+}
     
 app.post("/api/crear-tablero", (req, res) => {
 
