@@ -3701,22 +3701,27 @@ app.get("/api/prueba-version", (req, res) => {
         mensaje: "version nueva cargada"
     });
 });
-app.listen(PORT, () => {
-    console.log(`Servidor corriendo en http://localhost:${PORT}`);
+app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Servidor corriendo en http://0.0.0.0:${PORT}`);
+    setInterval(detectarTablerosVencidos, 60000);
+});
 
-    // 🔥 diferir tareas pesadas
-    setTimeout(() => {
+inicializarConfiguracion((err) => {
+    if(err){
+        console.log("❌ ERROR EN INICIALIZACION:", err.message);
+        console.log(err);
+        return;
+    }
 
-        asegurarColumnasReembolsoTablero((err) => {
-            if(err){
-                console.log("❌ ERROR asegurando columnas:", err);
-            }else{
-                console.log("✅ Columnas de tableros verificadas correctamente");
-            }
-        });
+    console.log("✅ Configuración inicial completada");
 
-        setInterval(detectarTablerosVencidos, 60000);
+    asegurarColumnasReembolsoTablero((errCols) => {
+        if(errCols){
+            console.log("❌ ERROR asegurando columnas:", errCols.message);
+            return;
+        }
 
-    }, 3000); // espera 3 segundos
+        console.log("✅ Columnas de tableros verificadas correctamente");
+    });
 });
 });
