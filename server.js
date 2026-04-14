@@ -117,7 +117,24 @@ const MP_ACCESS_TOKEN = "TEST-2663546958880234-110418-76e2aeb24b31137cb7f87b0009
 // ============================
 
 const DB_PATH = process.env.DB_PATH || "/var/data/usuarios.db";
-const db = new sqlite3.Database(DB_PATH);
+
+console.log("USANDO SQLITE EN:", DB_PATH);
+console.log("DIRECTORIO SQLITE:", path.dirname(DB_PATH));
+
+try {
+    fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
+    console.log("DIRECTORIO SQLITE VERIFICADO");
+} catch (errorDirectorio) {
+    console.log("ERROR CREANDO/VERIFICANDO DIRECTORIO SQLITE:", errorDirectorio.message);
+}
+
+const db = new sqlite3.Database(DB_PATH, (err) => {
+    if (err) {
+        console.log("ERROR ABRIENDO SQLITE:", err.message);
+    } else {
+        console.log("SQLITE ABIERTO CORRECTAMENTE");
+    }
+});
 
 function asegurarColumnaFechaApertura(callback){
 
