@@ -3324,19 +3324,7 @@ app.get("/api/tableros", (req, res) => {
         });
     });
 });
-app.get("/api/admin/descargar-db", (req, res) => {
-    const fs = require("fs");
 
-    const dbPath = process.env.DB_PATH || "./usuarios.db";
-
-    console.log("📦 Descargando DB desde:", dbPath);
-
-    if (!fs.existsSync(dbPath)) {
-        return res.status(404).json({ ok: false, mensaje: "DB no encontrada" });
-    }
-
-    res.download(dbPath, "usuarios_backup.db");
-});
 app.get("/api/estado-casillas", (req, res) => {
 
     const folio = req.query.folio;
