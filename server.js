@@ -1643,7 +1643,7 @@ async function enviarCorreoRankingFinal(resumen){
 
                 <p style="margin-top:20px;">
                     Puedes consultar el ranking publicado aquí:
-                    <a href="https://quiz1000.onrender.com/ranking">
+                    <a href="https://quiz1000-nuevo.onrender.com/ranking">
                         Ver ranking oficial
                     </a>
                 </p>
@@ -2683,7 +2683,7 @@ function(err){
                         <p><strong>Casillas compradas:</strong> ${listaCasillas}</p>
                         <p>
                             Puedes revisar tus jugadas aquí:
-                            <a href="https://quiz1000.onrender.com/perfil">Mi perfil</a>
+                            <a href="https://quiz1000-nuevo.onrender.com/perfil">Mi perfil</a>
                         </p>
                     `
                 });
@@ -3078,13 +3078,13 @@ app.post("/crear-pago", async (req, res) => {
             },
 
             back_urls: {
-                success: `https://quiz1000.onrender.com/perfil?folio=${folio}&pago=success`,
-                failure: `https://quiz1000.onrender.com/pago?folio=${folio}&pago=failure`,
-                pending: `https://quiz1000.onrender.com/perfil?folio=${folio}&pago=pending`
+                success: `https://quiz1000-nuevo.onrender.com/perfil.html?folio=${folio}&pago=success`,
+                failure: `https://quiz1000-nuevo.onrender.com/pago.html?folio=${folio}&pago=failure`,
+                pending: `https://quiz1000-nuevo.onrender.com/perfil.html?folio=${folio}&pago=pending`
             },
 
             auto_return: "approved",
-            notification_url: "https://quiz1000.onrender.com/webhook/mercadopago"
+            notification_url: "https://quiz1000-nuevo.onrender.com/webhook/mercadopago"
         };
 
         console.log("🧾 Preference lista para enviar:", JSON.stringify(preference, null, 2));
