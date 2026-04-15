@@ -69,6 +69,7 @@
     <div class="contenedor">
         <h1>Premio QUIZ1000</h1>
         <p id="folioPremio" style="margin-top:10px; font-size:18px;"></p>
+        <p id="tableroPremio" style="margin-top:6px; font-size:16px;"></p>
 
         <p class="mensaje">
             Felicidades. Este espacio está destinado para el proceso de validación
@@ -100,13 +101,23 @@
 
     const params = new URLSearchParams(window.location.search);
     const folio = params.get("folio");
+    const tablero = params.get("tablero");
 
-    const contenedor = document.getElementById("folioPremio");
+    const folioBox = document.getElementById("folioPremio");
+    const tableroBox = document.getElementById("tableroPremio");
 
     if(folio){
-        contenedor.innerText = "Folio: " + folio;
+        folioBox.innerText = "Folio: " + folio;
     }else{
-        contenedor.innerText = "Folio no especificado";
+        folioBox.innerText = "Folio no especificado";
+    }
+
+    if(tablero){
+        tableroBox.innerText = "Tablero: " + tablero;
+    }else if(folio){
+        tableroBox.innerText = "Tablero: " + folio;
+    }else{
+        tableroBox.innerText = "Tablero no especificado";
     }
 
 })();
