@@ -2045,6 +2045,57 @@ app.get("/api/ranking/:folio", async (req, res) => {
     }
 
 });
+app.get("/api/premio/:folio", async (req, res) => {
+
+    const folio = req.params.folio;
+
+    try{
+
+        const resumen = await obtenerResumenTablero(folio);
+
+        if(!resumen || !resumen.ganador){
+            return res.json({
+                ok:false,
+                mensaje:"No existe ganador disponible para este tablero"
+            });
+        }
+
+        const ganador = resumen.ganador;
+        const tiempos = Array.isArray(ganador.tiempos) ? ganador.tiempos : [];
+
+        let casillaGanadora = null;
+
+        const coincidencia = tiempos.find(t => t.tiempo === ganador.mejorTiempoTexto);
+
+        if(coincidencia){
+            casillaGanadora = Number(coincidencia.numero) || null;
+        }
+
+        return res.json({
+            ok:true,
+            premio:{
+                folio: resumen.tableroId,
+                ganadorId: ganador.jugadorId || null,
+                nombre: ganador.nombreSolo || ganador.nombre || "Jugador",
+                apellidos: ganador.apellidos || "",
+                email: ganador.email || "",
+                mejorTiempoTexto: ganador.mejorTiempoTexto || "",
+                casillaGanadora: casillaGanadora
+            }
+        });
+
+    }catch(error){
+
+        console.log("ERROR /api/premio/:folio:", error.message);
+
+        return res.json({
+            ok:false,
+            mensaje:"Error consultando premio"
+        });
+
+    }
+
+});
 app.get("/api/rankings", (req, res) => {
 
     db.all(`
