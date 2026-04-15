@@ -3469,7 +3469,7 @@ app.get("/api/prueba-version", (req, res) => {
         mensaje: "version nueva cargada"
     });
 });
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
 
     // 🔥 diferir tareas pesadas
