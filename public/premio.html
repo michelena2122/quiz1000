@@ -92,9 +92,45 @@
         </div>
 
         <div class="bloque">
-            <h2 class="titulo-bloque">Estatus actual</h2>
-            <p style="text-align:center;">Página preliminar activa correctamente.</p>
-        </div>
+    <h2 class="titulo-bloque">Captura de datos para pago de premio</h2>
+
+    <div style="margin-bottom:14px;">
+        <label for="bancoPremio"><strong>Banco</strong></label><br>
+        <input id="bancoPremio" type="text" style="width:100%; max-width:500px; padding:10px; border-radius:10px; border:none; margin-top:6px;">
+    </div>
+
+    <div style="margin-bottom:14px;">
+        <label for="cuentaPremio"><strong>Número de cuenta</strong></label><br>
+        <input id="cuentaPremio" type="text" style="width:100%; max-width:500px; padding:10px; border-radius:10px; border:none; margin-top:6px;">
+    </div>
+
+    <div style="margin-bottom:14px;">
+        <label for="clabePremio"><strong>CLABE</strong></label><br>
+        <input id="clabePremio" type="text" style="width:100%; max-width:500px; padding:10px; border-radius:10px; border:none; margin-top:6px;">
+    </div>
+
+    <div style="margin-bottom:14px;">
+        <label for="tipoDocumentoPremio"><strong>Tipo de documento</strong></label><br>
+        <select id="tipoDocumentoPremio" style="width:100%; max-width:500px; padding:10px; border-radius:10px; border:none; margin-top:6px;">
+            <option value="">Selecciona una opción</option>
+            <option value="INE">INE</option>
+            <option value="Pasaporte">Pasaporte</option>
+        </select>
+    </div>
+
+    <div style="margin-bottom:14px;">
+        <label for="archivoDocumentoPremio"><strong>Subir identificación</strong></label><br>
+        <input id="archivoDocumentoPremio" type="file" accept=".jpg,.jpeg,.png,.pdf" style="width:100%; max-width:500px; padding:10px; border-radius:10px; border:none; margin-top:6px; background:white; color:black;">
+    </div>
+
+    <div style="margin-top:20px; text-align:center;">
+        <button id="btnEnviarPremio" type="button" style="background:#ffd700; color:#0b1f5c; font-weight:bold; border:none; border-radius:12px; padding:12px 24px; cursor:pointer;">
+            Enviar datos de premio
+        </button>
+    </div>
+
+    <p id="mensajePremio" style="margin-top:16px; text-align:center; font-weight:bold;"></p>
+</div>
 
         <footer>
             © 2026 Quiz1000 LLC.<br>
@@ -160,6 +196,35 @@
     apellidosBox.innerText = "";
     emailBox.innerText = "";
 }
+
+})();
+(function(){
+
+    const boton = document.getElementById("btnEnviarPremio");
+    const mensaje = document.getElementById("mensajePremio");
+
+    if(!boton || !mensaje){
+        return;
+    }
+
+    boton.addEventListener("click", function(){
+
+        const banco = document.getElementById("bancoPremio").value.trim();
+        const cuenta = document.getElementById("cuentaPremio").value.trim();
+        const clabe = document.getElementById("clabePremio").value.trim();
+        const tipoDocumento = document.getElementById("tipoDocumentoPremio").value;
+        const archivo = document.getElementById("archivoDocumentoPremio").files[0];
+
+        if(!banco || !cuenta || !clabe || !tipoDocumento || !archivo){
+            mensaje.innerText = "Completa todos los campos y adjunta tu identificación.";
+            mensaje.style.color = "#ffb3b3";
+            return;
+        }
+
+        mensaje.innerText = "Formulario completo. Siguiente paso: conectar guardado backend.";
+        mensaje.style.color = "#90ee90";
+
+    });
 
 })();
 </script>
