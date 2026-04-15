@@ -2045,55 +2045,93 @@ app.get("/api/ranking/:folio", async (req, res) => {
     }
 
 });
-app.get("/api/premio/:folio", async (req, res) => {
+app.get("/api/premio/:folio", (req, res) => {
 
     const folio = req.params.folio;
 
-    try{
+    db.get(`
+        SELECT
+            tableroId,
+            ganadorId,
+            ganadorNombre,
+            mejorTiempoTexto,
+            resumenJson,
+            fechaCierre
+        FROM rankings_tableros
+        WHERE tableroId = ?
+    `, [folio], (err, row) => {
 
-        const resumen = await obtenerResumenTablero(folio);
-
-        if(!resumen || !resumen.ganador){
+        if(err){
+            console.log("ERROR /api/premio/:folio:", err.message);
             return res.json({
                 ok:false,
-                mensaje:"No existe ganador disponible para este tablero"
+                mensaje:"Error consultando premio"
             });
         }
 
-        const ganador = resumen.ganador;
-        const tiempos = Array.isArray(ganador.tiempos) ? ganador.tiempos : [];
+        if(!row){
+            return res.json({
+                ok:false,
+                mensaje:"No existe ranking guardado para este tablero"
+            });
+        }
+
+        let resumen = null;
+
+        try{
+            resumen = row.resumenJson ? JSON.parse(row.resumenJson) : null;
+        }catch(e){
+            resumen = null;
+        }
 
         let casillaGanadora = null;
+        let apellidos = "";
+        let email = "";
+        let nombre = row.ganadorNombre || "Jugador";
 
-        const coincidencia = tiempos.find(t => t.tiempo === ganador.mejorTiempoTexto);
+        if(
+            resumen &&
+            resumen.ganador &&
+            Array.isArray(resumen.ganador.tiempos)
+        ){
+            const tiempos = resumen.ganador.tiempos;
 
-        if(coincidencia){
-            casillaGanadora = Number(coincidencia.numero) || null;
+            const coincidencia = tiempos.find(t => t.tiempo === row.mejorTiempoTexto);
+
+            if(coincidencia){
+                casillaGanadora = Number(coincidencia.numero) || null;
+            }
+
+            if(resumen.ganador.apellidos){
+                apellidos = resumen.ganador.apellidos;
+            }
+
+            if(resumen.ganador.email){
+                email = resumen.ganador.email;
+            }
+
+            if(resumen.ganador.nombreSolo){
+                nombre = resumen.ganador.nombreSolo;
+            }else if(resumen.ganador.nombre){
+                nombre = resumen.ganador.nombre;
+            }
         }
 
         return res.json({
             ok:true,
             premio:{
-                folio: resumen.tableroId,
-                ganadorId: ganador.jugadorId || null,
-                nombre: ganador.nombreSolo || ganador.nombre || "Jugador",
-                apellidos: ganador.apellidos || "",
-                email: ganador.email || "",
-                mejorTiempoTexto: ganador.mejorTiempoTexto || "",
-                casillaGanadora: casillaGanadora
+                folio: row.tableroId,
+                ganadorId: row.ganadorId || null,
+                nombre: nombre,
+                apellidos: apellidos,
+                email: email,
+                mejorTiempoTexto: row.mejorTiempoTexto || "",
+                casillaGanadora: casillaGanadora,
+                fechaCierre: row.fechaCierre || null
             }
         });
 
-    }catch(error){
-
-        console.log("ERROR /api/premio/:folio:", error.message);
-
-        return res.json({
-            ok:false,
-            mensaje:"Error consultando premio"
-        });
-
-    }
+    });
 
 });
 app.get("/api/rankings", (req, res) => {
