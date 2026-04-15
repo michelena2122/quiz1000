@@ -3469,6 +3469,9 @@ app.get("/api/prueba-version", (req, res) => {
         mensaje: "version nueva cargada"
     });
 });
+app.get("/healthz", (req, res) => {
+    res.status(200).send("OK");
+});
 app.listen(PORT, "0.0.0.0", () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
 
