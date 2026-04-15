@@ -68,6 +68,7 @@
 
     <div class="contenedor">
         <h1>Premio QUIZ1000</h1>
+        <p id="folioPremio" style="margin-top:10px; font-size:18px;"></p>
 
         <p class="mensaje">
             Felicidades. Este espacio está destinado para el proceso de validación
@@ -94,6 +95,21 @@
             All rights reserved. QUIZ1000 is a trademark of Quiz1000 LLC.
         </footer>
     </div>
+<script>
+(function(){
 
+    const params = new URLSearchParams(window.location.search);
+    const folio = params.get("folio");
+
+    const contenedor = document.getElementById("folioPremio");
+
+    if(folio){
+        contenedor.innerText = "Folio: " + folio;
+    }else{
+        contenedor.innerText = "Folio no especificado";
+    }
+
+})();
+</script>
 </body>
 </html>
