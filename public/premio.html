@@ -73,6 +73,8 @@
         <p id="idGanadorPremio" style="margin-top:6px; font-size:16px;"></p>
         <p id="tiempoPremio" style="margin-top:6px; font-size:16px;"></p>
         <p id="casillaPremio" style="margin-top:6px; font-size:16px;"></p>
+        <p id="apellidosPremio" style="margin-top:6px; font-size:16px;"></p>
+        <p id="emailPremio" style="margin-top:6px; font-size:16px;"></p>
 
         <p class="mensaje">
             Felicidades. Este espacio está destinado para el proceso de validación
@@ -110,6 +112,8 @@
     const idGanadorBox = document.getElementById("idGanadorPremio");
     const tiempoBox = document.getElementById("tiempoPremio");
     const casillaBox = document.getElementById("casillaPremio");
+    const apellidosBox = document.getElementById("apellidosPremio");
+    const emailBox = document.getElementById("emailPremio");
 
     if(!folio){
         folioBox.innerText = "Folio no especificado";
@@ -121,6 +125,8 @@
     idGanadorBox.innerText = "";
     tiempoBox.innerText = "";
     casillaBox.innerText = "";
+    apellidosBox.innerText = "";
+    emailBox.innerText = "";
 
     try{
 
@@ -132,25 +138,28 @@
             idGanadorBox.innerText = "";
             tiempoBox.innerText = "";
             casillaBox.innerText = "";
-            return;
-        }
+            apellidosBox.innerText = "";
+            emailBox.innerText = "";
+        return;
+    }
 
         const premio = data.premio;
 
-        ganadorBox.innerText = "Ganador: " + (premio.nombre || "Jugador");
+        ganadorBox.innerText = "Nombre: " + (premio.nombre || "Jugador");
         idGanadorBox.innerText = "ID ganador: " + (premio.ganadorId || "Sin ID");
+        apellidosBox.innerText = "Apellidos: " + (premio.apellidos || "No registrados");
+        emailBox.innerText = "Email: " + (premio.email || "No registrado");
         tiempoBox.innerText = "Mejor tiempo: " + (premio.mejorTiempoTexto || "Sin registro");
         casillaBox.innerText = "Casilla ganadora: " + (premio.casillaGanadora || "Sin registro");
 
     }catch(error){
-
-        console.log("Error cargando premio:", error);
-        ganadorBox.innerText = "Error cargando datos del premio";
-        idGanadorBox.innerText = "";
-        tiempoBox.innerText = "";
-        casillaBox.innerText = "";
-
-    }
+    ganadorBox.innerText = "Error cargando datos del premio";
+    idGanadorBox.innerText = String(error);
+    tiempoBox.innerText = "";
+    casillaBox.innerText = "";
+    apellidosBox.innerText = "";
+    emailBox.innerText = "";
+}
 
 })();
 </script>
