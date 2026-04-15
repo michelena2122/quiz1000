@@ -15,12 +15,20 @@ const client = new MercadoPagoConfig({
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
-app.use(express.json());
-app.use(express.static("public"));
 app.get("/healthz", (req, res) => {
     res.status(200).send("ok");
 });
+app.use(cors());
+app.use(express.json());
+app.use(express.static("public"));
+
+app.use((req, res, next) => {
+    if (req.path.startsWith("/api") || req.path === "/healthz") {
+        return next();
+    }
+    next();
+});
+
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "portada.html"));
 });
