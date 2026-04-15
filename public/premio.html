@@ -69,7 +69,10 @@
     <div class="contenedor">
         <h1>Premio QUIZ1000</h1>
         <p id="folioPremio" style="margin-top:10px; font-size:18px;"></p>
-        <p id="tableroPremio" style="margin-top:6px; font-size:16px;"></p>
+        <p id="ganadorPremio" style="margin-top:6px; font-size:16px;"></p>
+        <p id="idGanadorPremio" style="margin-top:6px; font-size:16px;"></p>
+        <p id="tiempoPremio" style="margin-top:6px; font-size:16px;"></p>
+        <p id="casillaPremio" style="margin-top:6px; font-size:16px;"></p>
 
         <p class="mensaje">
             Felicidades. Este espacio está destinado para el proceso de validación
@@ -97,27 +100,56 @@
         </footer>
     </div>
 <script>
-(function(){
+(async function(){
 
     const params = new URLSearchParams(window.location.search);
     const folio = params.get("folio");
-    const tablero = params.get("tablero");
 
     const folioBox = document.getElementById("folioPremio");
-    const tableroBox = document.getElementById("tableroPremio");
+    const ganadorBox = document.getElementById("ganadorPremio");
+    const idGanadorBox = document.getElementById("idGanadorPremio");
+    const tiempoBox = document.getElementById("tiempoPremio");
+    const casillaBox = document.getElementById("casillaPremio");
 
-    if(folio){
-        folioBox.innerText = "Folio: " + folio;
-    }else{
+    if(!folio){
         folioBox.innerText = "Folio no especificado";
+        return;
     }
 
-    if(tablero){
-        tableroBox.innerText = "Tablero: " + tablero;
-    }else if(folio){
-        tableroBox.innerText = "Tablero: " + folio;
-    }else{
-        tableroBox.innerText = "Tablero no especificado";
+    folioBox.innerText = "Folio del tablero: " + folio;
+    ganadorBox.innerText = "Cargando ganador...";
+    idGanadorBox.innerText = "";
+    tiempoBox.innerText = "";
+    casillaBox.innerText = "";
+
+    try{
+
+        const resp = await fetch("/api/premio/" + encodeURIComponent(folio));
+        const data = await resp.json();
+
+        if(!data.ok || !data.premio){
+            ganadorBox.innerText = "No existe ganador disponible para este tablero";
+            idGanadorBox.innerText = "";
+            tiempoBox.innerText = "";
+            casillaBox.innerText = "";
+            return;
+        }
+
+        const premio = data.premio;
+
+        ganadorBox.innerText = "Ganador: " + (premio.nombre || "Jugador");
+        idGanadorBox.innerText = "ID ganador: " + (premio.ganadorId || "Sin ID");
+        tiempoBox.innerText = "Mejor tiempo: " + (premio.mejorTiempoTexto || "Sin registro");
+        casillaBox.innerText = "Casilla ganadora: " + (premio.casillaGanadora || "Sin registro");
+
+    }catch(error){
+
+        console.log("Error cargando premio:", error);
+        ganadorBox.innerText = "Error cargando datos del premio";
+        idGanadorBox.innerText = "";
+        tiempoBox.innerText = "";
+        casillaBox.innerText = "";
+
     }
 
 })();
