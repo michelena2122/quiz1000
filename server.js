@@ -3828,14 +3828,14 @@ app.post("/api/admin/pagar-premio", (req, res) => {
             return res.status(404).json({ ok: false });
         }
 
-        if (solicitud.estado === "pagado") {
+        if (solicitud.estatus === "pagado") {
             return res.json({ ok: false, mensaje: "Ya pagado" });
         }
 
         // 1. marcar solicitud como pagada
         db.run(`
             UPDATE solicitudes_premio
-            SET estado = 'pagado', fechaPago = ?
+            SET estatus = 'pagado', fechaRevision = ?
             WHERE id = ?
         `, [Date.now(), idSolicitud], function (err2) {
 

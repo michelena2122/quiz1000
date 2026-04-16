@@ -637,20 +637,24 @@ async function cargarSolicitudesPremio() {
         const contenedor = document.getElementById("tablaPremios");
 
         contenedor.innerHTML = data.solicitudes.map(s => `
-            <div style="border:1px solid #ccc; padding:10px; margin:10px;">
-                <b>Folio:</b> ${s.folioTablero} <br>
-                <b>Nombre:</b> ${s.nombre} ${s.apellidos} <br>
-                <b>Email:</b> ${s.email} <br>
-                <b>CLABE:</b> ${s.clabe} <br>
-                <b>Estado:</b> ${s.estado} <br>
+    <div style="border:1px solid #ccc; padding:10px; margin:10px;">
+        <b>Folio:</b> ${s.tableroId || ""} <br>
+        <b>Ganador ID:</b> ${s.ganadorId || ""} <br>
+        <b>Nombre:</b> ${s.nombreCompleto || ""} <br>
+        <b>Email:</b> ${s.email || ""} <br>
+        <b>Banco:</b> ${s.banco || ""} <br>
+        <b>Cuenta:</b> ${s.cuenta || ""} <br>
+        <b>CLABE:</b> ${s.clabe || ""} <br>
+        <b>Documento:</b> ${s.tipoDocumento || ""} <br>
+        <b>Estatus:</b> ${s.estatus || ""} <br>
 
-                ${s.estado !== 'pagado' ? `
-                    <button onclick="pagarPremio(${s.id})">
-                        Marcar como pagado
-                    </button>
-                ` : '<b>✅ PAGADO</b>'}
-            </div>
-        `).join("");
+        ${s.estatus !== 'pagado' ? `
+            <button onclick="pagarPremio(${s.id})">
+                Marcar como pagado
+            </button>
+        ` : '<b>✅ PAGADO</b>'}
+    </div>
+`).join("");
     } catch (error) {
         console.log("Error cargando solicitudes de premio:", error);
     }
