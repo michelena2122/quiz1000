@@ -3749,18 +3749,23 @@ app.post("/api/premio/solicitud", (req, res) => {
         tipoDocumento
     } = req.body;
 
+    console.log("BODY SOLICITUD PREMIO:", req.body);
+
     if(!folio || !ganadorId || !banco || !cuenta || !clabe || !tipoDocumento){
         return res.json({
             ok:false,
             mensaje:"Faltan datos obligatorios"
         });
     }
+    console.log("GANADOR ID RECIBIDO:", ganadorId);
 
     db.get(`
         SELECT nombre, apellidos, email, telefono
         FROM usuarios
         WHERE id = ?
     `, [ganadorId], (errUsuario, usuario) => {
+
+    console.log("USUARIO GANADOR ENCONTRADO:", usuario);
 
         if(errUsuario){
             console.log("ERROR consultando usuario ganador:", errUsuario.message);
@@ -3778,7 +3783,19 @@ app.post("/api/premio/solicitud", (req, res) => {
         }
 
         const nombreCompleto = `${usuario.nombre || ""} ${usuario.apellidos || ""}`.trim();
-
+    
+    console.log("DATOS A INSERTAR EN SOLICITUD:", {
+            folio,
+            ganadorId,
+            nombreCompleto,
+            email: usuario.email || "",
+            telefono: usuario.telefono || "",
+            banco,
+            cuenta,
+            clabe,
+            tipoDocumento
+        });
+    
         db.run(`
             INSERT INTO solicitudes_premio (
                 tableroId,
