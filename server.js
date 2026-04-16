@@ -7,11 +7,14 @@ const multer = require("multer");
 const sqlite3 = require("sqlite3").verbose();
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
+const session = require("express-session");
+const passport = require("passport");
+const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const { MercadoPagoConfig, Preference } = require("mercadopago");
 const { Payment } = require("mercadopago");
 
 const client = new MercadoPagoConfig({
-    accessToken: "TEST-2663546958880234-110418-76e2aeb24b31137cb7f87b000963013f-153115257"
+    accessToken: process.env.MP_ACCESS_TOKEN
 });
 
 const app = express();
@@ -20,10 +23,99 @@ const PORT = process.env.PORT || 3000;
 app.get("/healthz", (req, res) => {
     res.status(200).send("ok");
 });
+
 app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
 
+app.use(session({
+    secret: "quiz1000-secret",
+    resave: false,
+    saveUninitialized: true
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.serializeUser((user, done) => {
+    done(null, user);
+});
+
+passport.deserializeUser((user, done) => {
+    done(null, user);
+});
+passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: "/auth/google/callback"
+},
+(accessToken, refreshToken, profile, done) => {
+
+    const email = profile.emails && profile.emails[0]
+        ? profile.emails[0].value.toLowerCase().trim()
+        : "";
+
+    const nombre = profile.name?.givenName || "";
+    const apellidos = profile.name?.familyName || "";
+
+    if (!email) {
+        return done(null, false);
+    }
+
+    db.get(
+        `SELECT * FROM usuarios WHERE email = ?`,
+        [email],
+        (err, usuarioExistente) => {
+
+            if (err) {
+                console.log("ERROR BUSCANDO USUARIO GOOGLE:", err.message);
+                return done(err);
+            }
+
+            if (usuarioExistente) {
+                return done(null, usuarioExistente);
+            }
+
+            const nuevoId = "JUG-" + Date.now();
+
+            db.run(
+                `INSERT INTO usuarios
+                (id, nombre, apellidos, email, password, numeroComprado, folioTablero, mejorTiempoGlobal)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+                [
+                    nuevoId,
+                    nombre,
+                    apellidos,
+                    email,
+                    "google_oauth",
+                    null,
+                    null,
+                    null
+                ],
+                function(insertErr) {
+
+                    if (insertErr) {
+                        console.log("ERROR INSERTANDO USUARIO GOOGLE:", insertErr.message);
+                        return done(insertErr);
+                    }
+
+                    db.get(
+                        `SELECT * FROM usuarios WHERE id = ?`,
+                        [nuevoId],
+                        (errNuevo, nuevoUsuario) => {
+                            if (errNuevo) {
+                                console.log("ERROR LEYENDO NUEVO USUARIO GOOGLE:", errNuevo.message);
+                                return done(errNuevo);
+                            }
+
+                            return done(null, nuevoUsuario);
+                        }
+                    );
+                }
+            );
+        }
+    );
+}));
 app.use((req, res, next) => {
     if (req.path.startsWith("/api") || req.path === "/healthz") {
         return next();
@@ -99,6 +191,27 @@ res.sendFile(path.join(__dirname, "public", "recuperar.html"));
 app.get("/admin", (req, res) => {
 res.sendFile(path.join(__dirname, "public", "admin.html"));
 });
+// ============================
+// LOGIN CON GOOGLE
+// ============================
+console.log("✅ Registrando ruta /auth/google");
+console.log("✅ Server cargó hasta Passport");
+
+app.get("/auth/google",
+    passport.authenticate("google", { scope: ["profile", "email"] })
+);
+
+app.get("/auth/google/callback",
+    passport.authenticate("google", { failureRedirect: "/login" }),
+    (req, res) => {
+
+        if (!req.user || !req.user.id) {
+            return res.redirect("/login");
+        }
+
+        res.redirect(`/perfil?google=ok&id=${req.user.id}`);
+    }
+);
 const FILE_PATH = path.join(__dirname, "public", "data", "preguntas.json");
 
 const codigosEmail = {};
@@ -109,7 +222,7 @@ const MP_ACCESS_TOKEN = "TEST-2663546958880234-110418-76e2aeb24b31137cb7f87b0009
 // BASE DE DATOS USUARIOS
 // ============================
 
-const DB_PATH = process.env.DB_PATH || "/var/data/usuarios.db";
+const DB_PATH = process.env.DB_PATH || path.join(__dirname, "usuarios.db");
 const db = new sqlite3.Database(DB_PATH);
 
 function asegurarColumnaFechaApertura(callback){
