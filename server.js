@@ -4172,31 +4172,80 @@ app.get("/api/validar-link-premio", async (req, res) => {
             });
         }
 
+        let tokenDecodificado = "";
+
+        try {
+            tokenDecodificado = Buffer.from(token, "base64url").toString("utf8");
+        } catch (e) {
+            return res.json({
+                ok: false,
+                mensaje: "Token inválido"
+            });
+        }
+
+        const partes = tokenDecodificado.split("|");
+
+        if (partes.length !== 4) {
+            return res.json({
+                ok: false,
+                mensaje: "Token inválido"
+            });
+        }
+
+        const [folioToken, jugadorIdToken, expiraToken, firmaToken] = partes;
+
+        if (folioToken !== folio) {
+            return res.json({
+                ok: false,
+                mensaje: "Token inválido para este folio"
+            });
+        }
+
+        const expiraNumero = Number(expiraToken);
+
+        if (!expiraNumero || Date.now() > expiraNumero) {
+            return res.json({
+                ok: false,
+                mensaje: "Token expirado"
+            });
+        }
+
+        const payload = `${folioToken}|${jugadorIdToken}|${expiraToken}`;
+        const firmaEsperada = crypto
+            .createHmac("sha256", MP_ACCESS_TOKEN)
+            .update(payload)
+            .digest("hex");
+
+        if (firmaEsperada !== firmaToken) {
+            return res.json({
+                ok: false,
+                mensaje: "Firma inválida"
+            });
+        }
+
         const ganador = await obtenerGanadorTableroParaNotificacion(folio);
 
-if (!ganador) {
-    return res.json({
-        ok: false,
-        mensaje: "No se encontró ganador para este tablero"
-    });
-}
-const tokenDecodificado = Buffer.from(token, "base64url").toString("utf8");
-const partes = tokenDecodificado.split("|");
-const jugadorIdToken = partes[1];
-if (ganador.jugadorId !== jugadorIdToken) {
-    return res.json({
-        ok: false,
-        mensaje: "Token no corresponde al ganador actual"
-    });
-}
+        if (!ganador) {
+            return res.json({
+                ok: false,
+                mensaje: "No se encontró ganador para este tablero"
+            });
+        }
 
-return res.json({
-    ok: true,
-    mensaje: "Link válido para continuar",
-    folio,
-    tokenRecibido: token,
-    ganador
-});
+        if (ganador.jugadorId !== jugadorIdToken) {
+            return res.json({
+                ok: false,
+                mensaje: "Token no corresponde al ganador actual"
+            });
+        }
+
+        return res.json({
+            ok: true,
+            mensaje: "Link válido para continuar",
+            folio,
+            tokenRecibido: token,
+            ganador
+        });
 
     } catch (error) {
         console.error("❌ Error en /api/validar-link-premio:", error);
