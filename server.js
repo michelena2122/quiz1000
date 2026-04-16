@@ -3776,11 +3776,24 @@ app.post("/api/premio/solicitud", uploadPremio.single("archivoDocumentoPremio"),
     console.log("ARCHIVO RECIBIDO PREMIO:", req.file);
 
     if(!folio || !ganadorId || !banco || !cuenta || !clabe || !tipoDocumento || !archivo){
-        return res.json({
-            ok:false,
-            mensaje:"Faltan datos obligatorios"
-        });
-    }
+    return res.json({
+        ok:false,
+        mensaje:"Faltan datos obligatorios",
+        debug: {
+            folio,
+            ganadorId,
+            banco,
+            cuenta,
+            clabe,
+            tipoDocumento,
+            archivo: archivo ? {
+                fieldname: archivo.fieldname,
+                originalname: archivo.originalname,
+                filename: archivo.filename
+            } : null
+        }
+    });
+}
 
     db.get(`
         SELECT nombre, apellidos, email, telefono
