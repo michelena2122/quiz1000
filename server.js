@@ -1683,8 +1683,14 @@ participantesMap[jugadorId] = {
         });
     });
 }
-function generarTokenPremioTemporal() {
-    return crypto.randomBytes(24).toString("hex");
+function generarTokenPremio({ folio, jugadorId, expira }) {
+    const payload = `${folio}|${jugadorId}|${expira}`;
+    const firma = crypto
+        .createHmac("sha256", MP_ACCESS_TOKEN)
+        .update(payload)
+        .digest("hex");
+
+    return Buffer.from(`${payload}|${firma}`).toString("base64url");
 }
 
 function construirUrlPremioTemporal({ folio, token }) {
