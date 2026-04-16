@@ -3796,6 +3796,67 @@ app.post("/api/premio/solicitud", (req, res) => {
     });
 
 });
+app.get("/api/admin/solicitudes-premio", (req, res) => {
+
+    db.all(`
+        SELECT * FROM solicitudes_premio
+        ORDER BY fechaSolicitud DESC
+    `, (err, rows) => {
+
+        if (err) {
+            console.error("Error obteniendo solicitudes:", err);
+            return res.status(500).json({ ok: false });
+        }
+
+        res.json({ ok: true, solicitudes: rows });
+    });
+
+});
+app.post("/api/admin/pagar-premio", (req, res) => {
+
+    const { idSolicitud } = req.body;
+
+    if (!idSolicitud) {
+        return res.status(400).json({ ok: false });
+    }
+
+    db.get(`
+        SELECT * FROM solicitudes_premio WHERE id = ?
+    `, [idSolicitud], (err, solicitud) => {
+
+        if (err || !solicitud) {
+            return res.status(404).json({ ok: false });
+        }
+
+        if (solicitud.estado === "pagado") {
+            return res.json({ ok: false, mensaje: "Ya pagado" });
+        }
+
+        // 1. marcar solicitud como pagada
+        db.run(`
+            UPDATE solicitudes_premio
+            SET estado = 'pagado', fechaPago = ?
+            WHERE id = ?
+        `, [Date.now(), idSolicitud], function (err2) {
+
+            if (err2) {
+                console.error("Error actualizando solicitud:", err2);
+                return res.status(500).json({ ok: false });
+            }
+
+            // 2. bloquear tablero (no doble premio)
+            db.run(`
+                UPDATE tableros
+                SET premioPagado = 1
+                WHERE id = ?
+            `, [solicitud.folioTablero]);
+
+            res.json({ ok: true });
+        });
+
+    });
+
+});
 app.get("/api/prueba-version", (req, res) => {
     res.json({
         ok: true,

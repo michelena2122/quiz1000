@@ -150,7 +150,9 @@ button:hover{
         <tbody id="tablaIncompletos"></tbody>
     </table>
 </div>
+<h2>💰 Solicitudes de Premio</h2>
 
+<div id="tablaPremios"></div>
 <script>
 
 // =============================
@@ -618,6 +620,53 @@ if (btnCargarIncompletos) {
 if (btnOcultarIncompletos) {
     btnOcultarIncompletos.addEventListener("click", ocultarTablerosIncompletos);
 }
+async function cargarSolicitudesPremio() {
+    try {
+        const res = await fetch("/api/admin/solicitudes-premio");
+        const data = await res.json();
+
+        if (!data.ok) return;
+
+        const contenedor = document.getElementById("tablaPremios");
+
+        contenedor.innerHTML = data.solicitudes.map(s => `
+            <div style="border:1px solid #ccc; padding:10px; margin:10px;">
+                <b>Folio:</b> ${s.folioTablero} <br>
+                <b>Nombre:</b> ${s.nombre} ${s.apellidos} <br>
+                <b>Email:</b> ${s.email} <br>
+                <b>CLABE:</b> ${s.clabe} <br>
+                <b>Estado:</b> ${s.estado} <br>
+
+                ${s.estado !== 'pagado' ? `
+                    <button onclick="pagarPremio(${s.id})">
+                        Marcar como pagado
+                    </button>
+                ` : '<b>✅ PAGADO</b>'}
+            </div>
+        `).join("");
+    } catch (error) {
+        console.log("Error cargando solicitudes de premio:", error);
+    }
+}
+async function pagarPremio(id) {
+
+    if (!confirm("¿Confirmar pago?")) return;
+
+    const res = await fetch("/api/admin/pagar-premio", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idSolicitud: id })
+    });
+
+    const data = await res.json();
+
+    if (data.ok) {
+        alert("Pago marcado correctamente");
+        cargarSolicitudesPremio();
+    }
+
+}
+cargarSolicitudesPremio();
 setInterval(cargarTablero, 3000);
 
 </script>
