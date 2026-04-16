@@ -103,6 +103,7 @@ const FILE_PATH = path.join(__dirname, "public", "data", "preguntas.json");
 
 const codigosEmail = {};
 const preguntasAbiertas = {};
+const tokensPremio = {};
 const MP_ACCESS_TOKEN = "TEST-2663546958880234-110418-76e2aeb24b31137cb7f87b000963013f-153115257";
 // ============================
 // BASE DE DATOS USUARIOS
@@ -1835,6 +1836,10 @@ async function prepararNotificacionGanadorTemporal(folio) {
 
     const telefono = await obtenerTelefonoJugadorPorGanador(ganador);
     const token = generarTokenPremioTemporal();
+    tokensPremio[token] = {
+    folio,
+    creado: Date.now()
+};
 
     const ahora = Date.now();
     const expiracionMs = ahora + (3 * 24 * 60 * 60 * 1000);
@@ -4161,7 +4166,14 @@ app.get("/api/validar-link-premio", async (req, res) => {
         }
 
         const data = await prepararNotificacionGanadorTemporal(folio);
+        const tokenData = tokensPremio[token];
 
+if (!tokenData || tokenData.folio !== folio) {
+    return res.json({
+        ok: false,
+        mensaje: "Token inválido"
+    });
+}
         if (!data || !data.ok || !data.ganador) {
             return res.json({
                 ok: false,
