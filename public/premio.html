@@ -122,7 +122,7 @@
         <label for="archivoDocumentoPremio"><strong>Subir identificación</strong></label><br>
         <input id="archivoDocumentoPremio" type="file" accept=".jpg,.jpeg,.png,.pdf" style="width:100%; max-width:500px; padding:10px; border-radius:10px; border:none; margin-top:6px; background:white; color:black;">
     </div>
-
+>
     <div style="margin-top:20px; text-align:center;">
         <button id="btnEnviarPremio" type="button" style="background:#ffd700; color:#0b1f5c; font-weight:bold; border:none; border-radius:12px; padding:12px 24px; cursor:pointer;">
             Enviar datos de premio
@@ -214,6 +214,7 @@
         const clabe = document.getElementById("clabePremio").value.trim();
         const tipoDocumento = document.getElementById("tipoDocumentoPremio").value;
         const archivo = document.getElementById("archivoDocumentoPremio").files[0];
+        console.log("ARCHIVO FRONT PREMIO:", archivo);
 
         if(!banco || !cuenta || !clabe || !tipoDocumento || !archivo){
             mensaje.innerText = "Completa todos los campos y adjunta tu identificación.";
@@ -238,6 +239,7 @@ formData.append("cuenta", cuenta);
 formData.append("clabe", clabe);
 formData.append("tipoDocumento", tipoDocumento);
 formData.append("archivoDocumentoPremio", archivo);
+console.log("FORMDATA ARCHIVO PREMIO:", formData.get("archivoDocumentoPremio"));
 
 const resp = await fetch("/api/premio/solicitud", {
     method: "POST",
