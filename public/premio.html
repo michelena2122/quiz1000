@@ -220,11 +220,12 @@
         const premio = data.premio;
 
         ganadorBox.innerText = "Nombre: " + (premio.nombre || "Jugador");
-        idGanadorBox.innerText = "ID ganador: " + (premio.ganadorId || "Sin ID");
         apellidosBox.innerText = "Apellidos: " + (premio.apellidos || "No registrados");
         emailBox.innerText = "Email: " + (premio.email || "No registrado");
-        tiempoBox.innerText = "Mejor tiempo: " + (premio.mejorTiempoTexto || "Sin registro");
+        idGanadorBox.innerText = "ID ganador: " + (premio.ganadorId || "Sin ID");
         casillaBox.innerText = "Casilla ganadora: " + (premio.casillaGanadora || "Sin registro");
+        tiempoBox.innerText = "Mejor tiempo: " + (premio.mejorTiempoTexto || "Sin registro");
+        
 
     }catch(error){
     ganadorBox.innerText = "Error cargando datos del premio";
