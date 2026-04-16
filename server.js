@@ -3649,6 +3649,8 @@ app.get("/api/carrusel-ganadores", (req, res) => {
         { nombre: "Elsa R.", estado: "Guanajuato", inversion: 11 },
         { nombre: "Mauricio F.", estado: "Oaxaca", inversion: 36 },
         { nombre: "Susana J.", estado: "Guerrero", inversion: 50 },
+        { nombre: "Eugenio R.", estado: "Quintana R", inversion: 36 },
+        { nombre: "Raquel V.", estado: "Baja California S", inversion: 16 },
         { nombre: "Marco T.", estado: "Chihuahua", inversion: 44 }
     ];
 
