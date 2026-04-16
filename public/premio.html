@@ -188,9 +188,9 @@ const params = new URLSearchParams(window.location.search);
         console.log("VALIDACIÓN LINK PREMIO:", validacionData);
 
         if(!validacionData.ok){
-            alert("Acceso no válido o expirado");
-            return;
-        }
+    alert(validacionData.mensaje || "Acceso no válido o expirado");
+    return;
+}
 
         document.body.insertAdjacentHTML("afterbegin", '<div style="background:#d4edda;color:#155724;padding:10px;text-align:center;font-weight:bold;">Acceso validado correctamente</div>');
     }catch(error){
