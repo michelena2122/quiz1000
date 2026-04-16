@@ -220,8 +220,49 @@
             mensaje.style.color = "#ffb3b3";
             return;
         }
+(async function(){
 
-        mensaje.innerText = "Formulario completo. Siguiente paso: conectar guardado backend.";
+    try{
+
+        const params = new URLSearchParams(window.location.search);
+        const folio = params.get("folio");
+
+        const ganadorIdText = document.getElementById("idGanadorPremio").innerText;
+        const ganadorId = ganadorIdText.replace("ID ganador: ", "").trim();
+
+        const resp = await fetch("/api/premio/solicitud", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                folio,
+                ganadorId,
+                banco,
+                cuenta,
+                clabe,
+                tipoDocumento
+            })
+        });
+
+        const data = await resp.json();
+
+        if(data.ok){
+            mensaje.innerText = "Solicitud enviada correctamente. En revisión.";
+            mensaje.style.color = "#90ee90";
+        }else{
+            mensaje.innerText = data.mensaje || "Error enviando solicitud";
+            mensaje.style.color = "#ffb3b3";
+        }
+
+    }catch(error){
+        console.log(error);
+        mensaje.innerText = "Error de conexión con el servidor";
+        mensaje.style.color = "#ffb3b3";
+    }
+
+})();
+        
         mensaje.style.color = "#90ee90";
 
     });

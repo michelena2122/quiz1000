@@ -3552,6 +3552,64 @@ app.get("/api/mis-tableros/:jugadorId", (req, res) => {
     });
 
 });
+app.post("/api/premio/solicitud", (req, res) => {
+
+    const {
+        folio,
+        ganadorId,
+        banco,
+        cuenta,
+        clabe,
+        tipoDocumento
+    } = req.body;
+
+    if(!folio || !ganadorId || !banco || !cuenta || !clabe || !tipoDocumento){
+        return res.json({
+            ok:false,
+            mensaje:"Faltan datos obligatorios"
+        });
+    }
+
+    db.run(`
+        INSERT INTO solicitudes_premio (
+            tableroId,
+            ganadorId,
+            banco,
+            cuenta,
+            clabe,
+            tipoDocumento,
+            estatus,
+            fechaSolicitud
+        ) VALUES (?, ?, ?, ?, ?, ?, 'pendiente', ?)
+    `,
+    [
+        folio,
+        ganadorId,
+        banco,
+        cuenta,
+        clabe,
+        tipoDocumento,
+        Date.now()
+    ],
+    function(err){
+
+        if(err){
+            console.log("ERROR guardando solicitud premio:", err.message);
+
+            return res.json({
+                ok:false,
+                mensaje:"Error guardando solicitud"
+            });
+        }
+
+        return res.json({
+            ok:true,
+            mensaje:"Solicitud de premio guardada correctamente"
+        });
+
+    });
+
+});
 app.get("/api/prueba-version", (req, res) => {
     res.json({
         ok: true,
