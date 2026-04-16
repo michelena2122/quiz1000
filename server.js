@@ -4149,6 +4149,43 @@ app.get("/api/test-notificacion-ganador/:folio", async (req, res) => {
         });
     }
 });
+app.get("/api/validar-link-premio", async (req, res) => {
+    try {
+        const { folio, token } = req.query;
+
+        if (!folio || !token) {
+            return res.json({
+                ok: false,
+                mensaje: "Folio o token no recibido"
+            });
+        }
+
+        const data = await prepararNotificacionGanadorTemporal(folio);
+
+        if (!data || !data.ok || !data.ganador) {
+            return res.json({
+                ok: false,
+                mensaje: "No se encontró ganador para este tablero"
+            });
+        }
+
+        return res.json({
+            ok: true,
+            mensaje: "Link válido para continuar",
+            folio,
+            tokenRecibido: token,
+            ganador: data.ganador
+        });
+
+    } catch (error) {
+        console.error("❌ Error en /api/validar-link-premio:", error);
+        return res.status(500).json({
+            ok: false,
+            mensaje: "Error validando link de premio",
+            error: error.message
+        });
+    }
+});
 app.get("/api/prueba-version", (req, res) => {
     res.json({
         ok: true,
