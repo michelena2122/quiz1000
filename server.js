@@ -277,27 +277,179 @@ function asegurarColumnasSolicitudesPremio(callback){
         }
 
         const existeGanadorId = columnas.some(col => col.name === "ganadorId");
+        const existeBanco = columnas.some(col => col.name === "banco");
+        const existeCuenta = columnas.some(col => col.name === "cuenta");
+        const existeClabe = columnas.some(col => col.name === "clabe");
+        const existeTipoDocumento = columnas.some(col => col.name === "tipoDocumento");
+        const existeEstatus = columnas.some(col => col.name === "estatus");
+        const existeFechaSolicitud = columnas.some(col => col.name === "fechaSolicitud");
 
-        if(existeGanadorId){
+        const tareas = [];
+
+        if(!existeGanadorId){
+            tareas.push((done) => {
+                db.run(
+                    `ALTER TABLE solicitudes_premio ADD COLUMN ganadorId TEXT`,
+                    [],
+                    (errAlter) => {
+                        if(errAlter){
+                            console.log("Error agregando columna ganadorId:", errAlter.message);
+                            return done(errAlter);
+                        }
+
+                        console.log("Columna ganadorId agregada correctamente en solicitudes_premio");
+                        done(null);
+                    }
+                );
+            });
+        }else{
             console.log("Columna ganadorId ya existe en solicitudes_premio");
+        }
+
+        if(!existeBanco){
+            tareas.push((done) => {
+                db.run(
+                    `ALTER TABLE solicitudes_premio ADD COLUMN banco TEXT`,
+                    [],
+                    (errAlter) => {
+                        if(errAlter){
+                            console.log("Error agregando columna banco:", errAlter.message);
+                            return done(errAlter);
+                        }
+
+                        console.log("Columna banco agregada correctamente en solicitudes_premio");
+                        done(null);
+                    }
+                );
+            });
+        }else{
+            console.log("Columna banco ya existe en solicitudes_premio");
+        }
+
+        if(!existeCuenta){
+            tareas.push((done) => {
+                db.run(
+                    `ALTER TABLE solicitudes_premio ADD COLUMN cuenta TEXT`,
+                    [],
+                    (errAlter) => {
+                        if(errAlter){
+                            console.log("Error agregando columna cuenta:", errAlter.message);
+                            return done(errAlter);
+                        }
+
+                        console.log("Columna cuenta agregada correctamente en solicitudes_premio");
+                        done(null);
+                    }
+                );
+            });
+        }else{
+            console.log("Columna cuenta ya existe en solicitudes_premio");
+        }
+
+        if(!existeClabe){
+            tareas.push((done) => {
+                db.run(
+                    `ALTER TABLE solicitudes_premio ADD COLUMN clabe TEXT`,
+                    [],
+                    (errAlter) => {
+                        if(errAlter){
+                            console.log("Error agregando columna clabe:", errAlter.message);
+                            return done(errAlter);
+                        }
+
+                        console.log("Columna clabe agregada correctamente en solicitudes_premio");
+                        done(null);
+                    }
+                );
+            });
+        }else{
+            console.log("Columna clabe ya existe en solicitudes_premio");
+        }
+
+        if(!existeTipoDocumento){
+            tareas.push((done) => {
+                db.run(
+                    `ALTER TABLE solicitudes_premio ADD COLUMN tipoDocumento TEXT`,
+                    [],
+                    (errAlter) => {
+                        if(errAlter){
+                            console.log("Error agregando columna tipoDocumento:", errAlter.message);
+                            return done(errAlter);
+                        }
+
+                        console.log("Columna tipoDocumento agregada correctamente en solicitudes_premio");
+                        done(null);
+                    }
+                );
+            });
+        }else{
+            console.log("Columna tipoDocumento ya existe en solicitudes_premio");
+        }
+
+        if(!existeEstatus){
+            tareas.push((done) => {
+                db.run(
+                    `ALTER TABLE solicitudes_premio ADD COLUMN estatus TEXT DEFAULT 'pendiente'`,
+                    [],
+                    (errAlter) => {
+                        if(errAlter){
+                            console.log("Error agregando columna estatus:", errAlter.message);
+                            return done(errAlter);
+                        }
+
+                        console.log("Columna estatus agregada correctamente en solicitudes_premio");
+                        done(null);
+                    }
+                );
+            });
+        }else{
+            console.log("Columna estatus ya existe en solicitudes_premio");
+        }
+
+        if(!existeFechaSolicitud){
+            tareas.push((done) => {
+                db.run(
+                    `ALTER TABLE solicitudes_premio ADD COLUMN fechaSolicitud INTEGER`,
+                    [],
+                    (errAlter) => {
+                        if(errAlter){
+                            console.log("Error agregando columna fechaSolicitud:", errAlter.message);
+                            return done(errAlter);
+                        }
+
+                        console.log("Columna fechaSolicitud agregada correctamente en solicitudes_premio");
+                        done(null);
+                    }
+                );
+            });
+        }else{
+            console.log("Columna fechaSolicitud ya existe en solicitudes_premio");
+        }
+
+        if(tareas.length === 0){
             if(callback) return callback(null);
             return;
         }
 
-        db.run(
-            `ALTER TABLE solicitudes_premio ADD COLUMN ganadorId TEXT`,
-            [],
-            (errAlter) => {
-                if(errAlter){
-                    console.log("Error agregando columna ganadorId en solicitudes_premio:", errAlter.message);
-                    if(callback) return callback(errAlter);
-                    return;
-                }
+        let index = 0;
 
-                console.log("Columna ganadorId agregada correctamente en solicitudes_premio");
-                if(callback) callback(null);
+        function ejecutarSiguiente(error){
+            if(error){
+                if(callback) return callback(error);
+                return;
             }
-        );
+
+            if(index >= tareas.length){
+                if(callback) return callback(null);
+                return;
+            }
+
+            const tarea = tareas[index];
+            index++;
+            tarea(ejecutarSiguiente);
+        }
+
+        ejecutarSiguiente(null);
     });
 
 }
