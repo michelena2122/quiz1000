@@ -175,9 +175,14 @@ async function cargarTablero(){
     const data = JSON.parse(textoCrudo);
     console.log("DATA PARSEADA /admin/tablero:", data);
 
-    document.getElementById("ocupadas").innerText = data.ocupadas;
+    const ocupadasEl = document.getElementById("ocupadas");
+        if (ocupadasEl) {
+    ocupadasEl.innerText = data.ocupadas;
+    }
 
     const tabla = document.getElementById("tabla");
+
+if (tabla) {
     tabla.innerHTML = "";
 
     data.casillas.forEach(c => {
@@ -194,16 +199,18 @@ async function cargarTablero(){
         tabla.appendChild(fila);
 
     });
+}
 
     const estado = document.getElementById("estadoTablero");
-
+if (estado) {
     if(data.completo){
         estado.innerText = "⚠ TABLERO COMPLETO";
         estado.style.color = "red";
-    }else{
+    } else {
         estado.innerText = "TABLERO ACTIVO";
         estado.style.color = "#00ffcc";
     }
+}
 
     if(data.casillas.length > 0){
 
