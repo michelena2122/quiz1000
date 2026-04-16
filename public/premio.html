@@ -230,20 +230,19 @@
         const ganadorIdText = document.getElementById("idGanadorPremio").innerText;
         const ganadorId = ganadorIdText.replace("ID ganador: ", "").trim();
 
-        const resp = await fetch("/api/premio/solicitud", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                folio,
-                ganadorId,
-                banco,
-                cuenta,
-                clabe,
-                tipoDocumento
-            })
-        });
+        const formData = new FormData();
+formData.append("folio", folio);
+formData.append("ganadorId", ganadorId);
+formData.append("banco", banco);
+formData.append("cuenta", cuenta);
+formData.append("clabe", clabe);
+formData.append("tipoDocumento", tipoDocumento);
+formData.append("archivoDocumentoPremio", archivo);
+
+const resp = await fetch("/api/premio/solicitud", {
+    method: "POST",
+    body: formData
+});
 
         const data = await resp.json();
 

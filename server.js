@@ -3,11 +3,12 @@ const nodemailer = require("nodemailer");
 const cors = require("cors");
 const path = require("path");
 const fs = require("fs");
-
+const multer = require("multer");
 const sqlite3 = require("sqlite3").verbose();
 const bcrypt = require("bcrypt");
 const { MercadoPagoConfig, Preference } = require("mercadopago");
 const { Payment } = require("mercadopago");
+
 const client = new MercadoPagoConfig({
     accessToken: "TEST-2663546958880234-110418-76e2aeb24b31137cb7f87b000963013f-153115257"
 });
@@ -28,6 +29,26 @@ app.use((req, res, next) => {
     }
     next();
 });
+const carpetaPremios = path.join(__dirname, "uploads", "premios");
+
+if (!fs.existsSync(carpetaPremios)) {
+    fs.mkdirSync(carpetaPremios, { recursive: true });
+}
+
+const storagePremios = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, carpetaPremios);
+    },
+    filename: function (req, file, cb) {
+        const extension = path.extname(file.originalname);
+        const nombreArchivo = "premio-" + Date.now() + extension;
+        cb(null, nombreArchivo);
+    }
+});
+
+const uploadPremio = multer({ storage: storagePremios });
+
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "portada.html"));
@@ -3738,7 +3759,7 @@ app.get("/api/mis-tableros/:jugadorId", (req, res) => {
     });
 
 });
-app.post("/api/premio/solicitud", (req, res) => {
+app.post("/api/premio/solicitud", uploadPremio.single("archivoDocumentoPremio"), (req, res) => {
 
     const {
         folio,
@@ -3749,15 +3770,17 @@ app.post("/api/premio/solicitud", (req, res) => {
         tipoDocumento
     } = req.body;
 
-    console.log("BODY SOLICITUD PREMIO:", req.body);
+    const archivo = req.file;
 
-    if(!folio || !ganadorId || !banco || !cuenta || !clabe || !tipoDocumento){
+    console.log("BODY SOLICITUD PREMIO:", req.body);
+    console.log("ARCHIVO RECIBIDO PREMIO:", archivo);
+
+    if(!folio || !ganadorId || !banco || !cuenta || !clabe || !tipoDocumento || !archivo){
         return res.json({
             ok:false,
             mensaje:"Faltan datos obligatorios"
         });
     }
-    console.log("GANADOR ID RECIBIDO:", ganadorId);
 
     db.get(`
         SELECT nombre, apellidos, email, telefono
@@ -3765,7 +3788,7 @@ app.post("/api/premio/solicitud", (req, res) => {
         WHERE id = ?
     `, [ganadorId], (errUsuario, usuario) => {
 
-    console.log("USUARIO GANADOR ENCONTRADO:", usuario);
+        console.log("USUARIO GANADOR ENCONTRADO:", usuario);
 
         if(errUsuario){
             console.log("ERROR consultando usuario ganador:", errUsuario.message);
@@ -3783,8 +3806,9 @@ app.post("/api/premio/solicitud", (req, res) => {
         }
 
         const nombreCompleto = `${usuario.nombre || ""} ${usuario.apellidos || ""}`.trim();
-    
-    console.log("DATOS A INSERTAR EN SOLICITUD:", {
+        const identificacionPath = `/uploads/premios/${archivo.filename}`;
+
+        console.log("DATOS A INSERTAR EN SOLICITUD:", {
             folio,
             ganadorId,
             nombreCompleto,
@@ -3793,9 +3817,10 @@ app.post("/api/premio/solicitud", (req, res) => {
             banco,
             cuenta,
             clabe,
-            tipoDocumento
+            tipoDocumento,
+            identificacionPath
         });
-    
+
         db.run(`
             INSERT INTO solicitudes_premio (
                 tableroId,
@@ -3807,9 +3832,10 @@ app.post("/api/premio/solicitud", (req, res) => {
                 cuenta,
                 clabe,
                 tipoDocumento,
+                identificacionPath,
                 estatus,
                 fechaSolicitud
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pendiente', ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pendiente', ?)
         `,
         [
             folio,
@@ -3821,6 +3847,7 @@ app.post("/api/premio/solicitud", (req, res) => {
             cuenta,
             clabe,
             tipoDocumento,
+            identificacionPath,
             Date.now()
         ],
         function(err){

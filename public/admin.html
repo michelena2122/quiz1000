@@ -646,6 +646,11 @@ async function cargarSolicitudesPremio() {
         <b>Cuenta:</b> ${s.cuenta || ""} <br>
         <b>CLABE:</b> ${s.clabe || ""} <br>
         <b>Documento:</b> ${s.tipoDocumento || ""} <br>
+        <b>Identificación:</b> ${
+            s.identificacionPath
+                ? `<a href="${s.identificacionPath}" target="_blank" style="color:#00ffcc;">Ver identificación</a>`
+                : 'No disponible'
+        } <br>
         <b>Estatus:</b> ${s.estatus || ""} <br>
 
         ${s.estatus !== 'pagado' ? `
