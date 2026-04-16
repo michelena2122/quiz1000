@@ -1841,7 +1841,11 @@ async function prepararNotificacionGanadorTemporal(folio) {
     }
 
     const telefono = await obtenerTelefonoJugadorPorGanador(ganador);
-    const token = generarTokenPremioTemporal();
+    const token = generarTokenPremio({
+    folio,
+    jugadorId: ganador.jugadorId,
+    expira: expiracionMs
+});
     tokensPremio[token] = {
     folio,
     creado: Date.now()
