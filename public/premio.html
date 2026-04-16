@@ -172,33 +172,14 @@
     </div>
 <script>
 (async function(){
-const params = new URLSearchParams(window.location.search);
-    const folio = params.get("folio");
-    const token = params.get("token");
 
-    if(!folio || !token){
+    const params = new URLSearchParams(window.location.search);
+    const folio = params.get("folio");
+
+    if(!folio){
         alert("Link inválido");
         return;
     }
-
-    try{
-        const validacionResp = await fetch(`/api/validar-link-premio?folio=${encodeURIComponent(folio)}&token=${encodeURIComponent(token)}`);
-        const validacionData = await validacionResp.json();
-
-        console.log("VALIDACIÓN LINK PREMIO:", validacionData);
-
-        if(!validacionData.ok){
-    alert(validacionData.mensaje || "Acceso no válido o expirado");
-    return;
-}
-
-        document.body.insertAdjacentHTML("afterbegin", '<div style="background:#d4edda;color:#155724;padding:10px;text-align:center;font-weight:bold;">Acceso validado correctamente</div>');
-    }catch(error){
-        console.error("Error validando link:", error);
-        alert("Error validando acceso");
-        return;
-    }
-
 
     const folioBox = document.getElementById("folioPremio");
     const ganadorBox = document.getElementById("ganadorPremio");
