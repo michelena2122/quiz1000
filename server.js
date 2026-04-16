@@ -1733,15 +1733,13 @@ async function obtenerGanadorTableroParaNotificacion(tableroId) {
         db.get(`
             SELECT
                 tableroId,
-                jugadorId,
-                nombre,
-                apellidos,
-                email,
-                mejorTiempo,
-                casillaGanadora
+                ganadorId,
+                ganadorNombre,
+                mejorTiempoTexto,
+                resumenJson,
+                fechaCierre
             FROM rankings_tableros
             WHERE tableroId = ?
-            ORDER BY mejorTiempo ASC
             LIMIT 1
         `, [tableroId], (err, row) => {
             if (err) {
@@ -1754,7 +1752,50 @@ async function obtenerGanadorTableroParaNotificacion(tableroId) {
                 return resolve(null);
             }
 
-            resolve(row);
+            let resumen = null;
+
+            try {
+                resumen = row.resumenJson ? JSON.parse(row.resumenJson) : null;
+            } catch (e) {
+                resumen = null;
+            }
+
+            let nombre = row.ganadorNombre || "Jugador";
+            let apellidos = "";
+            let email = "";
+            let casillaGanadora = null;
+
+            if (resumen && resumen.ganador) {
+                if (resumen.ganador.nombreSolo) {
+                    nombre = resumen.ganador.nombreSolo;
+                } else if (resumen.ganador.nombre) {
+                    nombre = resumen.ganador.nombre;
+                }
+
+                apellidos = resumen.ganador.apellidos || "";
+                email = resumen.ganador.email || "";
+
+                if (Array.isArray(resumen.ganador.tiempos)) {
+                    const coincidencia = resumen.ganador.tiempos.find(
+                        t => t.tiempo === row.mejorTiempoTexto
+                    );
+
+                    if (coincidencia) {
+                        casillaGanadora = Number(coincidencia.numero) || null;
+                    }
+                }
+            }
+
+            resolve({
+                tableroId: row.tableroId,
+                jugadorId: row.ganadorId,
+                nombre,
+                apellidos,
+                email,
+                mejorTiempo: row.mejorTiempoTexto,
+                casillaGanadora,
+                fechaCierre: row.fechaCierre || null
+            });
         });
     });
 }
