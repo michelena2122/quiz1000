@@ -3756,41 +3756,72 @@ app.post("/api/premio/solicitud", (req, res) => {
         });
     }
 
-    db.run(`
-        INSERT INTO solicitudes_premio (
-            tableroId,
+    db.get(`
+        SELECT nombre, apellidos, email, telefono
+        FROM usuarios
+        WHERE id = ?
+    `, [ganadorId], (errUsuario, usuario) => {
+
+        if(errUsuario){
+            console.log("ERROR consultando usuario ganador:", errUsuario.message);
+            return res.json({
+                ok:false,
+                mensaje:"Error consultando datos del ganador"
+            });
+        }
+
+        if(!usuario){
+            return res.json({
+                ok:false,
+                mensaje:"No se encontró el ganador"
+            });
+        }
+
+        const nombreCompleto = `${usuario.nombre || ""} ${usuario.apellidos || ""}`.trim();
+
+        db.run(`
+            INSERT INTO solicitudes_premio (
+                tableroId,
+                ganadorId,
+                nombreCompleto,
+                email,
+                telefono,
+                banco,
+                cuenta,
+                clabe,
+                tipoDocumento,
+                estatus,
+                fechaSolicitud
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pendiente', ?)
+        `,
+        [
+            folio,
             ganadorId,
+            nombreCompleto,
+            usuario.email || "",
+            usuario.telefono || "",
             banco,
             cuenta,
             clabe,
             tipoDocumento,
-            estatus,
-            fechaSolicitud
-        ) VALUES (?, ?, ?, ?, ?, ?, 'pendiente', ?)
-    `,
-    [
-        folio,
-        ganadorId,
-        banco,
-        cuenta,
-        clabe,
-        tipoDocumento,
-        Date.now()
-    ],
-    function(err){
+            Date.now()
+        ],
+        function(err){
 
-        if(err){
-            console.log("ERROR guardando solicitud premio:", err.message);
+            if(err){
+                console.log("ERROR guardando solicitud premio:", err.message);
+
+                return res.json({
+                    ok:false,
+                    mensaje:"Error guardando solicitud"
+                });
+            }
 
             return res.json({
-                ok:false,
-                mensaje:"Error guardando solicitud"
+                ok:true,
+                mensaje:"Solicitud de premio guardada correctamente"
             });
-        }
 
-        return res.json({
-            ok:true,
-            mensaje:"Solicitud de premio guardada correctamente"
         });
 
     });
@@ -3849,7 +3880,7 @@ app.post("/api/admin/pagar-premio", (req, res) => {
                 UPDATE tableros
                 SET premioPagado = 1
                 WHERE id = ?
-            `, [solicitud.folioTablero]);
+            `, [solicitud.tableroId]);
 
             res.json({ ok: true });
         });
