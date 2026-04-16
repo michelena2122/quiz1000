@@ -67,19 +67,46 @@
 <body>
 
     <div class="contenedor">
-        <h1>Premio QUIZ1000</h1>
-        <p id="folioPremio" style="margin-top:10px; font-size:18px;"></p>
-        <p id="ganadorPremio" style="margin-top:6px; font-size:16px;"></p>
-        <p id="idGanadorPremio" style="margin-top:6px; font-size:16px;"></p>
-        <p id="tiempoPremio" style="margin-top:6px; font-size:16px;"></p>
-        <p id="casillaPremio" style="margin-top:6px; font-size:16px;"></p>
-        <p id="apellidosPremio" style="margin-top:6px; font-size:16px;"></p>
-        <p id="emailPremio" style="margin-top:6px; font-size:16px;"></p>
+        <div style="text-align:center; margin-bottom:20px;">
+    <img
+        src="./assets/images/logotipo.png"
+        alt="QUIZ1000"
+        style="max-width:280px; width:80%; height:auto;"
+    >
+</div>
+
+<div style="text-align:center; margin-bottom:10px;">
+    <img
+        src="./assets/images/robot2.png"
+        alt="Robot QUIZ1000"
+        style="max-width:130px; width:32%; height:auto;"
+    >
+</div>
+        <h1 style="font-size:32px; margin-bottom:10px;">Premio QUIZ1000</h1>
+<p style="margin-top:0; margin-bottom:20px; font-size:16px; color:#dfe8ff;">
+    Validación oficial de ganador para pago de premio
+</p>
+        <div class="bloque">
+    <h2 class="titulo-bloque">Ganador oficial del tablero</h2>
+
+    <p id="folioPremio" class="dato"></p>
+    <p id="ganadorPremio" class="dato"></p>
+    <p id="idGanadorPremio" class="dato"></p>
+    <p id="tiempoPremio" class="dato"></p>
+    <p id="casillaPremio" class="dato"></p>
+    <p id="apellidosPremio" class="dato"></p>
+    <p id="emailPremio" class="dato"></p>
+</div>
 
         <p class="mensaje">
-            Felicidades. Este espacio está destinado para el proceso de validación
-            de identidad del ganador oficial de un tablero QUIZ1000.
-        </p>
+    Felicidades. Has sido identificado como el ganador oficial de un tablero QUIZ1000.
+    <br><br>
+    Para proteger la integridad del premio y garantizar una entrega segura,
+    es necesario completar el siguiente proceso de validación de identidad.
+    <br><br>
+    Una vez verificada tu información, el pago será procesado de forma manual
+    por el equipo de QUIZ1000.
+</p>
 
         <div class="bloque">
             <h2 class="titulo-bloque">Proceso de cobro de premio</h2>
@@ -96,22 +123,26 @@
 
     <div style="margin-bottom:14px;">
         <label for="bancoPremio"><strong>Banco</strong></label><br>
-        <input id="bancoPremio" type="text" style="width:100%; max-width:500px; padding:10px; border-radius:10px; border:none; margin-top:6px;">
+        <input id="bancoPremio" type="text"
+        style="width:100%; max-width:500px; padding:12px; border-radius:12px; border:none; margin-top:6px; background:#ffffff; color:#000;">
     </div>
 
     <div style="margin-bottom:14px;">
         <label for="cuentaPremio"><strong>Número de cuenta</strong></label><br>
-        <input id="cuentaPremio" type="text" style="width:100%; max-width:500px; padding:10px; border-radius:10px; border:none; margin-top:6px;">
+        <input id="cuentaPremio" type="text"
+        style="width:100%; max-width:500px; padding:12px; border-radius:12px; border:none; margin-top:6px; background:#ffffff; color:#000;">
     </div>
 
     <div style="margin-bottom:14px;">
         <label for="clabePremio"><strong>CLABE</strong></label><br>
-        <input id="clabePremio" type="text" style="width:100%; max-width:500px; padding:10px; border-radius:10px; border:none; margin-top:6px;">
+        <input id="clabePremio" type="text"
+        style="width:100%; max-width:500px; padding:12px; border-radius:12px; border:none; margin-top:6px; background:#ffffff; color:#000;">
     </div>
 
     <div style="margin-bottom:14px;">
         <label for="tipoDocumentoPremio"><strong>Tipo de documento</strong></label><br>
-        <select id="tipoDocumentoPremio" style="width:100%; max-width:500px; padding:10px; border-radius:10px; border:none; margin-top:6px;">
+        <select id="tipoDocumentoPremio"
+        style="width:100%; max-width:500px; padding:12px; border-radius:12px; border:none; margin-top:6px; background:#ffffff; color:#000;">
             <option value="">Selecciona una opción</option>
             <option value="INE">INE</option>
             <option value="Pasaporte">Pasaporte</option>
@@ -120,10 +151,13 @@
 
     <div style="margin-bottom:14px;">
         <label for="archivoDocumentoPremio"><strong>Subir identificación</strong></label><br>
-        <input id="archivoDocumentoPremio" type="file" accept=".jpg,.jpeg,.png,.pdf" style="width:100%; max-width:500px; padding:10px; border-radius:10px; border:none; margin-top:6px; background:white; color:black;">
+        <input id="archivoDocumentoPremio" type="file" accept=".jpg,.jpeg,.png,.pdf"
+        style="width:100%; max-width:500px; padding:12px; border-radius:12px; border:none; margin-top:6px; background:#ffffff; color:#000;">
     </div>
+
     <div style="margin-top:20px; text-align:center;">
-        <button id="btnEnviarPremio" type="button" style="background:#ffd700; color:#0b1f5c; font-weight:bold; border:none; border-radius:12px; padding:12px 24px; cursor:pointer;">
+        <button id="btnEnviarPremio" type="button"
+        style="background:#ffd700; color:#0b1f5c; font-weight:bold; border:none; border-radius:12px; padding:12px 24px; cursor:pointer;">
             Enviar datos de premio
         </button>
     </div>

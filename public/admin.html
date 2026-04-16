@@ -137,18 +137,7 @@ button:hover{
     <button id="btnCargarIncompletos">Ver tableros incompletos</button>
     <button id="btnOcultarIncompletos">Ocultar</button>
 
-    <table style="margin-top:20px; width:100%; border-collapse:collapse;">
-        <thead>
-            <tr>
-                <th>Folio</th>
-                <th>Estatus</th>
-                <th>Estado Reembolso</th>
-                <th>Procesado</th>
-                <th>Premio Pagado</th>
-            </tr>
-        </thead>
-        <tbody id="tablaIncompletos"></tbody>
-    </table>
+    <div id="tablaIncompletos" style="margin-top:20px;"></div>
 </div>
 <h2>💰 Solicitudes de Premio</h2>
 
@@ -592,30 +581,78 @@ async function cargarTablerosIncompletos(){
 
     tablaIncompletos.innerHTML = "";
 
-    data.tableros.forEach(t => {
+    if (!data.tableros || data.tableros.length === 0) {
+        tablaIncompletos.innerHTML = "<div>No hay tableros incompletos.</div>";
+        return;
+    }
+
+    data.tableros.forEach((t, index) => {
 
         let color = "#00ffcc";
+        if (t.estatus === "vencido") color = "orange";
+        if (t.estatus === "reembolso_en_proceso") color = "gold";
+        if (t.estatus === "reembolsado") color = "red";
 
-        if(t.estatus === "vencido") color = "orange";
-        if(t.estatus === "reembolso_en_proceso") color = "gold";
-        if(t.estatus === "reembolsado") color = "red";
+        const bloque = document.createElement("div");
 
-        const fila = document.createElement("tr");
+        bloque.style.border = "1px solid #333";
+        bloque.style.borderRadius = "14px";
+        bloque.style.marginBottom = "12px";
+        bloque.style.overflow = "hidden";
+        bloque.style.background = "#161616";
 
-        fila.innerHTML = `
-            <td>${t.id}</td>
-            <td style="color:${color}; font-weight:bold;">${t.estatus}</td>
-            <td>${t.estadoReembolso || "pendiente"}</td>
-            <td>${t.reembolsoProcesado}</td>
-            <td>${t.premioPagado}</td>
+        bloque.innerHTML = `
+            <button
+                type="button"
+                onclick="toggleIncompleto(${index})"
+                style="
+                    width:100%;
+                    background:#0d2a7a;
+                    color:white;
+                    border:none;
+                    padding:16px 18px;
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:center;
+                    font-size:18px;
+                    font-weight:bold;
+                    cursor:pointer;
+                "
+            >
+                <span>
+                    ${t.id} | 
+                    <span style="color:${color};">${t.estatus}</span>
+                </span>
+                <span id="flechaIncompleto-${index}">▼</span>
+            </button>
+
+            <div
+                id="detalleIncompleto-${index}"
+                style="display:none; padding:18px; background:#111; line-height:1.7;"
+            >
+                <div><b>Folio:</b> ${t.id}</div>
+                <div><b>Estatus:</b> <span style="color:${color}; font-weight:bold;">${t.estatus}</span></div>
+                <div><b>Estado reembolso:</b> ${t.estadoReembolso || "pendiente"}</div>
+                <div><b>Procesado:</b> ${t.reembolsoProcesado}</div>
+                <div><b>Premio pagado:</b> ${t.premioPagado}</div>
+            </div>
         `;
 
-        tablaIncompletos.appendChild(fila);
-
+        tablaIncompletos.appendChild(bloque);
     });
 
 }
+function toggleIncompleto(index) {
+    const detalle = document.getElementById(`detalleIncompleto-${index}`);
+    const flecha = document.getElementById(`flechaIncompleto-${index}`);
 
+    if (!detalle || !flecha) return;
+
+    const abierto = detalle.style.display === "block";
+
+    detalle.style.display = abierto ? "none" : "block";
+    flecha.innerText = abierto ? "▼" : "▲";
+}
 function ocultarTablerosIncompletos(){
     tablaIncompletos.innerHTML = "";
 }
@@ -636,33 +673,94 @@ async function cargarSolicitudesPremio() {
 
         const contenedor = document.getElementById("tablaPremios");
 
-        contenedor.innerHTML = data.solicitudes.map(s => `
-    <div style="border:1px solid #ccc; padding:10px; margin:10px;">
-        <b>Folio:</b> ${s.tableroId || ""} <br>
-        <b>Ganador ID:</b> ${s.ganadorId || ""} <br>
-        <b>Nombre:</b> ${s.nombreCompleto || ""} <br>
-        <b>Email:</b> ${s.email || ""} <br>
-        <b>Banco:</b> ${s.banco || ""} <br>
-        <b>Cuenta:</b> ${s.cuenta || ""} <br>
-        <b>CLABE:</b> ${s.clabe || ""} <br>
-        <b>Documento:</b> ${s.tipoDocumento || ""} <br>
-        <b>Identificación:</b> ${
-            s.identificacionPath
-                ? `<a href="${s.identificacionPath}" target="_blank" style="color:#00ffcc;">Ver identificación</a>`
-                : 'No disponible'
-        } <br>
-        <b>Estatus:</b> ${s.estatus || ""} <br>
+        if (!data.solicitudes || data.solicitudes.length === 0) {
+            contenedor.innerHTML = "<div style='margin-top:10px;'>No hay solicitudes de premio.</div>";
+            return;
+        }
 
-        ${s.estatus !== 'pagado' ? `
-            <button onclick="pagarPremio(${s.id})">
-                Marcar como pagado
-            </button>
-        ` : '<b>✅ PAGADO</b>'}
-    </div>
-`).join("");
+        contenedor.innerHTML = data.solicitudes.map((s, index) => `
+            <div style="
+                border:1px solid #3a3a3a;
+                border-radius:14px;
+                margin:14px 0;
+                overflow:hidden;
+                background:#161616;
+            ">
+                <button
+                    type="button"
+                    onclick="toggleSolicitudPremio(${index})"
+                    style="
+                        width:100%;
+                        background:#0d2a7a;
+                        color:white;
+                        border:none;
+                        padding:16px 18px;
+                        display:flex;
+                        justify-content:space-between;
+                        align-items:center;
+                        font-size:18px;
+                        font-weight:bold;
+                        cursor:pointer;
+                    "
+                >
+                    <span>
+                        Folio: ${s.tableroId || ""} 
+                        | ${s.estatus === "pagado" ? "✅ PAGADO" : "💰 POR PAGAR"}
+                    </span>
+                    <span id="flechaSolicitud-${index}" style="font-size:20px;">▼</span>
+                </button>
+
+                <div
+                    id="detalleSolicitud-${index}"
+                    style="
+                        display:none;
+                        padding:18px;
+                        background:#111;
+                        color:white;
+                        line-height:1.7;
+                    "
+                >
+                    <div><b>Ganador ID:</b> ${s.ganadorId || ""}</div>
+                    <div><b>Nombre:</b> ${s.nombreCompleto || ""}</div>
+                    <div><b>Email:</b> ${s.email || ""}</div>
+                    <div><b>Banco:</b> ${s.banco || ""}</div>
+                    <div><b>Cuenta:</b> ${s.cuenta || ""}</div>
+                    <div><b>CLABE:</b> ${s.clabe || ""}</div>
+                    <div><b>Documento:</b> ${s.tipoDocumento || ""}</div>
+                    <div>
+                        <b>Identificación:</b>
+                        ${
+                            s.identificacionPath
+                                ? `<a href="${s.identificacionPath}" target="_blank" style="color:#00ffcc;">Ver identificación</a>`
+                                : 'No disponible'
+                        }
+                    </div>
+                    <div><b>Estatus:</b> ${s.estatus || ""}</div>
+
+                    <div style="margin-top:14px;">
+                        ${s.estatus !== 'pagado' ? `
+                            <button onclick="pagarPremio(${s.id})">
+                                Marcar como pagado
+                            </button>
+                        ` : '<b style="color:#90ee90;">✅ PAGADO</b>'}
+                    </div>
+                </div>
+            </div>
+        `).join("");
     } catch (error) {
         console.log("Error cargando solicitudes de premio:", error);
     }
+}
+function toggleSolicitudPremio(index) {
+    const detalle = document.getElementById(`detalleSolicitud-${index}`);
+    const flecha = document.getElementById(`flechaSolicitud-${index}`);
+
+    if (!detalle || !flecha) return;
+
+    const abierto = detalle.style.display === "block";
+
+    detalle.style.display = abierto ? "none" : "block";
+    flecha.innerText = abierto ? "▼" : "▲";
 }
 async function pagarPremio(id) {
 
