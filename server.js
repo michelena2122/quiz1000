@@ -1687,7 +1687,7 @@ function generarTokenPremioTemporal() {
 }
 
 function construirUrlPremioTemporal({ folio, token }) {
-    return `https://quiz1000.onrender.com/premio.html?folio=${encodeURIComponent(folio)}&token=${encodeURIComponent(token)}`;
+    return `https://quiz1000-nuevo.onrender.com/premio.html?folio=${encodeURIComponent(folio)}&token=${encodeURIComponent(token)}`;
 }
 
 function construirMensajesGanador({ ganador, folio, urlPremio }) {
