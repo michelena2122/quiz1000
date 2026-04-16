@@ -3820,7 +3820,7 @@ app.post("/api/premio/solicitud", uploadPremio.single("archivoDocumentoPremio"),
             tipoDocumento,
             identificacionPath
         });
-
+        console.log("VALOR IDENTIFICACION PATH:", identificacionPath);
         db.run(`
             INSERT INTO solicitudes_premio (
                 tableroId,
