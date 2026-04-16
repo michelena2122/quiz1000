@@ -4172,29 +4172,29 @@ app.get("/api/validar-link-premio", async (req, res) => {
             });
         }
 
-        const data = await prepararNotificacionGanadorTemporal(folio);
-        const tokenData = tokensPremio[token];
+        const ganador = await obtenerGanadorTableroParaNotificacion(folio);
 
-if (!tokenData || tokenData.folio !== folio) {
+if (!ganador) {
     return res.json({
         ok: false,
-        mensaje: "Token inválido"
+        mensaje: "No se encontró ganador para este tablero"
     });
 }
-        if (!data || !data.ok || !data.ganador) {
-            return res.json({
-                ok: false,
-                mensaje: "No se encontró ganador para este tablero"
-            });
-        }
 
-        return res.json({
-            ok: true,
-            mensaje: "Link válido para continuar",
-            folio,
-            tokenRecibido: token,
-            ganador: data.ganador
-        });
+if (ganador.jugadorId !== jugadorIdToken) {
+    return res.json({
+        ok: false,
+        mensaje: "Token no corresponde al ganador actual"
+    });
+}
+
+return res.json({
+    ok: true,
+    mensaje: "Link válido para continuar",
+    folio,
+    tokenRecibido: token,
+    ganador
+});
 
     } catch (error) {
         console.error("❌ Error en /api/validar-link-premio:", error);
