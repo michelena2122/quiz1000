@@ -6,6 +6,7 @@ const fs = require("fs");
 const multer = require("multer");
 const sqlite3 = require("sqlite3").verbose();
 const bcrypt = require("bcrypt");
+const crypto = require("crypto");
 const { MercadoPagoConfig, Preference } = require("mercadopago");
 const { Payment } = require("mercadopago");
 
@@ -1680,6 +1681,153 @@ participantesMap[jugadorId] = {
             });
         });
     });
+}
+function generarTokenPremioTemporal() {
+    return crypto.randomBytes(24).toString("hex");
+}
+
+function construirUrlPremioTemporal({ folio, token }) {
+    return `https://quiz1000.onrender.com/premio.html?folio=${encodeURIComponent(folio)}&token=${encodeURIComponent(token)}`;
+}
+
+function construirMensajesGanador({ ganador, folio, urlPremio }) {
+    const nombreCompleto = `${ganador.nombre || ""} ${ganador.apellidos || ""}`.trim() || "Ganador(a)";
+    const casilla = ganador.casillaGanadora || ganador.casilla || "N/D";
+    const tiempo = ganador.mejorTiempo || ganador.tiempo || "N/D";
+
+    const mensajeApp =
+        `¡Felicidades ${nombreCompleto}! Ganaste el tablero ${folio} en QUIZ1000 con un mejor tiempo de ${tiempo} en la casilla ${casilla}. ` +
+        `Para validar tu premio, entra aquí: ${urlPremio}`;
+
+    const mensajeEmail = `
+Hola ${nombreCompleto},
+
+¡Felicidades! Has resultado ganador(a) del tablero ${folio} en QUIZ1000.
+
+Tu mejor tiempo registrado fue: ${tiempo}
+Casilla ganadora: ${casilla}
+
+Para continuar con la validación de tu premio, por favor entra al siguiente enlace:
+${urlPremio}
+
+Ahí podrás capturar tus datos y subir tu identificación.
+
+Equipo QUIZ1000
+`.trim();
+
+    const mensajeWhatsApp =
+        `🏆 ¡Felicidades ${nombreCompleto}! Ganaste el tablero ${folio} en QUIZ1000.\n` +
+        `⏱️ Mejor tiempo: ${tiempo}\n` +
+        `🎯 Casilla ganadora: ${casilla}\n\n` +
+        `Para validar tu premio, captura tus datos aquí:\n${urlPremio}`;
+
+    return {
+        app: mensajeApp,
+        email: mensajeEmail,
+        whatsapp: mensajeWhatsApp
+    };
+}
+
+async function obtenerGanadorTableroParaNotificacion(tableroId) {
+    return new Promise((resolve, reject) => {
+        db.get(`
+            SELECT
+                tableroId,
+                jugadorId,
+                nombre,
+                apellidos,
+                email,
+                mejorTiempo,
+                casillaGanadora
+            FROM rankings_tableros
+            WHERE tableroId = ?
+            ORDER BY mejorTiempo ASC
+            LIMIT 1
+        `, [tableroId], (err, row) => {
+            if (err) {
+                console.error("❌ Error consultando ganador en rankings_tableros:", err);
+                return reject(err);
+            }
+
+            if (!row) {
+                console.log("⚠️ No se encontró ganador en rankings_tableros para:", tableroId);
+                return resolve(null);
+            }
+
+            resolve(row);
+        });
+    });
+}
+
+async function obtenerTelefonoJugadorPorGanador(ganador) {
+    return new Promise((resolve, reject) => {
+        if (!ganador || !ganador.jugadorId) {
+            return resolve(null);
+        }
+
+        db.get(`
+            SELECT telefono
+            FROM usuarios
+            WHERE id = ?
+            LIMIT 1
+        `, [ganador.jugadorId], (err, row) => {
+            if (err) {
+                console.error("❌ Error consultando teléfono del ganador:", err);
+                return reject(err);
+            }
+
+            resolve(row?.telefono || null);
+        });
+    });
+}
+
+async function prepararNotificacionGanadorTemporal(folio) {
+    const ganador = await obtenerGanadorTableroParaNotificacion(folio);
+
+    if (!ganador) {
+        return {
+            ok: false,
+            mensaje: "No se encontró ganador para este tablero",
+            ganador: null
+        };
+    }
+
+    const telefono = await obtenerTelefonoJugadorPorGanador(ganador);
+    const token = generarTokenPremioTemporal();
+
+    const ahora = Date.now();
+    const expiracionMs = ahora + (3 * 24 * 60 * 60 * 1000);
+
+    const urlPremio = construirUrlPremioTemporal({
+        folio,
+        token
+    });
+
+    const mensajes = construirMensajesGanador({
+        ganador,
+        folio,
+        urlPremio
+    });
+
+    return {
+        ok: true,
+        folio,
+        ganador: {
+            tableroId: ganador.tableroId,
+            jugadorId: ganador.jugadorId,
+            nombre: ganador.nombre,
+            apellidos: ganador.apellidos,
+            email: ganador.email,
+            telefono,
+            mejorTiempo: ganador.mejorTiempo,
+            casillaGanadora: ganador.casillaGanadora
+        },
+        tokenTemporal: token,
+        fechaCreacion: ahora,
+        fechaExpiracion: expiracionMs,
+        urlPremio,
+        mensajes
+    };
 }
 function guardarRankingCerrado(resumen){
     return new Promise((resolve, reject) => {
@@ -3944,6 +4092,21 @@ app.post("/api/admin/pagar-premio", (req, res) => {
 
     });
 
+});
+app.get("/api/test-notificacion-ganador/:folio", async (req, res) => {
+    try {
+        const folio = req.params.folio;
+        const data = await prepararNotificacionGanadorTemporal(folio);
+
+        return res.json(data);
+    } catch (error) {
+        console.error("❌ Error en /api/test-notificacion-ganador/:folio", error);
+        return res.status(500).json({
+            ok: false,
+            mensaje: "Error preparando notificación del ganador",
+            error: error.message
+        });
+    }
 });
 app.get("/api/prueba-version", (req, res) => {
     res.json({
