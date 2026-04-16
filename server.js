@@ -3773,7 +3773,7 @@ app.post("/api/premio/solicitud", uploadPremio.single("archivoDocumentoPremio"),
     const archivo = req.file;
 
     console.log("BODY SOLICITUD PREMIO:", req.body);
-    console.log("ARCHIVO RECIBIDO PREMIO:", archivo);
+    console.log("ARCHIVO RECIBIDO PREMIO:", req.file);
 
     if(!folio || !ganadorId || !banco || !cuenta || !clabe || !tipoDocumento || !archivo){
         return res.json({
