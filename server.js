@@ -3615,6 +3615,73 @@ app.get("/api/admin/tipo-cambio", (req, res) => {
         }
     );
 });
+// =============================
+// CARRUSEL DE GANADORES - PORTADA
+// =============================
+app.get("/api/carrusel-ganadores", (req, res) => {
+    const ganadores = [
+        { nombre: "Luis Antonio M.", estado: "Nuevo León", inversion: 2 },
+        { nombre: "Flor G.", estado: "Quintana Roo", inversion: 2 },
+        { nombre: "Santiago P.", estado: "Sonora", inversion: 2 },
+        { nombre: "Agustín H.", estado: "Aguascalientes", inversion: 2 },
+        { nombre: "Alfredo F.", estado: "Tabasco", inversion: 2 },
+        { nombre: "Cinthya J.", estado: "Colima", inversion: 2 },
+        { nombre: "Berenice T.", estado: "CDMX", inversion: 2 },
+        { nombre: "Javier L.", estado: "Tlaxcala", inversion: 2 },
+        { nombre: "Francisco D.", estado: "Tamaulipas", inversion: 2 },
+        { nombre: "Viridiana T.", estado: "Baja California", inversion: 2 },
+        { nombre: "Raúl P.", estado: "Querétaro", inversion: 2 },
+        { nombre: "Ángel P.", estado: "Chiapas", inversion: 2 },
+        { nombre: "Pablo A.", estado: "Jalisco", inversion: 2 },
+        { nombre: "Sergio R.", estado: "Durango", inversion: 2 },
+        { nombre: "Mario D.", estado: "Zacatecas", inversion: 2 },
+        { nombre: "Ana K.", estado: "Puebla", inversion: 2 },
+        { nombre: "Nadia J.", estado: "Estado de México", inversion: 2 },
+        { nombre: "Laura P.", estado: "Hidalgo", inversion: 2 },
+        { nombre: "Diana C.", estado: "Veracruz", inversion: 2 },
+        { nombre: "Maricarmen M.", estado: "Michoacán", inversion: 2 },
+        { nombre: "Miguel A.", estado: "Sinaloa", inversion: 2 },
+        { nombre: "Paula N.", estado: "Yucatán", inversion: 2 },
+        { nombre: "Ernesto F.", estado: "Nayarit", inversion: 2 },
+        { nombre: "José M.", estado: "Coahuila", inversion: 2 },
+        { nombre: "Ángel C.", estado: "San Luis Potosí", inversion: 2 },
+        { nombre: "José Ramón T.", estado: "Morelos", inversion: 2 },
+        { nombre: "Elsa R.", estado: "Guanajuato", inversion: 2 },
+        { nombre: "Mauricio F.", estado: "Oaxaca", inversion: 2 },
+        { nombre: "Susana J.", estado: "Guerrero", inversion: 2 },
+        { nombre: "Marco T.", estado: "Chihuahua", inversion: 2 }
+    ];
+
+    db.get(
+        `SELECT valor FROM configuracion WHERE clave = 'tipoCambioPremio'`,
+        [],
+        (err, row) => {
+            if (err) {
+                console.log("Error leyendo tipoCambioPremio para carrusel:", err);
+                return res.status(500).json({ ok: false });
+            }
+
+            const tipoCambioPremio = parseFloat(row?.valor || "19.50");
+            const montoPesos = Math.round(1000 * tipoCambioPremio);
+
+            const mensajes = ganadores.map(item => ({
+                nombre: item.nombre,
+                estado: item.estado,
+                inversion: item.inversion,
+                premioUsd: 1000,
+                premioPesos: montoPesos,
+                texto: `${item.nombre} de ${item.estado} acaba de ganar 1,000 USD en pesos $${montoPesos.toLocaleString("es-MX")} con sólo ${item.inversion} USD`
+            }));
+
+            res.json({
+                ok: true,
+                tipoCambioPremio,
+                premioPesos: montoPesos,
+                mensajes
+            });
+        }
+    );
+});
 app.get("/api/debug/configuracion-esquema", (req, res) => {
     db.all(`PRAGMA table_info(configuracion)`, [], (err, columnas) => {
         if(err){

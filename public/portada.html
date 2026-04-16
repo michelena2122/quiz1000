@@ -5,6 +5,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bienvenido</title>
     <link rel="stylesheet" href="css/styles.css?v=2">
+    <style>
+    .portada-carrusel-box{
+        width: 90%;
+        max-width: 460px;
+        margin: 16px auto 10px auto;
+        background: #ffffff;
+        border-radius: 10px;
+        padding: 14px 18px;
+        box-sizing: border-box;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+    }
+
+    .portada-carrusel-texto{
+        margin: 0;
+        font-size: 20px;
+        line-height: 1.35;
+        color: #111;
+        font-weight: 500;
+    }
+
+    .portada-carrusel-texto strong{
+        font-weight: 800;
+    }
+
+    @media (max-width: 768px){
+        .portada-carrusel-box{
+            width: 92%;
+            max-width: 92%;
+            padding: 12px 14px;
+            margin: 14px auto 10px auto;
+        }
+
+        .portada-carrusel-texto{
+            font-size: 17px;
+            line-height: 1.32;
+        }
+    }
+</style>
 </head>
 
 <body class="portada">
@@ -19,6 +58,11 @@
 </div>
         <!-- Imagen principal -->
         <img src="assets/images/portada.png" class="portada-imagen" alt="Quiz 1000">
+        <div class="portada-carrusel-box">
+    <p id="textoCarruselPortada" class="portada-carrusel-texto">
+        Cargando ganadores...
+    </p>
+</div>
         <img src="assets/images/robot.png" class="robot-flotante" alt="Robot">
         <!-- Texto -->
         <p class="portada-texto">
@@ -45,8 +89,51 @@
     </div>
 
  <script>
-    async function crearTablero(){
+    let mensajesCarrusel = [];
+    let indiceCarrusel = 0;
+    let intervaloCarrusel = null;
 
+    function renderMensajeCarrusel(item){
+        const el = document.getElementById("textoCarruselPortada");
+        if(!el || !item) return;
+
+        el.innerHTML = `
+            ${item.nombre} de ${item.estado} acaba de ganar ${item.premioUsd.toLocaleString("es-MX")} USD en pesos
+            <br>
+            <strong>$${item.premioPesos.toLocaleString("es-MX")} con sólo ${item.inversion} USD</strong>
+        `;
+    }
+
+    async function cargarCarruselPortada(){
+        try{
+            const res = await fetch("/api/carrusel-ganadores");
+            const data = await res.json();
+
+            if(!data.ok || !Array.isArray(data.mensajes) || data.mensajes.length === 0){
+                return;
+            }
+
+            mensajesCarrusel = data.mensajes;
+            indiceCarrusel = 0;
+            renderMensajeCarrusel(mensajesCarrusel[indiceCarrusel]);
+
+            if(intervaloCarrusel){
+                clearInterval(intervaloCarrusel);
+            }
+
+            intervaloCarrusel = setInterval(() => {
+                indiceCarrusel++;
+                if(indiceCarrusel >= mensajesCarrusel.length){
+                    indiceCarrusel = 0;
+                }
+                renderMensajeCarrusel(mensajesCarrusel[indiceCarrusel]);
+            }, 180000); // 3 minutos
+        }catch(error){
+            console.log("Error cargando carrusel portada:", error);
+        }
+    }
+
+    async function crearTablero(){
         const res = await fetch("/api/crear-tablero",{
             method:"POST"
         });
@@ -60,6 +147,11 @@
 
         window.location.href = "/tablero?folio=" + data.folio;
     }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        cargarCarruselPortada();
+    });
+
     </script>
 </body>
 </html>
