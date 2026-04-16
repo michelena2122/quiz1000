@@ -4180,7 +4180,9 @@ if (!ganador) {
         mensaje: "No se encontró ganador para este tablero"
     });
 }
-
+const tokenDecodificado = Buffer.from(token, "base64url").toString("utf8");
+const partes = tokenDecodificado.split("|");
+const jugadorIdToken = partes[1];
 if (ganador.jugadorId !== jugadorIdToken) {
     return res.json({
         ok: false,
