@@ -267,6 +267,40 @@ function asegurarColumnasReembolsoTablero(callback){
     });
 
 }
+function asegurarColumnasSolicitudesPremio(callback){
+
+    db.all(`PRAGMA table_info(solicitudes_premio)`, [], (err, columnas) => {
+        if(err){
+            console.log("Error consultando columnas de solicitudes_premio:", err.message);
+            if(callback) return callback(err);
+            return;
+        }
+
+        const existeGanadorId = columnas.some(col => col.name === "ganadorId");
+
+        if(existeGanadorId){
+            console.log("Columna ganadorId ya existe en solicitudes_premio");
+            if(callback) return callback(null);
+            return;
+        }
+
+        db.run(
+            `ALTER TABLE solicitudes_premio ADD COLUMN ganadorId TEXT`,
+            [],
+            (errAlter) => {
+                if(errAlter){
+                    console.log("Error agregando columna ganadorId en solicitudes_premio:", errAlter.message);
+                    if(callback) return callback(errAlter);
+                    return;
+                }
+
+                console.log("Columna ganadorId agregada correctamente en solicitudes_premio");
+                if(callback) callback(null);
+            }
+        );
+    });
+
+}
 // ============================
 // BASE DE DATOS
 // ============================
@@ -3632,7 +3666,13 @@ app.listen(PORT, "0.0.0.0", () => {
                 console.log("✅ Columnas de tableros verificadas correctamente");
             }
         });
-
+        asegurarColumnasSolicitudesPremio((err) => {
+            if(err){
+                 console.log("❌ ERROR asegurando solicitudes_premio:", err);
+             }else{
+                 console.log("✅ Columnas de solicitudes_premio verificadas correctamente");
+            }
+        });
         setInterval(detectarTablerosVencidos, 60000);
 
     }, 3000); // espera 3 segundos
