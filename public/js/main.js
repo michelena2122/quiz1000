@@ -1,3 +1,26 @@
+(function sincronizarSesionGoogle() {
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.get("google") !== "ok") return;
+
+    const id = params.get("id") || "";
+    const nombre = params.get("nombre") || "";
+    const apellidos = params.get("apellidos") || "";
+    const email = params.get("email") || "";
+
+    if (!id || !email) return;
+
+    const usuarioGoogle = {
+        id,
+        nombre,
+        apellidos,
+        email
+    };
+
+    localStorage.setItem("jugadorId", id);
+    localStorage.setItem("usuarioLogueado", JSON.stringify(usuarioGoogle));
+    localStorage.setItem("jugadorActual", JSON.stringify(usuarioGoogle));
+})();
 console.log("MAIN NUEVO VERSION 2");
 let reservasActivas = [];
 document.addEventListener("DOMContentLoaded", () => {

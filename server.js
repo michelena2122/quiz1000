@@ -198,14 +198,20 @@ console.log("✅ Registrando ruta /auth/google");
 console.log("✅ Server cargó hasta Passport");
 
 app.get("/auth/google", (req, res, next) => {
-    req.session.googleOrigen = req.query.origen || "registro";
-    req.session.folioGoogle = req.query.folio || "";
+    const origen = req.query.origen || "registro";
+    const folio = req.query.folio || "";
+
+    const state = Buffer.from(JSON.stringify({ origen, folio })).toString("base64");
+
+    console.log("🟡 /auth/google");
+    console.log("   origen =", origen);
+    console.log("   folio  =", folio);
 
     passport.authenticate("google", {
-        scope: ["profile", "email"]
+        scope: ["profile", "email"],
+        state
     })(req, res, next);
 });
-
 app.get("/auth/google/callback", (req, res, next) => {
     passport.authenticate("google", (err, user, info) => {
         console.log("GOOGLE CALLBACK ERR:", err);
@@ -226,16 +232,30 @@ app.get("/auth/google/callback", (req, res, next) => {
                 return res.status(500).send("Error al iniciar sesión con Google");
             }
 
-            const origen = req.session.googleOrigen || "registro";
-            const folio = req.session.folioGoogle || "";
+            let origen = "registro";
+            let folio = "";
 
-            req.session.googleOrigen = null;
-            req.session.folioGoogle = null;
+            try {
+                if (req.query.state) {
+                    const parsed = JSON.parse(
+                        Buffer.from(req.query.state, "base64").toString("utf8")
+                    );
+                    origen = parsed.origen || "registro";
+                    folio = parsed.folio || "";
+                }
+            } catch (e) {
+                console.log("ERROR LEYENDO STATE GOOGLE:", e.message);
+            }
 
             const id = encodeURIComponent(user.id || "");
             const nombre = encodeURIComponent(user.nombre || "");
             const apellidos = encodeURIComponent(user.apellidos || "");
             const email = encodeURIComponent(user.email || "");
+
+            console.log("✅ GOOGLE OK");
+            console.log("   origen final =", origen);
+            console.log("   folio final  =", folio);
+            console.log("   user.id      =", user.id);
 
             if (origen === "home") {
                 return res.redirect(`/portada.html?google=ok&id=${id}&nombre=${nombre}&apellidos=${apellidos}&email=${email}`);
