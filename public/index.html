@@ -24,11 +24,28 @@
         <!-- BLOQUE MI CUENTA -->
         <!-- ===================== -->
         <div class="home-bloque">
-            <a href="registro.html" class="perfil-link-home" onclick="localStorage.setItem('origenRegistro','home')">
-                 <img src="./assets/images/registro.png" 
-                     alt="Registro"
-                     class="perfil-icono-home">
-            </a>
+    <a href="registro.html" class="perfil-link-home" onclick="localStorage.setItem('origenRegistro','home')">
+         <img src="./assets/images/registro.png" 
+             alt="Registro"
+             class="perfil-icono-home">
+    </a>
+
+    <!-- 🔐 BOTÓN GOOGLE -->
+    <button onclick="loginGoogleHome()" style="
+        width:100%;
+        padding:12px;
+        border-radius:8px;
+        border:none;
+        background:#ffffff;
+        color:#000;
+        font-weight:bold;
+        cursor:pointer;
+        margin-top:10px;
+    ">
+        🔐 Continuar con Google
+    </button>
+</div>
+            
         </div>
 
         <div class="home-bloque">
@@ -234,6 +251,9 @@
 
         contenedor.innerHTML = html;
     }
+    function loginGoogleHome() {
+    window.location.href = "/auth/google?origen=home";
+}
     </script>
 </body>
 </html>

@@ -197,9 +197,14 @@ res.sendFile(path.join(__dirname, "public", "admin.html"));
 console.log("✅ Registrando ruta /auth/google");
 console.log("✅ Server cargó hasta Passport");
 
-app.get("/auth/google",
-    passport.authenticate("google", { scope: ["profile", "email"] })
-);
+app.get("/auth/google", (req, res, next) => {
+    req.session.googleOrigen = req.query.origen || "registro";
+    req.session.folioGoogle = req.query.folio || "";
+
+    passport.authenticate("google", {
+        scope: ["profile", "email"]
+    })(req, res, next);
+});
 
 app.get("/auth/google/callback",
     passport.authenticate("google", { failureRedirect: "/login" }),
@@ -209,7 +214,21 @@ app.get("/auth/google/callback",
             return res.redirect("/login");
         }
 
-        res.redirect(`/perfil?google=ok&id=${req.user.id}`);
+        const origen = req.session.googleOrigen || "registro";
+        const folio = req.session.folioGoogle || "";
+
+        req.session.googleOrigen = null;
+        req.session.folioGoogle = null;
+
+        if (origen === "home") {
+            return res.redirect(`/portada.html?google=ok&id=${encodeURIComponent(req.user.id)}`);
+        }
+
+        if (folio) {
+            return res.redirect(`/pago.html?folio=${encodeURIComponent(folio)}&google=ok&id=${encodeURIComponent(req.user.id)}`);
+        }
+
+        return res.redirect(`/perfil?google=ok&id=${encodeURIComponent(req.user.id)}`);
     }
 );
 const FILE_PATH = path.join(__dirname, "public", "data", "preguntas.json");

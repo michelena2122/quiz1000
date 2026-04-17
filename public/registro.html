@@ -138,7 +138,20 @@ button{
 </div>
 
 <button class="payBtn" id="pagarBtn">Continuar al Pago</button>
-
+<!-- 🔐 BOTÓN GOOGLE -->
+<button type="button" onclick="loginGoogleRegistro()" style="
+    width:100%;
+    padding:10px;
+    border-radius:6px;
+    border:none;
+    background:#ffffff;
+    color:#000;
+    font-weight:bold;
+    margin-top:10px;
+    cursor:pointer;
+">
+    🔐 Registrarme con Google
+</button>
 </div>
 
 <script>
@@ -260,6 +273,14 @@ pagarBtn.addEventListener("click", async function () {
         errorMsg.textContent = "No se pudo conectar con el servidor.";
     }
 });
+function loginGoogleRegistro() {
+    const folio =
+        new URLSearchParams(window.location.search).get("folio") ||
+        localStorage.getItem("folioTableroActual") ||
+        "";
+
+    window.location.href = `/auth/google?origen=registro&folio=${encodeURIComponent(folio)}`;
+}
 </script>
 <footer class="footer-login">
   <p>
