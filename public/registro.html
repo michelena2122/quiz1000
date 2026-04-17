@@ -138,20 +138,7 @@ button{
 </div>
 
 <button class="payBtn" id="pagarBtn">Continuar al Pago</button>
-<!-- 🔐 BOTÓN GOOGLE -->
-<button type="button" onclick="loginGoogleRegistro()" style="
-    width:100%;
-    padding:10px;
-    border-radius:6px;
-    border:none;
-    background:#ffffff;
-    color:#000;
-    font-weight:bold;
-    margin-top:10px;
-    cursor:pointer;
-">
-    🔐 Registrarme con Google
-</button>
+<div id="googleBtnContainer" style="margin-top:10px;"></div>
 </div>
 
 <script>
@@ -281,6 +268,47 @@ function loginGoogleRegistro() {
 
     window.location.href = `/auth/google?origen=registro&folio=${encodeURIComponent(folio)}`;
 }
+function renderGoogleButton() {
+    const folio =
+        new URLSearchParams(window.location.search).get("folio") ||
+        localStorage.getItem("folioTableroActual") ||
+        "";
+
+    const url = `/auth/google?origen=registro&folio=${encodeURIComponent(folio)}`;
+
+    const container = document.getElementById("googleBtnContainer");
+    if (!container) return;
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.innerHTML = `
+        <img src="https://developers.google.com/identity/images/g-logo.png"
+             alt="Google"
+             style="width:20px; height:20px; margin-right:10px;">
+        <span>Continuar con Google</span>
+    `;
+
+    button.style.display = "flex";
+    button.style.alignItems = "center";
+    button.style.justifyContent = "center";
+    button.style.width = "100%";
+    button.style.padding = "10px";
+    button.style.borderRadius = "6px";
+    button.style.border = "1px solid #dadce0";
+    button.style.background = "#ffffff";
+    button.style.color = "#000";
+    button.style.fontWeight = "bold";
+    button.style.cursor = "pointer";
+
+    button.onclick = function () {
+        window.location.href = url;
+    };
+
+    container.appendChild(button);
+}
+
+document.addEventListener("DOMContentLoaded", renderGoogleButton);
+
 </script>
 <footer class="footer-login">
   <p>
