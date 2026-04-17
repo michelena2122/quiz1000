@@ -260,24 +260,46 @@ pagarBtn.addEventListener("click", async function () {
         errorMsg.textContent = "No se pudo conectar con el servidor.";
     }
 });
-function loginGoogleRegistro() {
-    const folio =
-        new URLSearchParams(window.location.search).get("folio") ||
-        localStorage.getItem("folioTableroActual") ||
-        "";
+function obtenerOrigenGoogle() {
+    const origenGuardado = localStorage.getItem("origenRegistro");
 
-    window.location.href = `/auth/google?origen=registro&folio=${encodeURIComponent(folio)}`;
+    if (origenGuardado === "home") {
+        return "home";
+    }
+
+    return "registro";
 }
-function renderGoogleButton() {
+
+function construirUrlGoogle() {
+    const params = new URLSearchParams(window.location.search);
+
     const folio =
-        new URLSearchParams(window.location.search).get("folio") ||
+        params.get("folio") ||
         localStorage.getItem("folioTableroActual") ||
+        localStorage.getItem("folioTablero") ||
         "";
 
-    const url = `/auth/google?origen=registro&folio=${encodeURIComponent(folio)}`;
+    const numeroActual =
+        params.get("numero") ||
+        localStorage.getItem("numeroSeleccionado") ||
+        "0";
+
+    const origen = obtenerOrigenGoogle();
+
+    return `/auth/google?origen=${encodeURIComponent(origen)}&folio=${encodeURIComponent(folio)}&numero=${encodeURIComponent(numeroActual)}`;
+}
+
+function loginGoogleRegistro() {
+    window.location.href = construirUrlGoogle();
+}
+
+function renderGoogleButton() {
+    const url = construirUrlGoogle();
 
     const container = document.getElementById("googleBtnContainer");
     if (!container) return;
+
+    container.innerHTML = "";
 
     const button = document.createElement("button");
     button.type = "button";

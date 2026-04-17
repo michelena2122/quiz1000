@@ -200,18 +200,23 @@ console.log("✅ Server cargó hasta Passport");
 app.get("/auth/google", (req, res, next) => {
     const origen = req.query.origen || "registro";
     const folio = req.query.folio || "";
+    const numero = req.query.numero || "";
 
-    const state = Buffer.from(JSON.stringify({ origen, folio })).toString("base64");
+    const state = Buffer.from(
+        JSON.stringify({ origen, folio, numero })
+    ).toString("base64");
 
     console.log("🟡 /auth/google");
     console.log("   origen =", origen);
     console.log("   folio  =", folio);
+    console.log("   numero =", numero);
 
     passport.authenticate("google", {
         scope: ["profile", "email"],
         state
     })(req, res, next);
 });
+
 app.get("/auth/google/callback", (req, res, next) => {
     passport.authenticate("google", (err, user, info) => {
         console.log("GOOGLE CALLBACK ERR:", err);
@@ -234,6 +239,7 @@ app.get("/auth/google/callback", (req, res, next) => {
 
             let origen = "registro";
             let folio = "";
+            let numero = "";
 
             try {
                 if (req.query.state) {
@@ -242,30 +248,60 @@ app.get("/auth/google/callback", (req, res, next) => {
                     );
                     origen = parsed.origen || "registro";
                     folio = parsed.folio || "";
+                    numero = parsed.numero || "";
                 }
             } catch (e) {
                 console.log("ERROR LEYENDO STATE GOOGLE:", e.message);
             }
 
-            const id = encodeURIComponent(user.id || "");
-            const nombre = encodeURIComponent(user.nombre || "");
-            const apellidos = encodeURIComponent(user.apellidos || "");
-            const email = encodeURIComponent(user.email || "");
+            db.run(
+                `
+                UPDATE usuarios
+                SET folioTablero = CASE
+                        WHEN ? <> '' THEN ?
+                        ELSE folioTablero
+                    END,
+                    numeroComprado = CASE
+                        WHEN ? <> '' THEN ?
+                        ELSE numeroComprado
+                    END
+                WHERE id = ?
+                `,
+                [folio, folio, numero, numero, user.id],
+                function(updateErr) {
+                    if (updateErr) {
+                        console.log("ERROR ACTUALIZANDO CONTEXTO GOOGLE:", updateErr.message);
+                    } else {
+                        console.log("✅ CONTEXTO GOOGLE ACTUALIZADO:", {
+                            userId: user.id,
+                            folio,
+                            numero,
+                            changes: this.changes
+                        });
+                    }
 
-            console.log("✅ GOOGLE OK");
-            console.log("   origen final =", origen);
-            console.log("   folio final  =", folio);
-            console.log("   user.id      =", user.id);
+                    const id = encodeURIComponent(user.id || "");
+                    const nombre = encodeURIComponent(user.nombre || "");
+                    const apellidos = encodeURIComponent(user.apellidos || "");
+                    const email = encodeURIComponent(user.email || "");
 
-            if (origen === "home") {
-                return res.redirect(`/portada.html?google=ok&id=${id}&nombre=${nombre}&apellidos=${apellidos}&email=${email}`);
-            }
+                    console.log("✅ GOOGLE OK");
+                    console.log("   origen final =", origen);
+                    console.log("   folio final  =", folio);
+                    console.log("   numero final =", numero);
+                    console.log("   user.id      =", user.id);
 
-            if (folio) {
-                return res.redirect(`/pago.html?folio=${encodeURIComponent(folio)}&google=ok&id=${id}&nombre=${nombre}&apellidos=${apellidos}&email=${email}`);
-            }
+                    if (origen === "home") {
+                        return res.redirect(`/portada.html?google=ok&id=${id}&nombre=${nombre}&apellidos=${apellidos}&email=${email}`);
+                    }
 
-            return res.redirect(`/perfil?google=ok&id=${id}&nombre=${nombre}&apellidos=${apellidos}&email=${email}`);
+                    if (folio) {
+                        return res.redirect(`/pago.html?folio=${encodeURIComponent(folio)}&google=ok&id=${id}&nombre=${nombre}&apellidos=${apellidos}&email=${email}`);
+                    }
+
+                    return res.redirect(`/portada.html?google=ok&id=${id}&nombre=${nombre}&apellidos=${apellidos}&email=${email}`);
+                }
+            );
         });
     })(req, res, next);
 });
