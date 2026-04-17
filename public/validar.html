@@ -202,18 +202,33 @@ const dataRegistro = await resRegistro.json();
 console.log("RESPUESTA /registro:", dataRegistro);
 console.log("ID DEVUELTO:", dataRegistro.id);
 
-if(dataRegistro.ok){
+if(dataRegistro.ok && dataRegistro.id){
+
+const usuarioRegistrado = {
+id: dataRegistro.id,
+nombre: registroPendiente.nombre,
+apellidos: registroPendiente.apellidos,
+email: registroPendiente.email,
+telefono: registroPendiente.telefono
+};
+
 localStorage.setItem("jugadorId", dataRegistro.id);
+localStorage.setItem("usuarioLogueado", JSON.stringify(usuarioRegistrado));
+localStorage.setItem("jugadorActual", JSON.stringify(usuarioRegistrado));
 localStorage.removeItem("registroPendiente");
 
-const folio = localStorage.getItem("folioTableroActual");
+const folio =
+localStorage.getItem("folioTableroActual") ||
+localStorage.getItem("folioTablero") ||
+"";
+
 const origenRegistro = localStorage.getItem("origenRegistro");
 
 if(origenRegistro === "home"){
 localStorage.removeItem("origenRegistro");
 window.location.href = "portada.html";
 }else{
-window.location.href = "pago.html?folio=" + folio;
+window.location.href = "pago.html?folio=" + encodeURIComponent(folio);
 }
 
 }else{
