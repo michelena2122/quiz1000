@@ -206,31 +206,49 @@ app.get("/auth/google", (req, res, next) => {
     })(req, res, next);
 });
 
-app.get("/auth/google/callback",
-    passport.authenticate("google", { failureRedirect: "/login" }),
-    (req, res) => {
+app.get("/auth/google/callback", (req, res, next) => {
+    passport.authenticate("google", (err, user, info) => {
+        console.log("GOOGLE CALLBACK ERR:", err);
+        console.log("GOOGLE CALLBACK USER:", user);
+        console.log("GOOGLE CALLBACK INFO:", info);
 
-        if (!req.user || !req.user.id) {
-            return res.redirect("/login");
+        if (err) {
+            return res.status(500).send("Error Google callback");
         }
 
-        const origen = req.session.googleOrigen || "registro";
-        const folio = req.session.folioGoogle || "";
-
-        req.session.googleOrigen = null;
-        req.session.folioGoogle = null;
-
-        if (origen === "home") {
-            return res.redirect(`/portada.html?google=ok&id=${encodeURIComponent(req.user.id)}`);
+        if (!user || !user.id) {
+            return res.status(401).send("Google no devolvió usuario válido");
         }
 
-        if (folio) {
-            return res.redirect(`/pago.html?folio=${encodeURIComponent(folio)}&google=ok&id=${encodeURIComponent(req.user.id)}`);
-        }
+        req.logIn(user, (loginErr) => {
+            if (loginErr) {
+                console.log("REQ.LOGIN ERROR:", loginErr);
+                return res.status(500).send("Error al iniciar sesión con Google");
+            }
 
-        return res.redirect(`/perfil?google=ok&id=${encodeURIComponent(req.user.id)}`);
-    }
-);
+            const origen = req.session.googleOrigen || "registro";
+            const folio = req.session.folioGoogle || "";
+
+            req.session.googleOrigen = null;
+            req.session.folioGoogle = null;
+
+            const id = encodeURIComponent(user.id || "");
+            const nombre = encodeURIComponent(user.nombre || "");
+            const apellidos = encodeURIComponent(user.apellidos || "");
+            const email = encodeURIComponent(user.email || "");
+
+            if (origen === "home") {
+                return res.redirect(`/portada.html?google=ok&id=${id}&nombre=${nombre}&apellidos=${apellidos}&email=${email}`);
+            }
+
+            if (folio) {
+                return res.redirect(`/pago.html?folio=${encodeURIComponent(folio)}&google=ok&id=${id}&nombre=${nombre}&apellidos=${apellidos}&email=${email}`);
+            }
+
+            return res.redirect(`/perfil?google=ok&id=${id}&nombre=${nombre}&apellidos=${apellidos}&email=${email}`);
+        });
+    })(req, res, next);
+});
 const FILE_PATH = path.join(__dirname, "public", "data", "preguntas.json");
 
 const codigosEmail = {};
