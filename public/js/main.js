@@ -1,4 +1,5 @@
-(function sincronizarSesionGoogle() {
+document.addEventListener("DOMContentLoaded", () => {
+
     const params = new URLSearchParams(window.location.search);
 
     if (params.get("google") !== "ok") return;
@@ -17,10 +18,13 @@
         email
     };
 
+    console.log("🔥 GOOGLE SESSION DETECTADA");
+
     localStorage.setItem("jugadorId", id);
     localStorage.setItem("usuarioLogueado", JSON.stringify(usuarioGoogle));
     localStorage.setItem("jugadorActual", JSON.stringify(usuarioGoogle));
-})();
+
+});
 console.log("MAIN NUEVO VERSION 2");
 let reservasActivas = [];
 document.addEventListener("DOMContentLoaded", () => {

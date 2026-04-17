@@ -254,54 +254,26 @@ app.get("/auth/google/callback", (req, res, next) => {
                 console.log("ERROR LEYENDO STATE GOOGLE:", e.message);
             }
 
-            db.run(
-                `
-                UPDATE usuarios
-                SET folioTablero = CASE
-                        WHEN ? <> '' THEN ?
-                        ELSE folioTablero
-                    END,
-                    numeroComprado = CASE
-                        WHEN ? <> '' THEN ?
-                        ELSE numeroComprado
-                    END
-                WHERE id = ?
-                `,
-                [folio, folio, numero, numero, user.id],
-                function(updateErr) {
-                    if (updateErr) {
-                        console.log("ERROR ACTUALIZANDO CONTEXTO GOOGLE:", updateErr.message);
-                    } else {
-                        console.log("✅ CONTEXTO GOOGLE ACTUALIZADO:", {
-                            userId: user.id,
-                            folio,
-                            numero,
-                            changes: this.changes
-                        });
-                    }
+            const id = encodeURIComponent(user.id || "");
+            const nombre = encodeURIComponent(user.nombre || "");
+            const apellidos = encodeURIComponent(user.apellidos || "");
+            const email = encodeURIComponent(user.email || "");
 
-                    const id = encodeURIComponent(user.id || "");
-                    const nombre = encodeURIComponent(user.nombre || "");
-                    const apellidos = encodeURIComponent(user.apellidos || "");
-                    const email = encodeURIComponent(user.email || "");
+            console.log("✅ GOOGLE OK");
+            console.log("   origen final =", origen);
+            console.log("   folio final  =", folio);
+            console.log("   numero final =", numero);
+            console.log("   user.id      =", user.id);
 
-                    console.log("✅ GOOGLE OK");
-                    console.log("   origen final =", origen);
-                    console.log("   folio final  =", folio);
-                    console.log("   numero final =", numero);
-                    console.log("   user.id      =", user.id);
+            if (origen === "home") {
+                return res.redirect(`/portada.html?google=ok&id=${id}&nombre=${nombre}&apellidos=${apellidos}&email=${email}`);
+            }
 
-                    if (origen === "home") {
-                        return res.redirect(`/portada.html?google=ok&id=${id}&nombre=${nombre}&apellidos=${apellidos}&email=${email}`);
-                    }
+            if (folio) {
+                return res.redirect(`/pago.html?folio=${encodeURIComponent(folio)}&google=ok&id=${id}&nombre=${nombre}&apellidos=${apellidos}&email=${email}`);
+            }
 
-                    if (folio) {
-                        return res.redirect(`/pago.html?folio=${encodeURIComponent(folio)}&google=ok&id=${id}&nombre=${nombre}&apellidos=${apellidos}&email=${email}`);
-                    }
-
-                    return res.redirect(`/portada.html?google=ok&id=${id}&nombre=${nombre}&apellidos=${apellidos}&email=${email}`);
-                }
-            );
+            return res.redirect(`/portada.html?google=ok&id=${id}&nombre=${nombre}&apellidos=${apellidos}&email=${email}`);
         });
     })(req, res, next);
 });
