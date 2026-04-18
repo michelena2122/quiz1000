@@ -479,7 +479,22 @@ document.getElementById("btnPagarTodo").addEventListener("click", function(){
 // ============================
 const usuarioLogueado = JSON.parse(localStorage.getItem("usuarioLogueado") || "null");
 const jugadorActual = JSON.parse(localStorage.getItem("jugadorActual") || "null");
+// ============================
+// ASEGURAR SESIÓN EN PAGO
+// ============================
 
+if(!jugadorActual || !jugadorActual.id){
+
+    console.log("USUARIO NO DEFINIDO EN PAGO → REDIRECT");
+
+    const folio =
+        new URLSearchParams(window.location.search).get("folio") ||
+        localStorage.getItem("folioTableroActual") ||
+        "";
+
+    window.location.href = "registro.html?folio=" + encodeURIComponent(folio);
+
+}
 const jugadorId =
     localStorage.getItem("jugadorId") ||
     (jugadorActual ? jugadorActual.id : null) ||

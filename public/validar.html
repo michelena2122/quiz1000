@@ -95,7 +95,30 @@ Reenviar código
 </div>
 
 <script>
+// ============================
+// EVITAR VALIDACIÓN DUPLICADA
+// ============================
 
+const jugadorActual = JSON.parse(localStorage.getItem("jugadorActual"));
+
+if(jugadorActual && jugadorActual.id){
+
+    console.log("USUARIO YA VALIDADO, REDIRECCIÓN DIRECTA");
+
+    const folio =
+        localStorage.getItem("folioTableroActual") ||
+        localStorage.getItem("folioTablero") ||
+        "";
+
+    const origenRegistro = localStorage.getItem("origenRegistro");
+
+    if(origenRegistro === "home"){
+        localStorage.removeItem("origenRegistro");
+        window.location.href = "portada.html";
+    }else{
+        window.location.href = "pago.html?folio=" + encodeURIComponent(folio);
+    }
+}
 // ============================
 // INPUTS CODIGO
 // ============================
@@ -206,10 +229,18 @@ if(dataRegistro.ok && dataRegistro.id){
 
 const usuarioRegistrado = {
 id: dataRegistro.id,
-nombre: registroPendiente.nombre,
-apellidos: registroPendiente.apellidos,
-email: registroPendiente.email,
-telefono: registroPendiente.telefono
+nombre:
+    (dataRegistro.usuario && dataRegistro.usuario.nombre) ||
+    registroPendiente.nombre,
+apellidos:
+    (dataRegistro.usuario && dataRegistro.usuario.apellidos) ||
+    registroPendiente.apellidos,
+email:
+    (dataRegistro.usuario && dataRegistro.usuario.email) ||
+    registroPendiente.email,
+telefono:
+    (dataRegistro.usuario && dataRegistro.usuario.telefono) ||
+    registroPendiente.telefono
 };
 
 localStorage.setItem("jugadorId", dataRegistro.id);

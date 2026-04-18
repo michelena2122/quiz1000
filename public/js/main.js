@@ -1,31 +1,78 @@
-document.addEventListener("DOMContentLoaded", () => {
+function leerJSONLocalStorage(clave){
+    try{
+        return JSON.parse(localStorage.getItem(clave) || "null");
+    }catch(error){
+        return null;
+    }
+}
 
+function guardarSesionUnificada(usuario){
+    if(!usuario || !usuario.id || !usuario.email){
+        return;
+    }
+
+    const jugadorActualExistente = leerJSONLocalStorage("jugadorActual") || {};
+    const usuarioLogueadoExistente = leerJSONLocalStorage("usuarioLogueado") || {};
+
+    const usuarioUnificado = {
+        id: usuario.id,
+        nombre: usuario.nombre || jugadorActualExistente.nombre || usuarioLogueadoExistente.nombre || "",
+        apellidos: usuario.apellidos || jugadorActualExistente.apellidos || usuarioLogueadoExistente.apellidos || "",
+        email: usuario.email || jugadorActualExistente.email || usuarioLogueadoExistente.email || "",
+        telefono: usuario.telefono || jugadorActualExistente.telefono || usuarioLogueadoExistente.telefono || "",
+        tableros: jugadorActualExistente.tableros || usuarioLogueadoExistente.tableros || {}
+    };
+
+    localStorage.setItem("jugadorId", usuarioUnificado.id);
+    localStorage.setItem("usuarioLogueado", JSON.stringify(usuarioUnificado));
+    localStorage.setItem("jugadorActual", JSON.stringify(usuarioUnificado));
+}
+
+function sincronizarSesionDesdeGoogle(){
     const params = new URLSearchParams(window.location.search);
 
-    if (params.get("google") !== "ok") return;
+    if(params.get("google") !== "ok"){
+        return;
+    }
 
     const id = params.get("id") || "";
     const nombre = params.get("nombre") || "";
     const apellidos = params.get("apellidos") || "";
     const email = params.get("email") || "";
 
-    if (!id || !email) return;
+    if(!id || !email){
+        return;
+    }
 
-    const usuarioGoogle = {
+    guardarSesionUnificada({
         id,
         nombre,
         apellidos,
         email
-    };
+    });
 
     console.log("🔥 GOOGLE SESSION DETECTADA");
+}
 
-    localStorage.setItem("jugadorId", id);
-    localStorage.setItem("usuarioLogueado", JSON.stringify(usuarioGoogle));
-    localStorage.setItem("jugadorActual", JSON.stringify(usuarioGoogle));
+function sincronizarSesionExistente(){
+    const jugadorActual = leerJSONLocalStorage("jugadorActual");
+    const usuarioLogueado = leerJSONLocalStorage("usuarioLogueado");
 
+    if(jugadorActual && jugadorActual.id && jugadorActual.email){
+        guardarSesionUnificada(jugadorActual);
+        return;
+    }
+
+    if(usuarioLogueado && usuarioLogueado.id && usuarioLogueado.email){
+        guardarSesionUnificada(usuarioLogueado);
+    }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    sincronizarSesionDesdeGoogle();
+    sincronizarSesionExistente();
+    console.log("MAIN NUEVO VERSION 3");
 });
-console.log("MAIN NUEVO VERSION 2");
 let reservasActivas = [];
 document.addEventListener("DOMContentLoaded", () => {
 

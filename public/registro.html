@@ -142,6 +142,37 @@ button{
 </div>
 
 <script>
+  // ============================
+// EVITAR DOBLE REGISTRO
+// ============================
+
+const jugadorActual = JSON.parse(localStorage.getItem("jugadorActual"));
+const usuarioLogueado = JSON.parse(localStorage.getItem("usuarioLogueado"));
+
+const usuarioActivo = jugadorActual && jugadorActual.id
+    ? jugadorActual
+    : (usuarioLogueado && usuarioLogueado.id ? usuarioLogueado : null);
+
+if(usuarioActivo){
+
+    console.log("USUARIO YA LOGUEADO, REDIRECCIÓN DIRECTA");
+
+    localStorage.setItem("jugadorActual", JSON.stringify(usuarioActivo));
+    localStorage.setItem("usuarioLogueado", JSON.stringify(usuarioActivo));
+    localStorage.setItem("jugadorId", usuarioActivo.id);
+
+    const folio =
+        new URLSearchParams(window.location.search).get("folio") ||
+        localStorage.getItem("folioTableroActual") ||
+        "";
+
+    if(folio){
+        window.location.href = "pago.html?folio=" + encodeURIComponent(folio);
+    }else{
+        window.location.href = "portada.html";
+    }
+
+}
  console.log("SCRIPT REGISTRO CARGADO");   
 // ============================
 // OBTENER PARÁMETROS URL

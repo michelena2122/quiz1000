@@ -275,7 +275,7 @@ document.getElementById("pagar").addEventListener("click",()=>{
 
     console.log("jugadorActual:", jugadorActual);
 
-    if(!jugadorActual){
+    if(!jugadorActual || !jugadorActual.id){
         console.log("IR A REGISTRO");
         window.location.href = "registro.html?folio=" + folio;
     }else{

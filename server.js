@@ -938,6 +938,31 @@ function(err){
 
 if(err){
 console.log("ERROR INSERTANDO USUARIO:", err);
+
+if(String(err.message).includes("UNIQUE constraint failed: usuarios.email")){
+
+db.get(
+`SELECT id,nombre,apellidos,email,telefono FROM usuarios WHERE email = ?`,
+[email],
+(existingErr, existingUser) => {
+
+if(existingErr || !existingUser){
+return res.json({ ok:false, mensaje:"Usuario o email ya existen" });
+}
+
+return res.json({
+ok:true,
+id: existingUser.id,
+usuario: existingUser,
+yaExistia: true
+});
+
+}
+);
+
+return;
+}
+
 return res.json({ ok:false, mensaje:"Usuario o email ya existen" });
 }
 
