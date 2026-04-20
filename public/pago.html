@@ -387,6 +387,33 @@ body.pago .probabilidad-box p.nota-tipo-cambio-pago{
 const TOTAL_NUMEROS_TABLERO = 50;
 const params = new URLSearchParams(window.location.search);
 const folio = params.get("folio") || localStorage.getItem("folioTableroActual");
+// ============================
+// SINCRONIZAR SESIÓN DESDE GOOGLE EN PAGO
+// ============================
+
+if (params.get("google") === "ok") {
+    const id = params.get("id") || "";
+    const nombre = params.get("nombre") || "";
+    const apellidos = params.get("apellidos") || "";
+    const email = params.get("email") || "";
+
+    if (id && email) {
+        const usuarioGoogle = {
+            id,
+            nombre,
+            apellidos,
+            email
+        };
+
+        localStorage.setItem("jugadorId", id);
+        localStorage.setItem("usuarioLogueado", JSON.stringify(usuarioGoogle));
+        localStorage.setItem("jugadorActual", JSON.stringify(usuarioGoogle));
+
+        console.log("✅ SESIÓN GOOGLE SINCRONIZADA EN PAGO:", usuarioGoogle);
+    } else {
+        console.log("⚠️ Google regresó a pago sin id o email");
+    }
+}
 
 let tableroEstado = JSON.parse(localStorage.getItem("tableroEstado_" + folio)) || {
     casillasResueltas: []
