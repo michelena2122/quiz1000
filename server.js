@@ -277,6 +277,142 @@ app.get("/auth/google/callback", (req, res, next) => {
         });
     })(req, res, next);
 });
+
+// ============================
+// FACEBOOK DATA DELETION CALLBACK
+// ============================
+
+function base64UrlDecode(str) {
+    str = str.replace(/-/g, "+").replace(/_/g, "/");
+    while (str.length % 4) {
+        str += "=";
+    }
+    return Buffer.from(str, "base64");
+}
+
+function parseFacebookSignedRequest(signedRequest) {
+    const [encodedSig, payload] = signedRequest.split(".", 2);
+
+    if (!encodedSig || !payload) {
+        return null;
+    }
+
+    const sig = base64UrlDecode(encodedSig);
+    const data = JSON.parse(base64UrlDecode(payload).toString("utf8"));
+
+    const expectedSig = crypto
+        .createHmac("sha256", process.env.FACEBOOK_APP_SECRET)
+        .update(payload)
+        .digest();
+
+    if (!crypto.timingSafeEqual(sig, expectedSig)) {
+        console.error("Firma inválida en signed_request de Facebook");
+        return null;
+    }
+
+    return data;
+}
+
+app.post("/facebook/data-deletion", express.urlencoded({ extended: false }), (req, res) => {
+    try {
+        const signedRequest = req.body.signed_request;
+
+        if (!signedRequest) {
+            return res.status(400).json({
+                error: "signed_request no recibido"
+            });
+        }
+
+        const data = parseFacebookSignedRequest(signedRequest);
+
+        if (!data || !data.user_id) {
+            return res.status(400).json({
+                error: "signed_request inválido"
+            });
+        }
+
+        const facebookUserId = data.user_id;
+        const confirmationCode = "FBDEL-" + Date.now();
+
+        console.log("Solicitud de eliminación Facebook recibida:", {
+            facebookUserId,
+            confirmationCode
+        });
+
+        // ============================
+        // AQUÍ INICIAS TU PROCESO DE BAJA
+        // ============================
+        // Por ahora, con cambio mínimo, puedes dejarlo en modo registro/log
+        // y después conectar borrado real de datos si quieres.
+        //
+        // Ejemplo futuro:
+        // db.run("UPDATE usuarios SET facebookEliminacionSolicitada = 1 WHERE facebookId = ?", [facebookUserId])
+
+        const statusUrl = `https://quiz1000-nuevo.onrender.com/facebook/data-deletion-status?id=${encodeURIComponent(confirmationCode)}`;
+
+        return res.json({
+            url: statusUrl,
+            confirmation_code: confirmationCode
+        });
+
+    } catch (error) {
+        console.error("Error en /facebook/data-deletion:", error);
+        return res.status(500).json({
+            error: "Error interno"
+        });
+    }
+});
+
+app.get("/facebook/data-deletion-status", (req, res) => {
+    const id = req.query.id || "";
+
+    res.send(`
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+            <meta charset="UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <title>Estado de eliminación de datos</title>
+            <style>
+                body{
+                    font-family: Arial, sans-serif;
+                    background:#f7f7f7;
+                    padding:40px;
+                    color:#222;
+                }
+                .box{
+                    max-width:700px;
+                    margin:auto;
+                    background:#fff;
+                    border-radius:12px;
+                    padding:30px;
+                    box-shadow:0 4px 18px rgba(0,0,0,0.08);
+                }
+                h1{
+                    margin-top:0;
+                }
+                .code{
+                    background:#f0f0f0;
+                    padding:10px 14px;
+                    border-radius:8px;
+                    display:inline-block;
+                    font-weight:bold;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="box">
+                <h1>Solicitud de eliminación recibida</h1>
+                <p>Tu solicitud de eliminación de datos de Quiz1000 fue registrada correctamente.</p>
+                <p>Código de confirmación:</p>
+                <div class="code">${id}</div>
+                <p style="margin-top:20px;">Si necesitas ayuda adicional, contáctanos desde los medios oficiales de Quiz1000.</p>
+            </div>
+        </body>
+        </html>
+    `);
+});
+
 const FILE_PATH = path.join(__dirname, "public", "data", "preguntas.json");
 
 const codigosEmail = {};
