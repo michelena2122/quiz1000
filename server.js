@@ -10,6 +10,7 @@ const crypto = require("crypto");
 const session = require("express-session");
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
+const FacebookStrategy = require("passport-facebook").Strategy;
 const { MercadoPagoConfig, Preference } = require("mercadopago");
 const { Payment } = require("mercadopago");
 
@@ -277,7 +278,84 @@ app.get("/auth/google/callback", (req, res, next) => {
         });
     })(req, res, next);
 });
+// ============================
+// LOGIN CON FACEBOOK
+// ============================
+passport.use(new FacebookStrategy({
+    clientID: process.env.FACEBOOK_APP_ID,
+    clientSecret: process.env.FACEBOOK_APP_SECRET,
+    callbackURL: process.env.FACEBOOK_CALLBACK_URL,
+    profileFields: ["id", "displayName", "emails"]
+}, async (accessToken, refreshToken, profile, done) => {
+    try {
+        const email = profile.emails && profile.emails[0]
+            ? profile.emails[0].value
+            : null;
 
+        if (!email) {
+            return done(null, false);
+        }
+
+        db.get(
+            "SELECT * FROM usuarios WHERE email = ?",
+            [email],
+            (err, usuario) => {
+                if (err) return done(err);
+
+                if (usuario) {
+                    return done(null, {
+                        id: usuario.id,
+                        nombre: usuario.nombre,
+                        apellidos: usuario.apellidos,
+                        email: usuario.email
+                    });
+                }
+
+                const nombreCompleto = (profile.displayName || "").trim();
+                const partes = nombreCompleto.split(" ");
+                const nombre = partes[0] || "Usuario";
+                const apellidos = partes.slice(1).join(" ") || "";
+
+                db.run(
+                    `INSERT INTO usuarios (nombre, apellidos, email, password)
+                     VALUES (?, ?, ?, ?)`,
+                    [nombre, apellidos, email, "facebook_login"],
+                    function(err2) {
+                        if (err2) return done(err2);
+
+                        return done(null, {
+                            id: this.lastID,
+                            nombre,
+                            apellidos,
+                            email
+                        });
+                    }
+                );
+            }
+        );
+    } catch (error) {
+        return done(error);
+    }
+}));
+
+app.get("/auth/facebook",
+    passport.authenticate("facebook", { scope: ["email"] })
+);
+
+app.get("/auth/facebook/callback",
+    passport.authenticate("facebook", { failureRedirect: "/login" }),
+    (req, res) => {
+        if (!req.user || !req.user.id) {
+            return res.redirect("/login");
+        }
+
+        const nombre = encodeURIComponent(req.user.nombre || "");
+        const apellidos = encodeURIComponent(req.user.apellidos || "");
+        const email = encodeURIComponent(req.user.email || "");
+
+        res.redirect(`/perfil?facebook=ok&id=${req.user.id}&nombre=${nombre}&apellidos=${apellidos}&email=${email}`);
+    }
+);
 // ============================
 // FACEBOOK DATA DELETION CALLBACK
 // ============================
