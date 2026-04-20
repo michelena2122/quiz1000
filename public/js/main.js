@@ -1,3 +1,39 @@
+// ============================
+// SINCRONIZAR GOOGLE INMEDIATO (FIX CRÍTICO)
+// ============================
+
+(function sincronizarSesionGoogleInmediata(){
+
+    const params = new URLSearchParams(window.location.search);
+
+    if(params.get("google") !== "ok"){
+        return;
+    }
+
+    const id = params.get("id") || "";
+    const nombre = params.get("nombre") || "";
+    const apellidos = params.get("apellidos") || "";
+    const email = params.get("email") || "";
+
+    if(!id || !email){
+        return;
+    }
+
+    localStorage.setItem("jugadorId", id);
+
+    const usuarioGoogle = {
+        id,
+        nombre,
+        apellidos,
+        email
+    };
+
+    localStorage.setItem("usuarioLogueado", JSON.stringify(usuarioGoogle));
+    localStorage.setItem("jugadorActual", JSON.stringify(usuarioGoogle));
+
+    console.log("🔥 GOOGLE SESSION INMEDIATA OK");
+
+})();
 function leerJSONLocalStorage(clave){
     try{
         return JSON.parse(localStorage.getItem(clave) || "null");
