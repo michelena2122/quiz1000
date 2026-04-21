@@ -281,6 +281,7 @@ app.get("/auth/google/callback", (req, res, next) => {
 // ============================
 // LOGIN CON FACEBOOK
 // ============================
+console.log("FACEBOOK_CALLBACK_URL ACTUAL:", process.env.FACEBOOK_CALLBACK_URL);
 passport.use(new FacebookStrategy({
     clientID: process.env.FACEBOOK_APP_ID,
     clientSecret: process.env.FACEBOOK_APP_SECRET,
