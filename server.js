@@ -344,17 +344,18 @@ app.get("/auth/facebook",
 );
 
 app.get("/auth/facebook/callback",
-    passport.authenticate("facebook", { failureRedirect: "/login" }),
+    passport.authenticate("facebook", { failureRedirect: "/registro.html?facebook=error" }),
     (req, res) => {
         if (!req.user || !req.user.id) {
-            return res.redirect("/login");
+            return res.redirect("/registro.html?facebook=error");
         }
 
         const nombre = encodeURIComponent(req.user.nombre || "");
         const apellidos = encodeURIComponent(req.user.apellidos || "");
         const email = encodeURIComponent(req.user.email || "");
+        const origen = encodeURIComponent(req.query.state || "");
 
-        res.redirect(`/perfil?facebook=ok&id=${req.user.id}&nombre=${nombre}&apellidos=${apellidos}&email=${email}`);
+        res.redirect(`/validar.html?facebook=ok&id=${req.user.id}&nombre=${nombre}&apellidos=${apellidos}&email=${email}&origen=${origen}`);
     }
 );
 // ============================
