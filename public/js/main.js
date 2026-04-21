@@ -1,7 +1,10 @@
-(function sincronizarSesionGoogle() {
+(function sincronizarSesionOAuth() {
     const params = new URLSearchParams(window.location.search);
 
-    if (params.get("google") !== "ok") return;
+    const googleOk = params.get("google") === "ok";
+    const facebookOk = params.get("facebook") === "ok";
+
+    if (!googleOk && !facebookOk) return;
 
     const id = params.get("id") || "";
     const nombre = params.get("nombre") || "";
@@ -10,7 +13,7 @@
 
     if (!id || !email) return;
 
-    const usuarioGoogle = {
+    const usuarioOAuth = {
         id,
         nombre,
         apellidos,
@@ -18,8 +21,20 @@
     };
 
     localStorage.setItem("jugadorId", id);
-    localStorage.setItem("usuarioLogueado", JSON.stringify(usuarioGoogle));
-    localStorage.setItem("jugadorActual", JSON.stringify(usuarioGoogle));
+    localStorage.setItem("usuarioLogueado", JSON.stringify(usuarioOAuth));
+    localStorage.setItem("jugadorActual", JSON.stringify(usuarioOAuth));
+
+    params.delete("google");
+    params.delete("facebook");
+    params.delete("id");
+    params.delete("nombre");
+    params.delete("apellidos");
+    params.delete("email");
+
+    const nuevaQuery = params.toString();
+    const nuevaUrl = window.location.pathname + (nuevaQuery ? "?" + nuevaQuery : "");
+
+    window.history.replaceState({}, document.title, nuevaUrl);
 })();
 console.log("MAIN NUEVO VERSION 2");
 
