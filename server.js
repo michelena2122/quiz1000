@@ -13,13 +13,65 @@ const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const FacebookStrategy = require("passport-facebook").Strategy;
 const { MercadoPagoConfig, Preference } = require("mercadopago");
 const { Payment } = require("mercadopago");
-
 const client = new MercadoPagoConfig({
     accessToken: process.env.MP_ACCESS_TOKEN
 });
-
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail', // O el servicio que uses
+  auth: {
+    user: 'tu-email@gmail.com',
+    pass: 'tu-contraseña',
+  },
+});
+
+function generateConfirmationCode() {
+  return crypto.randomBytes(3).toString('hex'); // Código de 6 caracteres
+}
+
+function sendConfirmationEmail(email, code) {
+  const mailOptions = {
+    from: 'tu-email@gmail.com',
+    to: email,
+    subject: 'Código de Confirmación',
+    text: `Tu código de confirmación es: ${code}`,
+  };
+
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.log('Error al enviar el correo:', error);
+    } else {
+      console.log('Correo enviado: ' + info.response);
+    }
+  });
+}
+
+function sendAdminNotification(adminEmail, code) {
+  const adminMessage = `Un usuario ha solicitado la eliminación de sus datos. El código de confirmación es: ${code}`;
+  
+  const mailOptions = {
+    from: 'tu-email@gmail.com',
+    to: adminEmail,
+    subject: 'Notificación de Solicitud de Eliminación de Datos',
+    text: adminMessage,
+  };
+
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.log('Error al enviar el correo al administrador:', error);
+    } else {
+      console.log('Correo al administrador enviado: ' + info.response);
+    }
+  });
+}
+
+// 3. Rutas de tu aplicación
+app.get("/healthz", (req, res) => {
+  res.status(200).send("ok");
+});
+
 
 app.get("/healthz", (req, res) => {
     res.status(200).send("ok");
