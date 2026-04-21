@@ -308,7 +308,39 @@ passport.use(new FacebookStrategy({
                 }
 
                 if (usuarioExistente) {
-                    return done(null, usuarioExistente);
+
+                    if (usuarioExistente.id) {
+                        return done(null, usuarioExistente);
+                    }
+
+                    const nuevoIdExistente = "JUG-" + Date.now();
+
+                    db.run(
+                        `UPDATE usuarios SET id = ? WHERE email = ?`,
+                        [nuevoIdExistente, email],
+                        function(updateErr) {
+
+                            if (updateErr) {
+                                console.log("ERROR ACTUALIZANDO ID USUARIO FACEBOOK EXISTENTE:", updateErr.message);
+                                return done(updateErr);
+                            }
+
+                            db.get(
+                                `SELECT * FROM usuarios WHERE email = ?`,
+                                [email],
+                                (errActualizado, usuarioActualizado) => {
+                                    if (errActualizado) {
+                                        console.log("ERROR LEYENDO USUARIO FACEBOOK ACTUALIZADO:", errActualizado.message);
+                                        return done(errActualizado);
+                                    }
+
+                                    return done(null, usuarioActualizado);
+                                }
+                            );
+                        }
+                    );
+
+                    return;
                 }
 
                 const nombreCompleto = (profile.displayName || "").trim();
