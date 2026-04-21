@@ -19,6 +19,58 @@ const client = new MercadoPagoConfig({
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Crear un transporter para nodemailer
+const transporter = nodemailer.createTransport({
+  service: 'gmail', // O el servicio que uses
+  auth: {
+    user: 'tu-email@gmail.com',
+    pass: 'tu-contraseña',
+  },
+});
+
+// Función para generar el código de confirmación
+function generateConfirmationCode() {
+  return crypto.randomBytes(3).toString('hex'); // Código de 6 caracteres
+}
+
+// Función para enviar el correo de confirmación al usuario
+function sendConfirmationEmail(email, code) {
+  const mailOptions = {
+    from: 'tu-email@gmail.com',
+    to: email,
+    subject: 'Código de Confirmación',
+    text: `Tu código de confirmación es: ${code}`,
+  };
+
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.log('Error al enviar el correo:', error);
+    } else {
+      console.log('Correo enviado: ' + info.response);
+    }
+  });
+}
+
+// Función para enviar notificación al administrador
+function sendAdminNotification(adminEmail, code) {
+  const adminMessage = `Un usuario ha solicitado la eliminación de sus datos. El código de confirmación es: ${code}`;
+
+  const mailOptions = {
+    from: 'tu-email@gmail.com',
+    to: adminEmail,
+    subject: 'Notificación de Solicitud de Eliminación de Datos',
+    text: adminMessage,
+  };
+
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.log('Error al enviar el correo al administrador:', error);
+    } else {
+      console.log('Correo al administrador enviado: ' + info.response);
+    }
+  });
+}
+
 const transporter = nodemailer.createTransport({
   service: 'gmail', // O el servicio que uses
   auth: {
@@ -169,6 +221,47 @@ passport.use(new GoogleStrategy({
         }
     );
 }));
+// Ruta para la solicitud de eliminación de datos
+app.post('/facebook/data-deletion', express.urlencoded({ extended: false }), (req, res) => {
+  const { email } = req.body; // El email del usuario viene en el cuerpo de la petición
+
+  if (!email) {
+    return res.status(400).json({ message: 'Se requiere un correo electrónico.' });
+  }
+
+  // Generar el código de confirmación
+  const confirmationCode = generateConfirmationCode();
+
+  // Enviar el código al usuario
+  sendConfirmationEmail(email, confirmationCode);
+
+  // Enviar notificación al administrador
+  const adminEmail = 'admin@tudominio.com'; // El correo del administrador
+  sendAdminNotification(adminEmail, confirmationCode);
+
+  // Responder al usuario con un mensaje
+  res.json({ message: 'Código de confirmación enviado correctamente.' });
+});
+// Ruta para confirmar la eliminación de datos
+app.post('/facebook/confirm-deletion', (req, res) => {
+  const { email, confirmationCode } = req.body;
+
+  // Aquí deberías buscar el código en la base de datos
+  const query = 'SELECT confirmationCode FROM usuarios WHERE email = ?';
+  db.get(query, [email], (err, row) => {
+    if (err) {
+      return res.status(500).json({ message: 'Error al verificar el código.' });
+    }
+
+    if (row && row.confirmationCode === confirmationCode) {
+      // Código de confirmación válido, proceder con la eliminación de datos
+      // (Aquí debes agregar la lógica para eliminar los datos)
+      res.json({ message: 'Datos eliminados correctamente.' });
+    } else {
+      res.status(400).json({ message: 'Código de confirmación inválido.' });
+    }
+  });
+});
 app.use((req, res, next) => {
     if (req.path.startsWith("/api") || req.path === "/healthz") {
         return next();
