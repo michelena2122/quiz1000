@@ -388,32 +388,50 @@ const TOTAL_NUMEROS_TABLERO = 50;
 const params = new URLSearchParams(window.location.search);
 const folio = params.get("folio") || localStorage.getItem("folioTableroActual");
 // ============================
-// SINCRONIZAR SESIÓN DESDE GOOGLE EN PAGO
+// SINCRONIZAR SESIÓN OAUTH EN PAGO
 // ============================
 
-if (params.get("google") === "ok") {
+(function sincronizarSesionOAuthPago() {
+    const googleOk = params.get("google") === "ok";
+    const facebookOk = params.get("facebook") === "ok";
+
+    if (!googleOk && !facebookOk) return;
+
     const id = params.get("id") || "";
     const nombre = params.get("nombre") || "";
     const apellidos = params.get("apellidos") || "";
     const email = params.get("email") || "";
 
-    if (id && email) {
-        const usuarioGoogle = {
-            id,
-            nombre,
-            apellidos,
-            email
-        };
-
-        localStorage.setItem("jugadorId", id);
-        localStorage.setItem("usuarioLogueado", JSON.stringify(usuarioGoogle));
-        localStorage.setItem("jugadorActual", JSON.stringify(usuarioGoogle));
-
-        console.log("✅ SESIÓN GOOGLE SINCRONIZADA EN PAGO:", usuarioGoogle);
-    } else {
-        console.log("⚠️ Google regresó a pago sin id o email");
+    if (!id || !email) {
+        console.log("⚠️ OAuth regresó a pago sin id o email");
+        return;
     }
-}
+
+    const usuarioOAuth = {
+        id,
+        nombre,
+        apellidos,
+        email
+    };
+
+    localStorage.setItem("jugadorId", id);
+    localStorage.setItem("usuarioLogueado", JSON.stringify(usuarioOAuth));
+    localStorage.setItem("jugadorActual", JSON.stringify(usuarioOAuth));
+
+    console.log("✅ SESIÓN OAUTH SINCRONIZADA EN PAGO:", usuarioOAuth);
+
+    params.delete("google");
+    params.delete("facebook");
+    params.delete("id");
+    params.delete("nombre");
+    params.delete("apellidos");
+    params.delete("email");
+
+    const nuevaQuery = params.toString();
+    const nuevaUrl = window.location.pathname + (nuevaQuery ? "?" + nuevaQuery : "");
+
+    window.history.replaceState({}, document.title, nuevaUrl);
+})();
 
 let tableroEstado = JSON.parse(localStorage.getItem("tableroEstado_" + folio)) || {
     casillasResueltas: []
@@ -484,7 +502,6 @@ function calcularProbabilidad(){
         `Actualmente tienes ${probabilidad.toFixed(2)}% de probabilidad de ganar con ${seleccionados} números seleccionados.`;
     }
 }
-  
 
 document.getElementById("btnPagarTodo").addEventListener("click", function(){
 
@@ -501,33 +518,18 @@ document.getElementById("btnPagarTodo").addEventListener("click", function(){
         return;
     }
 
-    // ============================
+// ============================
 // OBTENER JUGADOR ID (SEGURO)
 // ============================
 const usuarioLogueado = JSON.parse(localStorage.getItem("usuarioLogueado") || "null");
 const jugadorActual = JSON.parse(localStorage.getItem("jugadorActual") || "null");
-// ============================
-// ASEGURAR SESIÓN EN PAGO
-// ============================
 
-if(!jugadorActual || !jugadorActual.id){
-
-    console.log("USUARIO NO DEFINIDO EN PAGO → REDIRECT");
-
-    const folio =
-        new URLSearchParams(window.location.search).get("folio") ||
-        localStorage.getItem("folioTableroActual") ||
-        "";
-
-    window.location.href = "registro.html?folio=" + encodeURIComponent(folio);
-
-}
 const jugadorId =
     localStorage.getItem("jugadorId") ||
-    (jugadorActual ? jugadorActual.id : null) ||
-    (usuarioLogueado ? usuarioLogueado.id : null);
+    (jugadorActual && jugadorActual.id ? jugadorActual.id : null) ||
+    (usuarioLogueado && usuarioLogueado.id ? usuarioLogueado.id : null);
 
-if(jugadorId){
+if (jugadorId) {
     localStorage.setItem("jugadorId", jugadorId);
 }
 
@@ -535,8 +537,15 @@ console.log("JUGADOR ID ENVIADO:", jugadorId);
 console.log("JUGADOR ACTUAL:", jugadorActual);
 console.log("USUARIO LOGUEADO:", usuarioLogueado);
 
-if(!jugadorId){
-    alert("No se encontró el ID del jugador. Inicia sesión nuevamente.");
+if (!jugadorId) {
+    console.log("USUARIO NO DEFINIDO EN PAGO → REDIRECT");
+
+    const folioRedireccion =
+    folioCarrito ||
+    localStorage.getItem("folioTableroActual") ||
+    "";
+
+    window.location.href = "registro.html?folio=" + encodeURIComponent(folioRedireccion);
     return;
 }
 
