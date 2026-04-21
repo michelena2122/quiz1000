@@ -362,6 +362,60 @@ function renderGoogleButton() {
 
 document.addEventListener("DOMContentLoaded", renderGoogleButton);
 
+function construirUrlFacebook() {
+    const params = new URLSearchParams(window.location.search);
+
+    const folio =
+        params.get("folio") ||
+        localStorage.getItem("folioTableroActual") ||
+        localStorage.getItem("folioTablero") ||
+        "";
+
+    const numeroActual =
+        params.get("numero") ||
+        localStorage.getItem("numeroSeleccionado") ||
+        "0";
+
+    const origen = obtenerOrigenGoogle(); // reutilizamos misma lógica
+
+    return `/auth/facebook?origen=${encodeURIComponent(origen)}&folio=${encodeURIComponent(folio)}&numero=${encodeURIComponent(numeroActual)}`;
+}
+
+function renderFacebookButton() {
+    const url = construirUrlFacebook();
+
+    const container = document.getElementById("googleBtnContainer");
+    if (!container) return;
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.innerHTML = `
+        <span style="font-size:18px; margin-right:10px;">📘</span>
+        <span>Continuar con Facebook</span>
+    `;
+
+    button.style.display = "flex";
+    button.style.alignItems = "center";
+    button.style.justifyContent = "center";
+    button.style.width = "100%";
+    button.style.padding = "10px";
+    button.style.borderRadius = "6px";
+    button.style.border = "none";
+    button.style.background = "#1877f2";
+    button.style.color = "#fff";
+    button.style.fontWeight = "bold";
+    button.style.cursor = "pointer";
+    button.style.marginTop = "10px";
+
+    button.onclick = function () {
+        window.location.href = url;
+    };
+
+    container.appendChild(button);
+}
+
+document.addEventListener("DOMContentLoaded", renderFacebookButton);
+
 </script>
 <footer class="footer-login">
   <p>
