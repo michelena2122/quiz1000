@@ -290,74 +290,156 @@ passport.use(new FacebookStrategy({
 }, async (accessToken, refreshToken, profile, done) => {
     try {
         const email = profile.emails && profile.emails[0]
-            ? profile.emails[0].value
-            : null;
+            ? profile.emails[0].value.toLowerCase().trim()
+            : "";
 
         if (!email) {
             return done(null, false);
         }
 
         db.get(
-            "SELECT * FROM usuarios WHERE email = ?",
+            `SELECT * FROM usuarios WHERE email = ?`,
             [email],
-            (err, usuario) => {
-                if (err) return done(err);
+            (err, usuarioExistente) => {
 
-                if (usuario) {
-                    return done(null, {
-                        id: usuario.id,
-                        nombre: usuario.nombre,
-                        apellidos: usuario.apellidos,
-                        email: usuario.email
-                    });
+                if (err) {
+                    console.log("ERROR BUSCANDO USUARIO FACEBOOK:", err.message);
+                    return done(err);
+                }
+
+                if (usuarioExistente) {
+                    return done(null, usuarioExistente);
                 }
 
                 const nombreCompleto = (profile.displayName || "").trim();
                 const partes = nombreCompleto.split(" ");
                 const nombre = partes[0] || "Usuario";
                 const apellidos = partes.slice(1).join(" ") || "";
+                const nuevoId = "JUG-" + Date.now();
 
                 db.run(
-                    `INSERT INTO usuarios (nombre, apellidos, email, password)
-                     VALUES (?, ?, ?, ?)`,
-                    [nombre, apellidos, email, "facebook_login"],
-                    function(err2) {
-                        if (err2) return done(err2);
+                    `INSERT INTO usuarios
+                    (id, nombre, apellidos, email, password, numeroComprado, folioTablero, mejorTiempoGlobal)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+                    [
+                        nuevoId,
+                        nombre,
+                        apellidos,
+                        email,
+                        "facebook_oauth",
+                        null,
+                        null,
+                        null
+                    ],
+                    function(insertErr) {
 
-                        return done(null, {
-                            id: this.lastID,
-                            nombre,
-                            apellidos,
-                            email
-                        });
+                        if (insertErr) {
+                            console.log("ERROR INSERTANDO USUARIO FACEBOOK:", insertErr.message);
+                            return done(insertErr);
+                        }
+
+                        db.get(
+                            `SELECT * FROM usuarios WHERE id = ?`,
+                            [nuevoId],
+                            (errNuevo, nuevoUsuario) => {
+                                if (errNuevo) {
+                                    console.log("ERROR LEYENDO NUEVO USUARIO FACEBOOK:", errNuevo.message);
+                                    return done(errNuevo);
+                                }
+
+                                return done(null, nuevoUsuario);
+                            }
+                        );
                     }
                 );
             }
         );
     } catch (error) {
+        console.log("ERROR GENERAL FACEBOOK:", error.message);
         return done(error);
     }
 }));
 
-app.get("/auth/facebook",
-    passport.authenticate("facebook", { scope: ["email"] })
-);
+app.get("/auth/facebook", (req, res, next) => {
+    const origen = req.query.origen || "registro";
+    const folio = req.query.folio || "";
+    const numero = req.query.numero || "";
 
-app.get("/auth/facebook/callback",
-    passport.authenticate("facebook", { failureRedirect: "/registro.html?facebook=error" }),
-    (req, res) => {
-        if (!req.user || !req.user.id) {
+    const state = Buffer.from(
+        JSON.stringify({ origen, folio, numero })
+    ).toString("base64");
+
+    console.log("🟦 /auth/facebook");
+    console.log("   origen =", origen);
+    console.log("   folio  =", folio);
+    console.log("   numero =", numero);
+
+    passport.authenticate("facebook", {
+        scope: ["email"],
+        state
+    })(req, res, next);
+});
+
+app.get("/auth/facebook/callback", (req, res, next) => {
+    passport.authenticate("facebook", (err, user, info) => {
+        console.log("FACEBOOK CALLBACK ERR:", err);
+        console.log("FACEBOOK CALLBACK USER:", user);
+        console.log("FACEBOOK CALLBACK INFO:", info);
+
+        if (err) {
+            return res.status(500).send("Error Facebook callback");
+        }
+
+        if (!user || !user.id) {
             return res.redirect("/registro.html?facebook=error");
         }
 
-        const nombre = encodeURIComponent(req.user.nombre || "");
-        const apellidos = encodeURIComponent(req.user.apellidos || "");
-        const email = encodeURIComponent(req.user.email || "");
-        const origen = encodeURIComponent(req.query.state || "");
+        req.logIn(user, (loginErr) => {
+            if (loginErr) {
+                console.log("REQ.LOGIN FACEBOOK ERROR:", loginErr);
+                return res.status(500).send("Error al iniciar sesión con Facebook");
+            }
 
-        res.redirect(`/validar.html?facebook=ok&id=${req.user.id}&nombre=${nombre}&apellidos=${apellidos}&email=${email}&origen=${origen}`);
-    }
-);
+            let origen = "registro";
+            let folio = "";
+            let numero = "";
+
+            try {
+                if (req.query.state) {
+                    const parsed = JSON.parse(
+                        Buffer.from(req.query.state, "base64").toString("utf8")
+                    );
+                    origen = parsed.origen || "registro";
+                    folio = parsed.folio || "";
+                    numero = parsed.numero || "";
+                }
+            } catch (e) {
+                console.log("ERROR LEYENDO STATE FACEBOOK:", e.message);
+            }
+
+            const id = encodeURIComponent(user.id || "");
+            const nombre = encodeURIComponent(user.nombre || "");
+            const apellidos = encodeURIComponent(user.apellidos || "");
+            const email = encodeURIComponent(user.email || "");
+
+            console.log("✅ FACEBOOK OK");
+            console.log("   origen final =", origen);
+            console.log("   folio final  =", folio);
+            console.log("   numero final =", numero);
+            console.log("   user.id      =", user.id);
+
+            if (origen === "home") {
+                return res.redirect(`/portada.html?facebook=ok&id=${id}&nombre=${nombre}&apellidos=${apellidos}&email=${email}`);
+            }
+
+            if (folio) {
+                return res.redirect(`/pago.html?folio=${encodeURIComponent(folio)}&facebook=ok&id=${id}&nombre=${nombre}&apellidos=${apellidos}&email=${email}`);
+            }
+
+            return res.redirect(`/portada.html?facebook=ok&id=${id}&nombre=${nombre}&apellidos=${apellidos}&email=${email}`);
+        });
+    })(req, res, next);
+});
 // ============================
 // FACEBOOK DATA DELETION CALLBACK
 // ============================
