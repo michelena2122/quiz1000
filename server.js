@@ -272,21 +272,32 @@ app.get("/auth/google/callback", (req, res, next) => {
             }
 
             let origen = "registro";
-            let folio = "";
-            let numero = "";
+let folio = "";
+let numero = "";
+let emailEsperado = "";
 
-            try {
-                if (req.query.state) {
-                    const parsed = JSON.parse(
-                        Buffer.from(req.query.state, "base64").toString("utf8")
-                    );
-                    origen = parsed.origen || "registro";
-                    folio = parsed.folio || "";
-                    numero = parsed.numero || "";
-                }
-            } catch (e) {
-                console.log("ERROR LEYENDO STATE GOOGLE:", e.message);
-            }
+try {
+    if (req.query.state) {
+        const parsed = JSON.parse(
+            Buffer.from(req.query.state, "base64").toString("utf8")
+        );
+        origen = parsed.origen || "registro";
+        folio = parsed.folio || "";
+        numero = parsed.numero || "";
+        emailEsperado = parsed.email || "";
+    }
+} catch (e) {
+    console.log("ERROR LEYENDO STATE GOOGLE:", e.message);
+}
+
+if (emailEsperado && user.email) {
+    const emailGoogle = user.email.toLowerCase().trim();
+    const emailForm = emailEsperado.toLowerCase().trim();
+    if (emailGoogle !== emailForm) {
+        console.log("⚠️ EMAIL GOOGLE NO COINCIDE:", { emailGoogle, emailForm });
+        return res.redirect(`/registro.html?error=email_no_coincide`);
+    }
+}
 
             const id = encodeURIComponent(user.id || "");
             const nombre = encodeURIComponent(user.nombre || "");
@@ -470,19 +481,30 @@ app.get("/auth/facebook/callback", (req, res, next) => {
             }
 
             let origen = "registro";
-            let folio = "";
+let folio = "";
+let emailEsperado = "";
 
-            try {
-                if (req.query.state) {
-                    const parsed = JSON.parse(
-                        Buffer.from(req.query.state, "base64").toString("utf8")
-                    );
-                    origen = parsed.origen || "registro";
-                    folio = parsed.folio || "";
-                }
-            } catch (e) {
-                console.log("ERROR LEYENDO STATE FACEBOOK:", e.message);
-            }
+try {
+    if (req.query.state) {
+        const parsed = JSON.parse(
+            Buffer.from(req.query.state, "base64").toString("utf8")
+        );
+        origen = parsed.origen || "registro";
+        folio = parsed.folio || "";
+        emailEsperado = parsed.email || "";
+    }
+} catch (e) {
+    console.log("ERROR LEYENDO STATE FACEBOOK:", e.message);
+}
+
+if (emailEsperado && user.email) {
+    const emailFacebook = user.email.toLowerCase().trim();
+    const emailForm = emailEsperado.toLowerCase().trim();
+    if (emailFacebook !== emailForm) {
+        console.log("⚠️ EMAIL FACEBOOK NO COINCIDE:", { emailFacebook, emailForm });
+        return res.redirect(`/registro.html?error=email_no_coincide`);
+    }
+}
 
             const id = encodeURIComponent(user.id || "");
             const nombre = encodeURIComponent(user.nombre || "");
