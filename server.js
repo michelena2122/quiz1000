@@ -460,12 +460,12 @@ app.get("/auth/facebook/callback", (req, res, next) => {
             console.log("   numero final =", numero);
             console.log("   user.id      =", user.id);
 
-            // Redirigir a la página de pago si ya hay un folio (es decir, el pago está listo)
+            // Si folio existe, redirigir a Mercado Pago
             if (folio) {
                 return res.redirect(`/pago.html?folio=${encodeURIComponent(folio)}&facebook=ok&id=${id}&nombre=${nombre}&apellidos=${apellidos}&email=${email}`);
             }
 
-            // Si no hay folio, redirigir a portada
+            // Si no hay folio, redirigir a la portada o a otro lugar de elección
             return res.redirect(`/portada.html?facebook=ok&id=${id}&nombre=${nombre}&apellidos=${apellidos}&email=${email}`);
         });
     })(req, res, next);
