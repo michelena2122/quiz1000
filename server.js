@@ -235,9 +235,10 @@ app.get("/auth/google", (req, res, next) => {
     const origen = req.query.origen || "registro";
     const folio = req.query.folio || "";
     const numero = req.query.numero || "";
+    const email = req.query.email || "";
 
     const state = Buffer.from(
-        JSON.stringify({ origen, folio, numero })
+        JSON.stringify({ origen, folio, numero, email })
     ).toString("base64");
 
     console.log("🟡 /auth/google");
