@@ -411,6 +411,7 @@ app.get("/auth/facebook", (req, res, next) => {
         state
     })(req, res, next);
 });
+console.log("Recibiendo la solicitud en /auth/facebook/callback");
 
 app.get("/auth/facebook/callback", (req, res, next) => {
     passport.authenticate("facebook", (err, user, info) => {
