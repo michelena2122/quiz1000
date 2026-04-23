@@ -393,22 +393,25 @@ passport.use(new FacebookStrategy({
 }));
 
 app.get("/auth/facebook", (req, res, next) => {
-    const origen = req.query.origen || "registro";
-    const folio = req.query.folio || "";
-    const numero = req.query.numero || "";
+    const origen = req.query.origen || "registro";  // Puede venir de la URL
+    const folio = req.query.folio || "";  // Asegúrate de que esto sea pasado correctamente
+    const numero = req.query.numero || "";  // Y que número se pase también
 
-    const state = Buffer.from(
-        JSON.stringify({ origen, folio, numero })
-    ).toString("base64");
+    // Crear objeto de estado con los valores necesarios
+    const stateObj = { origen, folio, numero };
+
+    // Codificar el objeto de estado en base64
+    const stateEncoded = Buffer.from(JSON.stringify(stateObj)).toString("base64");
 
     console.log("🟦 /auth/facebook");
     console.log("   origen =", origen);
     console.log("   folio  =", folio);
     console.log("   numero =", numero);
 
+    // Redirigir a Facebook con el estado codificado
     passport.authenticate("facebook", {
         scope: ["email"],
-        state
+        state: stateEncoded // Se pasa el state codificado aquí
     })(req, res, next);
 });
 console.log("Recibiendo la solicitud en /auth/facebook/callback");
@@ -437,6 +440,7 @@ app.get("/auth/facebook/callback", (req, res, next) => {
             let folio = "";
             let numero = "";
 
+            // Decodificar el estado desde la URL
             try {
                 if (req.query.state) {
                     const parsed = JSON.parse(
