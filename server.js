@@ -1,6 +1,7 @@
 const express = require("express");
 const nodemailer = require("nodemailer");
 const cors = require("cors");
+const rateLimit = require("express-rate-limit");
 const path = require("path");
 const fs = require("fs");
 const multer = require("multer");
@@ -26,6 +27,29 @@ app.get("/healthz", (req, res) => {
 });
 
 app.use(cors());
+// Rate limiting
+const limitadorLogin = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 5,
+    message: { ok: false, mensaje: "Demasiados intentos. Espera 15 minutos." }
+});
+
+const limitadorCodigo = rateLimit({
+    windowMs: 60 * 60 * 1000,
+    max: 3,
+    message: { ok: false, mensaje: "Demasiados envíos. Espera 1 hora." }
+});
+
+const limitadorGeneral = rateLimit({
+    windowMs: 60 * 1000,
+    max: 100,
+    message: { ok: false, mensaje: "Demasiadas peticiones. Espera un momento." }
+});
+
+app.use(limitadorGeneral);
+app.post("/login", limitadorLogin);
+app.post("/enviar-codigo", limitadorCodigo);
+app.post("/validar-codigo", limitadorCodigo);
 app.use(express.json());
 app.use(express.static("public"));
 
