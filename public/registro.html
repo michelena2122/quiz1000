@@ -305,7 +305,24 @@ function obtenerOrigenGoogle() {
 
     return "registro";
 }
+function validarEdadYTerminos() {
+    const edad = document.getElementById("edad").value.trim();
+    const aceptaTerminos = document.getElementById("aceptaTerminos").checked;
+    const errorMsg = document.getElementById("errorMsg");
 
+    if (!aceptaTerminos) {
+        errorMsg.textContent = "Debes aceptar los Términos Legales para continuar.";
+        return false;
+    }
+
+    if (!edad || isNaN(edad) || parseInt(edad) < 18) {
+        errorMsg.textContent = "Debes ser mayor de 18 años para participar.";
+        return false;
+    }
+
+    errorMsg.textContent = "";
+    return true;
+}
 function construirUrlGoogle() {
     const params = new URLSearchParams(window.location.search);
 
@@ -376,9 +393,9 @@ function renderGoogleButton() {
     button.style.cursor = "pointer";
 
     button.onclick = function () {
-        window.location.href = url;
-    };
-
+    if (!validarEdadYTerminos()) return;
+    window.location.href = construirUrlGoogle();
+};
     container.appendChild(button);
 }
 
@@ -408,15 +425,16 @@ function renderFacebookButton() {
     button.style.width = "100%";
     button.style.padding = "10px";
     button.style.borderRadius = "6px";
-    button.style.border = "1px solid #dadce0";
-    button.style.background = "#ffffff";
-    button.style.color = "#000";
+    button.style.border = "none";
+    button.style.background = "#1877F2";
+    button.style.color = "#ffffff";
     button.style.fontWeight = "bold";
     button.style.cursor = "pointer";
 
     button.onclick = function () {
-        window.location.href = url;
-    };
+    if (!validarEdadYTerminos()) return;
+    window.location.href = construirUrlFacebook();
+};
 
     container.appendChild(button);
 }
