@@ -391,14 +391,15 @@ const folio = params.get("folio") || localStorage.getItem("folioTableroActual");
 // SINCRONIZAR SESIÓN DESDE GOOGLE EN PAGO
 // ============================
 
-if (params.get("google") === "ok") {
+if (params.get("google") === "ok" || params.get("facebook") === "ok") {
     const id = params.get("id") || "";
     const nombre = params.get("nombre") || "";
     const apellidos = params.get("apellidos") || "";
     const email = params.get("email") || "";
+    const proveedor = params.get("google") === "ok" ? "GOOGLE" : "FACEBOOK";
 
     if (id && email) {
-        const usuarioGoogle = {
+        const usuarioOAuth = {
             id,
             nombre,
             apellidos,
@@ -406,12 +407,12 @@ if (params.get("google") === "ok") {
         };
 
         localStorage.setItem("jugadorId", id);
-        localStorage.setItem("usuarioLogueado", JSON.stringify(usuarioGoogle));
-        localStorage.setItem("jugadorActual", JSON.stringify(usuarioGoogle));
+        localStorage.setItem("usuarioLogueado", JSON.stringify(usuarioOAuth));
+        localStorage.setItem("jugadorActual", JSON.stringify(usuarioOAuth));
 
-        console.log("✅ SESIÓN GOOGLE SINCRONIZADA EN PAGO:", usuarioGoogle);
+        console.log("✅ SESIÓN " + proveedor + " SINCRONIZADA EN PAGO:", usuarioOAuth);
     } else {
-        console.log("⚠️ Google regresó a pago sin id o email");
+        console.log("⚠️ OAuth regresó a pago sin id o email");
     }
 }
 
