@@ -296,16 +296,31 @@ pagarBtn.addEventListener("click", async function () {
 // ============================
 // Función para construir la URL de Google
 // ============================
-function obtenerOrigenGoogle() {
-    const origenGuardado = localStorage.getItem("origenRegistro");
+// ============================
+// VALIDAR EDAD Y TÉRMINOS
+// ============================
+function validarEdadYTerminos() {
+    const edad = document.getElementById("edad").value.trim();
+    const aceptaTerminos = document.getElementById("aceptaTerminos").checked;
+    const errorMsg = document.getElementById("errorMsg");
 
-    if (origenGuardado === "home") {
-        return "home";
+    if (!aceptaTerminos) {
+        errorMsg.textContent = "Debes aceptar los Términos Legales para continuar.";
+        return false;
     }
 
-    return "registro";
+    if (!edad || isNaN(edad) || parseInt(edad) < 18) {
+        errorMsg.textContent = "Debes ser mayor de 18 años para participar.";
+        return false;
+    }
+
+    errorMsg.textContent = "";
+    return true;
 }
 
+// ============================
+// CONSTRUIR URL DE GOOGLE
+// ============================
 function construirUrlGoogle() {
     const params = new URLSearchParams(window.location.search);
 
@@ -320,39 +335,43 @@ function construirUrlGoogle() {
         localStorage.getItem("numeroSeleccionado") ||
         "0";
 
-    const origen = obtenerOrigenGoogle();
+    const origenGuardado = localStorage.getItem("origenRegistro");
+    const origen = origenGuardado === "home" ? "home" : "registro";
 
     return `/auth/google?origen=${encodeURIComponent(origen)}&folio=${encodeURIComponent(folio)}&numero=${encodeURIComponent(numeroActual)}`;
 }
 
 // ============================
-// Función para construir la URL de Facebook
+// CONSTRUIR URL DE FACEBOOK
 // ============================
 function construirUrlFacebook() {
-    const urlBase = "https://quiz1000-nuevo.onrender.com/auth/facebook"; // URL base para Facebook
+    const params = new URLSearchParams(window.location.search);
 
-    // Obtener parámetros para saber de dónde proviene el jugador
-    const origen = new URLSearchParams(window.location.search).get("origen") || "registro"; // "portada" o "index"
+    const folio =
+        params.get("folio") ||
+        localStorage.getItem("folioTableroActual") ||
+        localStorage.getItem("folioTablero") ||
+        "";
 
-    const folio = new URLSearchParams(window.location.search).get("folio") || "";
-    const numero = new URLSearchParams(window.location.search).get("numero") || "";
+    const numeroActual =
+        params.get("numero") ||
+        localStorage.getItem("numeroSeleccionado") ||
+        "0";
 
-    // Construimos la URL con los parámetros necesarios
-    const url = `${urlBase}?origen=${origen}&folio=${folio}&numero=${numero}`;
+    const origenGuardado = localStorage.getItem("origenRegistro");
+    const origen = origenGuardado === "home" ? "home" : "registro";
 
-    return url;
+    return `/auth/facebook?origen=${encodeURIComponent(origen)}&folio=${encodeURIComponent(folio)}&numero=${encodeURIComponent(numeroActual)}`;
 }
 
 // ============================
-// Función para renderizar el botón de Google
+// BOTÓN GOOGLE
 // ============================
 function renderGoogleButton() {
-    const url = construirUrlGoogle();
-
     const container = document.getElementById("googleBtnContainer");
     if (!container) return;
 
-    container.innerHTML = ""; // Limpiar cualquier contenido previo
+    container.innerHTML = "";
 
     const button = document.createElement("button");
     button.type = "button";
@@ -362,36 +381,24 @@ function renderGoogleButton() {
              style="width:20px; height:20px; margin-right:10px;">
         <span>Continuar con Google</span>
     `;
-
-    button.style.display = "flex";
-    button.style.alignItems = "center";
-    button.style.justifyContent = "center";
-    button.style.width = "100%";
-    button.style.padding = "10px";
-    button.style.borderRadius = "6px";
-    button.style.border = "1px solid #dadce0";
-    button.style.background = "#ffffff";
-    button.style.color = "#000";
-    button.style.fontWeight = "bold";
-    button.style.cursor = "pointer";
+    button.style.cssText = "display:flex;align-items:center;justify-content:center;width:100%;padding:10px;border-radius:6px;border:1px solid #dadce0;background:#ffffff;color:#000;font-weight:bold;cursor:pointer;";
 
     button.onclick = function () {
-        window.location.href = url;
+        if (!validarEdadYTerminos()) return;
+        window.location.href = construirUrlGoogle();
     };
 
     container.appendChild(button);
 }
 
 // ============================
-// Función para renderizar el botón de Facebook
+// BOTÓN FACEBOOK
 // ============================
 function renderFacebookButton() {
-    const url = construirUrlFacebook();
-
     const container = document.getElementById("facebookBtnContainer");
     if (!container) return;
 
-    container.innerHTML = ""; // Limpiar cualquier contenido previo
+    container.innerHTML = "";
 
     const button = document.createElement("button");
     button.type = "button";
@@ -401,28 +408,20 @@ function renderFacebookButton() {
              style="width:20px; height:20px; margin-right:10px;">
         <span>Continuar con Facebook</span>
     `;
-
-    button.style.display = "flex";
-    button.style.alignItems = "center";
-    button.style.justifyContent = "center";
-    button.style.width = "100%";
-    button.style.padding = "10px";
-    button.style.borderRadius = "6px";
-    button.style.border = "1px solid #dadce0";
-    button.style.background = "#ffffff";
-    button.style.color = "#000";
-    button.style.fontWeight = "bold";
-    button.style.cursor = "pointer";
+    button.style.cssText = "display:flex;align-items:center;justify-content:center;width:100%;padding:10px;border-radius:6px;border:1px solid #dadce0;background:#ffffff;color:#000;font-weight:bold;cursor:pointer;margin-top:10px;";
 
     button.onclick = function () {
-        window.location.href = url;
+        if (!validarEdadYTerminos()) return;
+        window.location.href = construirUrlFacebook();
     };
 
     container.appendChild(button);
 }
 
-// Llamamos a la función cuando el DOM se haya cargado
-document.addEventListener("DOMContentLoaded", function() {
+// ============================
+// INICIALIZAR BOTONES
+// ============================
+document.addEventListener("DOMContentLoaded", function () {
     renderGoogleButton();
     renderFacebookButton();
 });
