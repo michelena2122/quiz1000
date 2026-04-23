@@ -30,7 +30,7 @@ app.use(express.json());
 app.use(express.static("public"));
 
 app.use(session({
-    secret: "quiz1000-secret",
+    secret: process.env.SESSION_SECRET || "quiz1000-secret-dev",
     resave: false,
     saveUninitialized: true
 }));
@@ -604,7 +604,7 @@ const FILE_PATH = path.join(__dirname, "public", "data", "preguntas.json");
 const codigosEmail = {};
 const preguntasAbiertas = {};
 const tokensPremio = {};
-const MP_ACCESS_TOKEN = "TEST-2663546958880234-110418-76e2aeb24b31137cb7f87b000963013f-153115257";
+const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN;
 // ============================
 // BASE DE DATOS USUARIOS
 // ============================
@@ -1156,8 +1156,8 @@ const transporter = nodemailer.createTransport({
     port: 587,
     secure: false,
     auth: {
-        user: "juanjmichelena@outlook.com",
-        pass: "xndzynqcazodcfjw"
+        user: process.env.OUTLOOK_USER,
+        pass: process.env.OUTLOOK_PASS
     }
 });
 
@@ -1185,7 +1185,7 @@ app.post("/enviar-codigo", async (req, res) => {
     console.log("Código generado:", codigo);
 
     const mailOptions = {
-        from: '"Quiz $1000" <juanjmichelena@outlook.com>',
+        from: `"Quiz $1000" <${process.env.OUTLOOK_USER}>`,
         to: email,
         subject: "Código de verificación",
         html: `
@@ -2018,7 +2018,7 @@ async function enviarCorreos(casillas, ganador){
 
         await transporter.sendMail({
 
-            from: '"Quiz $1000" <juanjmichelena@outlook.com>',
+            from: `"Quiz $1000" <${process.env.OUTLOOK_USER}>`,
             to: email,
             subject: "Resultado del tablero QUIZ1000",
             html: html
@@ -2555,7 +2555,7 @@ async function enviarCorreoRankingFinal(resumen){
 
         for(const participante of participantesConEmail){
             await transporter.sendMail({
-                from: '"Quiz $1000" <juanjmichelena@outlook.com>',
+                from: `"Quiz $1000" <${process.env.OUTLOOK_USER}>`,
                 to: participante.email,
                 subject: `Ranking final QUIZ1000 - ${resumen.tableroId}`,
                 html
@@ -3664,7 +3664,7 @@ function(err){
             try{
 
                 await transporter.sendMail({
-                    from: '"Quiz $1000" <juanjmichelena@outlook.com>',
+                    from: `"Quiz $1000" <${process.env.OUTLOOK_USER}>`,
                     to: usuario.email,
                     subject: "Confirmación de compra - QUIZ1000",
                     html: `
@@ -3945,7 +3945,7 @@ async function reembolsarPagosDeTablero(tableroId) {
 app.post("/api/test/reembolsar-tablero", async (req, res) => {
 
     // 🔒 PROTECCIÓN SIMPLE
-    if (req.headers["x-admin-key"] !== "QUIZ1000_ADMIN") {
+    if (req.headers["x-admin-key"] !== process.env.ADMIN_SECRET_KEY) {
         return res.status(403).json({
             ok: false,
             mensaje: "No autorizado"
