@@ -179,8 +179,7 @@ if(usuarioActivo){
 // ============================
 // OBTENER PARÁMETROS URL
 // ============================
-const params = new URLSearchParams(window.location.search);
-if (params.get("error") === "email_no_coincide") {
+if (new URLSearchParams(window.location.search).get("error") === "email_no_coincide") {
     document.getElementById("errorMsg").textContent = 
         "El email de Google/Facebook no coincide con el que escribiste. Usa el mismo correo en ambos.";
 }
