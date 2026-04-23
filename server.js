@@ -468,13 +468,6 @@ app.get("/auth/facebook/callback", (req, res, next) => {
         const apellidos = user.apellidos || "";
         const email = user.email || "";
 
-        // Verificamos que el nombre, apellido y correo coincidan con los que el usuario registró
-        const usuarioRegistrado = JSON.parse(localStorage.getItem("usuarioLogueado")) || {};
-
-        if (usuarioRegistrado.nombre !== nombre || usuarioRegistrado.apellidos !== apellidos || usuarioRegistrado.email !== email) {
-            console.log("⚠️ La información de Facebook no coincide con la información registrada");
-            return res.redirect("/registro.html?facebook=mismatch");
-        }
 
         // Si la validación es exitosa, iniciamos sesión y redirigimos
         req.logIn(user, (loginErr) => {
