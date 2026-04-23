@@ -463,30 +463,46 @@ app.get("/auth/facebook/callback", (req, res, next) => {
             return res.redirect("/registro.html?facebook=error");
         }
 
-        // Aquí solo validamos el nombre, apellido y email
-        const nombre = user.nombre || "";
-        const apellidos = user.apellidos || "";
-        const email = user.email || "";
-
-
-        // Si la validación es exitosa, iniciamos sesión y redirigimos
         req.logIn(user, (loginErr) => {
             if (loginErr) {
                 console.log("REQ.LOGIN FACEBOOK ERROR:", loginErr);
                 return res.status(500).send("Error al iniciar sesión con Facebook");
             }
 
-            // Solo validamos el usuario, el resto de los datos provienen del carrito y se pasan directamente a la página de pago
+            let origen = "registro";
+            let folio = "";
+
+            try {
+                if (req.query.state) {
+                    const parsed = JSON.parse(
+                        Buffer.from(req.query.state, "base64").toString("utf8")
+                    );
+                    origen = parsed.origen || "registro";
+                    folio = parsed.folio || "";
+                }
+            } catch (e) {
+                console.log("ERROR LEYENDO STATE FACEBOOK:", e.message);
+            }
+
             const id = encodeURIComponent(user.id || "");
             const nombre = encodeURIComponent(user.nombre || "");
             const apellidos = encodeURIComponent(user.apellidos || "");
             const email = encodeURIComponent(user.email || "");
 
             console.log("✅ FACEBOOK OK");
-            console.log("   usuario autenticado:", { nombre, apellidos, email });
+            console.log("   origen final =", origen);
+            console.log("   folio final  =", folio);
+            console.log("   user.id      =", user.id);
 
-            // Redirigimos al pago, manteniendo el flujo del carrito intacto
-            return res.redirect(`/pago.html?facebook=ok&id=${id}&nombre=${nombre}&apellidos=${apellidos}&email=${email}`);
+            if (origen === "home") {
+                return res.redirect(`/portada.html?facebook=ok&id=${id}&nombre=${nombre}&apellidos=${apellidos}&email=${email}`);
+            }
+
+            if (folio) {
+                return res.redirect(`/pago.html?folio=${encodeURIComponent(folio)}&facebook=ok&id=${id}&nombre=${nombre}&apellidos=${apellidos}&email=${email}`);
+            }
+
+            return res.redirect(`/portada.html?facebook=ok&id=${id}&nombre=${nombre}&apellidos=${apellidos}&email=${email}`);
         });
     })(req, res, next);
 });
