@@ -1,31 +1,40 @@
 (function sincronizarSesionOAuth() {
     const params = new URLSearchParams(window.location.search);
+
     const googleOk = params.get("google") === "ok";
     const facebookOk = params.get("facebook") === "ok";
 
     if (!googleOk && !facebookOk) return;
 
-    fetch("/api/sesion-oauth")
-        .then(res => res.json())
-        .then(data => {
-            if (!data.ok || !data.usuario) return;
+    const id = params.get("id") || "";
+    const nombre = params.get("nombre") || "";
+    const apellidos = params.get("apellidos") || "";
+    const email = params.get("email") || "";
 
-            const usuario = data.usuario;
+    if (!id || !email) return;
 
-            localStorage.setItem("jugadorId", usuario.id);
-            localStorage.setItem("usuarioLogueado", JSON.stringify(usuario));
-            localStorage.setItem("jugadorActual", JSON.stringify(usuario));
+    const usuarioOAuth = {
+        id,
+        nombre,
+        apellidos,
+        email
+    };
 
-            params.delete("google");
-            params.delete("facebook");
+    localStorage.setItem("jugadorId", id);
+    localStorage.setItem("usuarioLogueado", JSON.stringify(usuarioOAuth));
+    localStorage.setItem("jugadorActual", JSON.stringify(usuarioOAuth));
 
-            const nuevaQuery = params.toString();
-            const nuevaUrl = window.location.pathname + (nuevaQuery ? "?" + nuevaQuery : "");
-            window.history.replaceState({}, document.title, nuevaUrl);
-        })
-        .catch(err => {
-            console.log("Error sincronizando sesión OAuth:", err);
-        });
+    params.delete("google");
+    params.delete("facebook");
+    params.delete("id");
+    params.delete("nombre");
+    params.delete("apellidos");
+    params.delete("email");
+
+    const nuevaQuery = params.toString();
+    const nuevaUrl = window.location.pathname + (nuevaQuery ? "?" + nuevaQuery : "");
+
+    window.history.replaceState({}, document.title, nuevaUrl);
 })();
 console.log("MAIN NUEVO VERSION 2");
 

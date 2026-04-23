@@ -1,7 +1,7 @@
 const express = require("express");
 const nodemailer = require("nodemailer");
-const cors = require("cors");
 const rateLimit = require("express-rate-limit");
+const cors = require("cors");
 const path = require("path");
 const fs = require("fs");
 const multer = require("multer");
@@ -22,17 +22,6 @@ const client = new MercadoPagoConfig({
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ============================
-// SESIÓN OAUTH
-// ============================
-app.get("/api/sesion-oauth", (req, res) => {
-    if (!req.session || !req.session.usuarioOAuth) {
-        return res.json({ ok: false });
-    }
-    const usuario = req.session.usuarioOAuth;
-    delete req.session.usuarioOAuth;
-    return res.json({ ok: true, usuario });
-});
 app.get("/healthz", (req, res) => {
     res.status(200).send("ok");
 });
@@ -58,6 +47,10 @@ const limitadorGeneral = rateLimit({
 });
 
 app.use(limitadorGeneral);
+app.post("/login", limitadorLogin);
+app.post("/enviar-codigo", limitadorCodigo);
+app.post("/validar-codigo", limitadorCodigo);
+
 // Middleware de autenticación admin
 function verificarAdmin(req, res, next) {
     const key = req.headers["x-admin-key"];
@@ -66,14 +59,11 @@ function verificarAdmin(req, res, next) {
     }
     next();
 }
-app.post("/login", limitadorLogin);
-app.post("/enviar-codigo", limitadorCodigo);
-app.post("/validar-codigo", limitadorCodigo);
 app.use(express.json());
 app.use(express.static("public"));
 
 app.use(session({
-    secret: process.env.SESSION_SECRET || "quiz1000-secret-dev",
+    secret: "quiz1000-secret",
     resave: false,
     saveUninitialized: true
 }));
@@ -310,14 +300,14 @@ app.get("/auth/google/callback", (req, res, next) => {
             console.log("   user.id      =", user.id);
 
             if (origen === "home") {
-    return res.redirect(`/portada.html?google=ok`);
-}
+                return res.redirect(`/portada.html?google=ok&id=${id}&nombre=${nombre}&apellidos=${apellidos}&email=${email}`);
+            }
 
-if (folio) {
-    return res.redirect(`/pago.html?folio=${encodeURIComponent(folio)}&google=ok`);
-}
+            if (folio) {
+                return res.redirect(`/pago.html?folio=${encodeURIComponent(folio)}&google=ok&id=${id}&nombre=${nombre}&apellidos=${apellidos}&email=${email}`);
+            }
 
-return res.redirect(`/portada.html?google=ok`);
+            return res.redirect(`/portada.html?google=ok&id=${id}&nombre=${nombre}&apellidos=${apellidos}&email=${email}`);
         });
     })(req, res, next);
 });
@@ -466,54 +456,44 @@ app.get("/auth/facebook/callback", (req, res, next) => {
         console.log("FACEBOOK CALLBACK INFO:", info);
 
         if (err) {
-            return res.status(500).send("Error Facebook callback");
+            return res.status(500).send("Error en el callback de Facebook");
         }
 
         if (!user || !user.id) {
             return res.redirect("/registro.html?facebook=error");
         }
 
+        // Aquí solo validamos el nombre, apellido y email
+        const nombre = user.nombre || "";
+        const apellidos = user.apellidos || "";
+        const email = user.email || "";
+
+        // Verificamos que el nombre, apellido y correo coincidan con los que el usuario registró
+        const usuarioRegistrado = JSON.parse(localStorage.getItem("usuarioLogueado")) || {};
+
+        if (usuarioRegistrado.nombre !== nombre || usuarioRegistrado.apellidos !== apellidos || usuarioRegistrado.email !== email) {
+            console.log("⚠️ La información de Facebook no coincide con la información registrada");
+            return res.redirect("/registro.html?facebook=mismatch");
+        }
+
+        // Si la validación es exitosa, iniciamos sesión y redirigimos
         req.logIn(user, (loginErr) => {
             if (loginErr) {
                 console.log("REQ.LOGIN FACEBOOK ERROR:", loginErr);
                 return res.status(500).send("Error al iniciar sesión con Facebook");
             }
 
-            let origen = "registro";
-            let folio = "";
-
-            try {
-                if (req.query.state) {
-                    const parsed = JSON.parse(
-                        Buffer.from(req.query.state, "base64").toString("utf8")
-                    );
-                    origen = parsed.origen || "registro";
-                    folio = parsed.folio || "";
-                }
-            } catch (e) {
-                console.log("ERROR LEYENDO STATE FACEBOOK:", e.message);
-            }
-
-            req.session.usuarioOAuth = {
-                id: user.id,
-                nombre: user.nombre || "",
-                apellidos: user.apellidos || "",
-                email: user.email || ""
-            };
+            // Solo validamos el usuario, el resto de los datos provienen del carrito y se pasan directamente a la página de pago
+            const id = encodeURIComponent(user.id || "");
+            const nombre = encodeURIComponent(user.nombre || "");
+            const apellidos = encodeURIComponent(user.apellidos || "");
+            const email = encodeURIComponent(user.email || "");
 
             console.log("✅ FACEBOOK OK");
-            console.log("   origen final =", origen);
-            console.log("   folio final  =", folio);
+            console.log("   usuario autenticado:", { nombre, apellidos, email });
 
-            if (origen === "home") {
-                return res.redirect(`/portada.html?facebook=ok`);
-            }
-
-            if (folio) {
-                return res.redirect(`/pago.html?folio=${encodeURIComponent(folio)}&facebook=ok`);
-            }
-
-            return res.redirect(`/portada.html?facebook=ok`);
+            // Redirigimos al pago, manteniendo el flujo del carrito intacto
+            return res.redirect(`/pago.html?facebook=ok&id=${id}&nombre=${nombre}&apellidos=${apellidos}&email=${email}`);
         });
     })(req, res, next);
 });
@@ -657,7 +637,7 @@ const FILE_PATH = path.join(__dirname, "public", "data", "preguntas.json");
 const codigosEmail = {};
 const preguntasAbiertas = {};
 const tokensPremio = {};
-const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN;
+const MP_ACCESS_TOKEN = "TEST-2663546958880234-110418-76e2aeb24b31137cb7f87b000963013f-153115257";
 // ============================
 // BASE DE DATOS USUARIOS
 // ============================
@@ -1209,8 +1189,8 @@ const transporter = nodemailer.createTransport({
     port: 587,
     secure: false,
     auth: {
-        user: process.env.OUTLOOK_USER,
-        pass: process.env.OUTLOOK_PASS
+        user: "juanjmichelena@outlook.com",
+        pass: "xndzynqcazodcfjw"
     }
 });
 
@@ -1238,7 +1218,7 @@ app.post("/enviar-codigo", async (req, res) => {
     console.log("Código generado:", codigo);
 
     const mailOptions = {
-        from: `"Quiz $1000" <${process.env.OUTLOOK_USER}>`,
+        from: '"Quiz $1000" <juanjmichelena@outlook.com>',
         to: email,
         subject: "Código de verificación",
         html: `
@@ -1872,18 +1852,23 @@ app.post("/admin/reset", (req,res)=>{
     db.run(`DELETE FROM usuarios`);
     db.run(`DELETE FROM casillas`);
     db.run(`DELETE FROM tableros`);
+
     const filePath = path.join(__dirname, "public", "data", "tablero.json");
+
     const nuevoTablero = {
         completo:false,
         casillas:[]
     };
+
     fs.writeFileSync(filePath, JSON.stringify(nuevoTablero, null, 2));
+
     res.json({ ok:true, mensaje:"Sistema reiniciado" });
+
 });
 // =============================
 // ADMIN: TABLEROS INCOMPLETOS + REEMBOLSOS
 // =============================
-app.post("/api/admin/pagar-premio", verificarAdmin, (req, res) => {
+app.get("/admin/tableros-incompletos", (req, res) => {
 
     db.all(`
         SELECT
@@ -2069,7 +2054,7 @@ async function enviarCorreos(casillas, ganador){
 
         await transporter.sendMail({
 
-            from: `"Quiz $1000" <${process.env.OUTLOOK_USER}>`,
+            from: '"Quiz $1000" <juanjmichelena@outlook.com>',
             to: email,
             subject: "Resultado del tablero QUIZ1000",
             html: html
@@ -2606,7 +2591,7 @@ async function enviarCorreoRankingFinal(resumen){
 
         for(const participante of participantesConEmail){
             await transporter.sendMail({
-                from: `"Quiz $1000" <${process.env.OUTLOOK_USER}>`,
+                from: '"Quiz $1000" <juanjmichelena@outlook.com>',
                 to: participante.email,
                 subject: `Ranking final QUIZ1000 - ${resumen.tableroId}`,
                 html
@@ -3715,7 +3700,7 @@ function(err){
             try{
 
                 await transporter.sendMail({
-                    from: `"Quiz $1000" <${process.env.OUTLOOK_USER}>`,
+                    from: '"Quiz $1000" <juanjmichelena@outlook.com>',
                     to: usuario.email,
                     subject: "Confirmación de compra - QUIZ1000",
                     html: `
@@ -3996,7 +3981,7 @@ async function reembolsarPagosDeTablero(tableroId) {
 app.post("/api/test/reembolsar-tablero", async (req, res) => {
 
     // 🔒 PROTECCIÓN SIMPLE
-    if (req.headers["x-admin-key"] !== process.env.ADMIN_SECRET_KEY) {
+    if (req.headers["x-admin-key"] !== "QUIZ1000_ADMIN") {
         return res.status(403).json({
             ok: false,
             mensaje: "No autorizado"
@@ -4164,7 +4149,7 @@ app.post("/crear-pago", async (req, res) => {
 // =============================
 // ADMIN - OBTENER TIPO DE CAMBIO
 // =============================
-app.get("/api/admin/tipo-cambio", verificarAdmin, (req, res) => {
+app.post("/api/admin/tipo-cambio", verificarAdmin, (req, res) => {
     db.all(
         `SELECT clave, valor FROM configuracion
          WHERE clave IN ('tipoCambioCobro','tipoCambioPremio')`,
@@ -4337,7 +4322,7 @@ app.get("/api/admin/tableros-completos", verificarAdmin, (req, res) => {
 // =============================
 // ADMIN - GUARDAR TIPO DE CAMBIO
 // =============================
-app.post("/api/admin/tipo-cambio", verificarAdmin, (req, res) => {
+app.post("/api/admin/tipo-cambio", (req, res) => {
 
     const tipoCambioCobro = Number(req.body.tipoCambioCobro);
     const tipoCambioPremio = Number(req.body.tipoCambioPremio);
@@ -4907,7 +4892,9 @@ app.get("/api/prueba-version", (req, res) => {
         mensaje: "version nueva cargada"
     });
 });
-
+app.get("/healthz", (req, res) => {
+    res.status(200).send("OK");
+});
 app.listen(PORT, "0.0.0.0", () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
 
