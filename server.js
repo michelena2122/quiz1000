@@ -47,6 +47,14 @@ const limitadorGeneral = rateLimit({
 });
 
 app.use(limitadorGeneral);
+// Middleware de autenticación admin
+function verificarAdmin(req, res, next) {
+    const key = req.headers["x-admin-key"];
+    if (!key || key !== process.env.ADMIN_SECRET_KEY) {
+        return res.status(403).json({ ok: false, mensaje: "No autorizado" });
+    }
+    next();
+}
 app.post("/login", limitadorLogin);
 app.post("/enviar-codigo", limitadorCodigo);
 app.post("/validar-codigo", limitadorCodigo);
@@ -1808,7 +1816,7 @@ try {
 // ADMIN - ESTADO DEL TABLERO
 // =============================
 
-app.get("/admin/tablero", (req, res) => {
+app.get("/admin/tablero", verificarAdmin, (req, res) => {
 
     const filePath = path.join(__dirname, "public", "data", "tablero.json");
 
@@ -1854,7 +1862,7 @@ app.post("/admin/reset", (req,res)=>{
 // =============================
 // ADMIN: TABLEROS INCOMPLETOS + REEMBOLSOS
 // =============================
-app.get("/admin/tableros-incompletos", (req, res) => {
+app.post("/api/admin/pagar-premio", verificarAdmin, (req, res) => {
 
     db.all(`
         SELECT
@@ -2820,7 +2828,7 @@ tableros:rows
 // =============================
 // ADMIN: DETALLE TABLERO COMPLETO
 // =============================
-app.get("/api/admin/tablero-detalle/:folio", (req, res) => {
+app.get("/api/admin/tablero-detalle/:folio", verificarAdmin, (req, res) => {
 
     const folio = req.params.folio;
 
@@ -4135,7 +4143,7 @@ app.post("/crear-pago", async (req, res) => {
 // =============================
 // ADMIN - OBTENER TIPO DE CAMBIO
 // =============================
-app.get("/api/admin/tipo-cambio", (req, res) => {
+app.get("/api/admin/tipo-cambio", verificarAdmin, (req, res) => {
     db.all(
         `SELECT clave, valor FROM configuracion
          WHERE clave IN ('tipoCambioCobro','tipoCambioPremio')`,
@@ -4276,7 +4284,7 @@ app.get("/api/debug/tableros-esquema", (req, res) => {
 // =============================
 // ADMIN: TABLEROS COMPLETOS
 // =============================
-app.get("/api/admin/tableros-completos", (req, res) => {
+app.get("/api/admin/tableros-completos", verificarAdmin, (req, res) => {
 
     db.all(`
         SELECT 
@@ -4308,7 +4316,7 @@ app.get("/api/admin/tableros-completos", (req, res) => {
 // =============================
 // ADMIN - GUARDAR TIPO DE CAMBIO
 // =============================
-app.post("/api/admin/tipo-cambio", (req, res) => {
+app.post("/api/admin/tipo-cambio", verificarAdmin, (req, res) => {
 
     const tipoCambioCobro = Number(req.body.tipoCambioCobro);
     const tipoCambioPremio = Number(req.body.tipoCambioPremio);
@@ -4701,7 +4709,7 @@ app.post("/api/premio/solicitud", uploadPremio.single("archivoDocumentoPremio"),
     });
 
 });
-app.get("/api/admin/solicitudes-premio", (req, res) => {
+app.get("/api/admin/solicitudes-premio", verificarAdmin, (req, res) => {
 
     db.all(`
         SELECT * FROM solicitudes_premio
@@ -4717,7 +4725,7 @@ app.get("/api/admin/solicitudes-premio", (req, res) => {
     });
 
 });
-app.post("/api/admin/pagar-premio", (req, res) => {
+app.post("/api/admin/pagar-premio", verificarAdmin, (req, res) => {
 
     const { idSolicitud } = req.body;
 
