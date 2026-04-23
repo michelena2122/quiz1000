@@ -423,58 +423,44 @@ app.get("/auth/facebook/callback", (req, res, next) => {
         console.log("FACEBOOK CALLBACK INFO:", info);
 
         if (err) {
-            return res.status(500).send("Error Facebook callback");
+            return res.status(500).send("Error en el callback de Facebook");
         }
 
         if (!user || !user.id) {
             return res.redirect("/registro.html?facebook=error");
         }
 
+        // Aquí solo validamos el nombre, apellido y email
+        const nombre = user.nombre || "";
+        const apellidos = user.apellidos || "";
+        const email = user.email || "";
+
+        // Verificamos que el nombre, apellido y correo coincidan con los que el usuario registró
+        const usuarioRegistrado = JSON.parse(localStorage.getItem("usuarioLogueado")) || {};
+
+        if (usuarioRegistrado.nombre !== nombre || usuarioRegistrado.apellidos !== apellidos || usuarioRegistrado.email !== email) {
+            console.log("⚠️ La información de Facebook no coincide con la información registrada");
+            return res.redirect("/registro.html?facebook=mismatch");
+        }
+
+        // Si la validación es exitosa, iniciamos sesión y redirigimos
         req.logIn(user, (loginErr) => {
             if (loginErr) {
                 console.log("REQ.LOGIN FACEBOOK ERROR:", loginErr);
                 return res.status(500).send("Error al iniciar sesión con Facebook");
             }
 
-            let origen = "registro";
-            let folio = "";
-            let numero = "";
-
-            // Decodificar el estado desde la URL
-            try {
-                if (req.query.state) {
-                    const parsed = JSON.parse(
-                        Buffer.from(req.query.state, "base64").toString("utf8")
-                    );
-                    origen = parsed.origen || "registro";
-                    folio = parsed.folio || "";
-                    numero = parsed.numero || "";
-                }
-            } catch (e) {
-                console.log("ERROR LEYENDO STATE FACEBOOK:", e.message);
-            }
-
+            // Solo validamos el usuario, el resto de los datos provienen del carrito y se pasan directamente a la página de pago
             const id = encodeURIComponent(user.id || "");
             const nombre = encodeURIComponent(user.nombre || "");
             const apellidos = encodeURIComponent(user.apellidos || "");
             const email = encodeURIComponent(user.email || "");
 
             console.log("✅ FACEBOOK OK");
-            console.log("   origen final =", origen);
-            console.log("   folio final  =", folio);
-            console.log("   numero final =", numero);
-            console.log("   user.id      =", user.id);
+            console.log("   usuario autenticado:", { nombre, apellidos, email });
 
-            // Aquí comprobamos si el usuario ya tiene un folio o ya está registrado
-            if (folio) {
-                console.log("Usuario con folio, redirigiendo a pago.");
-                // Si ya existe el folio, redirigimos directamente a la página de pago
-                return res.redirect(`/pago.html?folio=${encodeURIComponent(folio)}&facebook=ok&id=${id}&nombre=${nombre}&apellidos=${apellidos}&email=${email}`);
-            }
-
-            // Si no hay folio, redirigir a la página de portada
-            console.log("No hay folio, redirigiendo a portada.");
-            return res.redirect(`/portada.html?facebook=ok&id=${id}&nombre=${nombre}&apellidos=${apellidos}&email=${email}`);
+            // Redirigimos al pago, manteniendo el flujo del carrito intacto
+            return res.redirect(`/pago.html?facebook=ok&id=${id}&nombre=${nombre}&apellidos=${apellidos}&email=${email}`);
         });
     })(req, res, next);
 });
