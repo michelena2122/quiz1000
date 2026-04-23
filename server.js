@@ -22,6 +22,17 @@ const client = new MercadoPagoConfig({
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// ============================
+// SESIÓN OAUTH
+// ============================
+app.get("/api/sesion-oauth", (req, res) => {
+    if (!req.session || !req.session.usuarioOAuth) {
+        return res.json({ ok: false });
+    }
+    const usuario = req.session.usuarioOAuth;
+    delete req.session.usuarioOAuth;
+    return res.json({ ok: true, usuario });
+});
 app.get("/healthz", (req, res) => {
     res.status(200).send("ok");
 });
@@ -299,14 +310,14 @@ app.get("/auth/google/callback", (req, res, next) => {
             console.log("   user.id      =", user.id);
 
             if (origen === "home") {
-                return res.redirect(`/portada.html?google=ok&id=${id}&nombre=${nombre}&apellidos=${apellidos}&email=${email}`);
-            }
+    return res.redirect(`/portada.html?google=ok`);
+}
 
-            if (folio) {
-                return res.redirect(`/pago.html?folio=${encodeURIComponent(folio)}&google=ok&id=${id}&nombre=${nombre}&apellidos=${apellidos}&email=${email}`);
-            }
+if (folio) {
+    return res.redirect(`/pago.html?folio=${encodeURIComponent(folio)}&google=ok`);
+}
 
-            return res.redirect(`/portada.html?google=ok&id=${id}&nombre=${nombre}&apellidos=${apellidos}&email=${email}`);
+return res.redirect(`/portada.html?google=ok`);
         });
     })(req, res, next);
 });
@@ -455,44 +466,54 @@ app.get("/auth/facebook/callback", (req, res, next) => {
         console.log("FACEBOOK CALLBACK INFO:", info);
 
         if (err) {
-            return res.status(500).send("Error en el callback de Facebook");
+            return res.status(500).send("Error Facebook callback");
         }
 
         if (!user || !user.id) {
             return res.redirect("/registro.html?facebook=error");
         }
 
-        // Aquí solo validamos el nombre, apellido y email
-        const nombre = user.nombre || "";
-        const apellidos = user.apellidos || "";
-        const email = user.email || "";
-
-        // Verificamos que el nombre, apellido y correo coincidan con los que el usuario registró
-        const usuarioRegistrado = JSON.parse(localStorage.getItem("usuarioLogueado")) || {};
-
-        if (usuarioRegistrado.nombre !== nombre || usuarioRegistrado.apellidos !== apellidos || usuarioRegistrado.email !== email) {
-            console.log("⚠️ La información de Facebook no coincide con la información registrada");
-            return res.redirect("/registro.html?facebook=mismatch");
-        }
-
-        // Si la validación es exitosa, iniciamos sesión y redirigimos
         req.logIn(user, (loginErr) => {
             if (loginErr) {
                 console.log("REQ.LOGIN FACEBOOK ERROR:", loginErr);
                 return res.status(500).send("Error al iniciar sesión con Facebook");
             }
 
-            // Solo validamos el usuario, el resto de los datos provienen del carrito y se pasan directamente a la página de pago
-            const id = encodeURIComponent(user.id || "");
-            const nombre = encodeURIComponent(user.nombre || "");
-            const apellidos = encodeURIComponent(user.apellidos || "");
-            const email = encodeURIComponent(user.email || "");
+            let origen = "registro";
+            let folio = "";
+
+            try {
+                if (req.query.state) {
+                    const parsed = JSON.parse(
+                        Buffer.from(req.query.state, "base64").toString("utf8")
+                    );
+                    origen = parsed.origen || "registro";
+                    folio = parsed.folio || "";
+                }
+            } catch (e) {
+                console.log("ERROR LEYENDO STATE FACEBOOK:", e.message);
+            }
+
+            req.session.usuarioOAuth = {
+                id: user.id,
+                nombre: user.nombre || "",
+                apellidos: user.apellidos || "",
+                email: user.email || ""
+            };
 
             console.log("✅ FACEBOOK OK");
-            console.log("   usuario autenticado:", { nombre, apellidos, email });
+            console.log("   origen final =", origen);
+            console.log("   folio final  =", folio);
 
-            // Redirigimos al pago, manteniendo el flujo del carrito intacto
-            return res.redirect(`/pago.html?facebook=ok&id=${id}&nombre=${nombre}&apellidos=${apellidos}&email=${email}`);
+            if (origen === "home") {
+                return res.redirect(`/portada.html?facebook=ok`);
+            }
+
+            if (folio) {
+                return res.redirect(`/pago.html?folio=${encodeURIComponent(folio)}&facebook=ok`);
+            }
+
+            return res.redirect(`/portada.html?facebook=ok`);
         });
     })(req, res, next);
 });
@@ -4886,9 +4907,7 @@ app.get("/api/prueba-version", (req, res) => {
         mensaje: "version nueva cargada"
     });
 });
-app.get("/healthz", (req, res) => {
-    res.status(200).send("OK");
-});
+
 app.listen(PORT, "0.0.0.0", () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
 
