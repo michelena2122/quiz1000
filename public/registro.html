@@ -336,7 +336,8 @@ function construirUrlGoogle() {
         "0";
 
     const origenGuardado = localStorage.getItem("origenRegistro");
-    const origen = origenGuardado === "home" ? "home" : "registro";
+    const origen = (origenGuardado === "home" && !folio) ? "home" : "registro";
+    localStorage.removeItem("origenRegistro");
 
     return `/auth/google?origen=${encodeURIComponent(origen)}&folio=${encodeURIComponent(folio)}&numero=${encodeURIComponent(numeroActual)}`;
 }
