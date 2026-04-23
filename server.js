@@ -1836,22 +1836,20 @@ app.get("/admin/tablero", (req, res) => {
 
 });
 app.post("/admin/reset", (req,res)=>{
-
+    const key = req.headers["x-admin-key"];
+    if(!key || key !== process.env.ADMIN_SECRET_KEY){
+        return res.status(403).json({ ok:false, mensaje:"No autorizado" });
+    }
     db.run(`DELETE FROM usuarios`);
     db.run(`DELETE FROM casillas`);
     db.run(`DELETE FROM tableros`);
-
     const filePath = path.join(__dirname, "public", "data", "tablero.json");
-
     const nuevoTablero = {
         completo:false,
         casillas:[]
     };
-
     fs.writeFileSync(filePath, JSON.stringify(nuevoTablero, null, 2));
-
     res.json({ ok:true, mensaje:"Sistema reiniciado" });
-
 });
 // =============================
 // ADMIN: TABLEROS INCOMPLETOS + REEMBOLSOS
