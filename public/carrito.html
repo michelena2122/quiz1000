@@ -224,19 +224,29 @@ function render(){
         lista.innerHTML = "<p>No has seleccionado números aún.</p>";
     }
 
-    carrito.items.forEach((item, index)=>{
-        total += parseInt(item.numero);
+    function esc(str) {
+    return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
 
-        lista.innerHTML += `
-            <div class="item">
-                <div>
-                    Número ${item.numero} USD<br>
-                    <small>Tiempo: ${item.tiempo}</small>
-                </div>
-                <button class="removeBtn" onclick="eliminar(${index})">X</button>
-            </div>
-        `;
-    });
+carrito.items.forEach((item, index)=>{
+    total += parseInt(item.numero);
+
+    const div = document.createElement("div");
+    div.className = "item";
+    div.innerHTML = `
+        <div>
+            Número ${esc(item.numero)} USD<br>
+            <small>Tiempo: ${esc(item.tiempo)}</small>
+        </div>
+        <button class="removeBtn" onclick="eliminar(${index})">X</button>
+    `;
+    lista.appendChild(div);
+});
 
     carrito.total = total;
     totalSpan.textContent = total;

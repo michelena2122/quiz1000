@@ -178,11 +178,20 @@ if (tabla) {
 
         const fila = document.createElement("tr");
 
-        fila.innerHTML = `
-        <td>${c.jugador}</td>
-        <td>${c.casilla}</td>
-        <td>${c.email}</td>
-        <td>${c.tiempo}</td>
+        function esc(str) {
+    return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
+
+fila.innerHTML = `
+        <td>${esc(c.jugador)}</td>
+        <td>${esc(c.casilla)}</td>
+        <td>${esc(c.email)}</td>
+        <td>${esc(c.tiempo)}</td>
         `;
 
         tabla.appendChild(fila);
@@ -497,15 +506,15 @@ async function verDetalleTableroCompleto(folio) {
         `;
 
         data.casillas.forEach(c => {
-            html += `
-                <tr>
-                    <td style="border:1px solid #ccc; padding:8px;">${c.jugador || ""}</td>
-                    <td style="border:1px solid #ccc; padding:8px;">${c.casilla || ""}</td>
-                    <td style="border:1px solid #ccc; padding:8px;">${c.email || ""}</td>
-                    <td style="border:1px solid #ccc; padding:8px;">${c.tiempo || ""}</td>
-                </tr>
-            `;
-        });
+    html += `
+        <tr>
+            <td style="border:1px solid #ccc; padding:8px;">${esc(c.jugador || "")}</td>
+            <td style="border:1px solid #ccc; padding:8px;">${esc(c.casilla || "")}</td>
+            <td style="border:1px solid #ccc; padding:8px;">${esc(c.email || "")}</td>
+            <td style="border:1px solid #ccc; padding:8px;">${esc(c.tiempo || "")}</td>
+        </tr>
+    `;
+});
 
         html += `
                 </tbody>
@@ -720,13 +729,13 @@ async function cargarSolicitudesPremio() {
                         line-height:1.7;
                     "
                 >
-                    <div><b>Ganador ID:</b> ${s.ganadorId || ""}</div>
-                    <div><b>Nombre:</b> ${s.nombreCompleto || ""}</div>
-                    <div><b>Email:</b> ${s.email || ""}</div>
-                    <div><b>Banco:</b> ${s.banco || ""}</div>
-                    <div><b>Cuenta:</b> ${s.cuenta || ""}</div>
-                    <div><b>CLABE:</b> ${s.clabe || ""}</div>
-                    <div><b>Documento:</b> ${s.tipoDocumento || ""}</div>
+                    <div><b>Ganador ID:</b> ${esc(s.ganadorId || "")}</div>
+                    <div><b>Nombre:</b> ${esc(s.nombreCompleto || "")}</div>
+                    <div><b>Email:</b> ${esc(s.email || "")}</div>
+                    <div><b>Banco:</b> ${esc(s.banco || "")}</div>
+                    <div><b>Cuenta:</b> ${esc(s.cuenta || "")}</div>
+                    <div><b>CLABE:</b> ${esc(s.clabe || "")}</div>
+                    <div><b>Documento:</b> ${esc(s.tipoDocumento || "")}</div>
                     <div>
                         <b>Identificación:</b>
                         ${

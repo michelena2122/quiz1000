@@ -265,18 +265,27 @@ fetch("/api/rankings")
 
     filas.sort((a, b) => a.casilla - b.casilla);
 
-    let htmlInterno = "";
+    function esc(str) {
+    return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
 
-    if(ganador){
-        htmlInterno += `
-            <div class="ganador-box">
-                <div class="ganador-titulo">🏆 Ganador del tablero</div>
-                <div><strong>Nombre:</strong> ${ganador.nombreSolo || ganador.nombre || "Jugador"}</div>
-                <div><strong>ID:</strong> ${ganador.jugadorId || "Sin ID"}</div>
-                <div><strong>Mejor tiempo individual:</strong> ${ganador.mejorTiempoTexto || "Sin registro"}</div>
-            </div>
-        `;
-    }
+let htmlInterno = "";
+
+if(ganador){
+    htmlInterno += `
+        <div class="ganador-box">
+            <div class="ganador-titulo">🏆 Ganador del tablero</div>
+            <div><strong>Nombre:</strong> ${esc(ganador.nombreSolo || ganador.nombre || "Jugador")}</div>
+            <div><strong>ID:</strong> ${esc(ganador.jugadorId || "Sin ID")}</div>
+            <div><strong>Mejor tiempo individual:</strong> ${esc(ganador.mejorTiempoTexto || "Sin registro")}</div>
+        </div>
+    `;
+}
 
     if(filas.length === 0){
         htmlInterno += `<div class="sin-rankings">No hay filas de ranking para este tablero.</div>`;
@@ -284,30 +293,30 @@ fetch("/api/rankings")
         htmlInterno += `<div class="filas-ranking">`;
 
         filas.forEach((fila) => {
-            htmlInterno += `
-                <div class="fila-ranking ${fila.esGanador ? "ganador" : ""}">
-                    <div class="fila-top">
-                        <div class="celda">
-                            <strong>Nombre</strong>
-                            ${fila.nombre}
-                        </div>
-                        <div class="celda">
-                            <strong>ID</strong>
-                            ${fila.jugadorId}
-                        </div>
-                        <div class="celda">
-                            <strong>Casilla</strong>
-                            ${fila.casilla}
-                        </div>
-                        <div class="celda">
-                            <strong>Tiempo</strong>
-                            ${fila.tiempo}
-                        </div>
-                    </div>
-                    ${fila.esGanador ? `<div class="marca-ganador">🏆 Ganador</div>` : ""}
+    htmlInterno += `
+        <div class="fila-ranking ${fila.esGanador ? "ganador" : ""}">
+            <div class="fila-top">
+                <div class="celda">
+                    <strong>Nombre</strong>
+                    ${esc(fila.nombre)}
                 </div>
-            `;
-        });
+                <div class="celda">
+                    <strong>ID</strong>
+                    ${esc(fila.jugadorId)}
+                </div>
+                <div class="celda">
+                    <strong>Casilla</strong>
+                    ${esc(fila.casilla)}
+                </div>
+                <div class="celda">
+                    <strong>Tiempo</strong>
+                    ${esc(fila.tiempo)}
+                </div>
+            </div>
+            ${fila.esGanador ? `<div class="marca-ganador">🏆 Ganador</div>` : ""}
+        </div>
+    `;
+});
 
         htmlInterno += `</div>`;
     }
