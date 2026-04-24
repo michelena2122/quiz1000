@@ -1272,7 +1272,19 @@ function inicializarConfiguracion(callback){
 
                                         console.log("Tabla pagos_mp creada correctamente");
 
-                                        if(callback) callback(null);
+                        db.run(`CREATE TABLE IF NOT EXISTS solicitudes_baja (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        facebookUserId TEXT,
+                        email TEXT,
+                        confirmationCode TEXT,
+                        estatus TEXT DEFAULT 'pendiente',
+                        fechaSolicitud INTEGER,
+                        fechaEjecucion INTEGER
+                            )`, (errBaja) => {
+                                 if (errBaja) console.log("Error creando tabla solicitudes_baja:", errBaja.message);
+                                     else console.log("Tabla solicitudes_baja verificada");
+                                     if(callback) callback(null);
+                                        });
                                     });
                                 });
                             });
@@ -1281,7 +1293,6 @@ function inicializarConfiguracion(callback){
                 });
             });
         });
-
     });
 }
 // ============================
