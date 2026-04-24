@@ -4289,29 +4289,41 @@ app.get("/api/admin/tipo-cambio", verificarAdmin, (req, res) => {
     });
 });
 app.post("/api/admin/tipo-cambio", verificarAdmin, (req, res) => {
-    db.all(
-        `SELECT clave, valor FROM configuracion
-         WHERE clave IN ('tipoCambioCobro','tipoCambioPremio')`,
-        [],
-        (err, rows) => {
+    const tipoCambioCobro = Number(req.body.tipoCambioCobro);
+    const tipoCambioPremio = Number(req.body.tipoCambioPremio);
+
+    if(!tipoCambioCobro || tipoCambioCobro <= 0 || !tipoCambioPremio || tipoCambioPremio <= 0){
+        return res.status(400).json({ ok: false, mensaje: "Valores inválidos" });
+    }
+
+    db.run(
+        `INSERT INTO configuracion (clave, valor)
+         VALUES ('tipoCambioCobro', ?)
+         ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor`,
+        [tipoCambioCobro.toFixed(2)],
+        function(err){
             if(err){
-                console.log("Error leyendo tipo de cambio:", err);
-                return res.status(500).json({ ok:false });
+                console.log("❌ ERROR SQL tipoCambioCobro:", err.message);
+                return res.status(500).json({ ok: false });
             }
-
-            const data = {
-                tipoCambioCobro: "20.00",
-                tipoCambioPremio: "19.50"
-            };
-
-            rows.forEach(r => {
-                data[r.clave] = r.valor;
-            });
-
-            res.json({
-                ok: true,
-                ...data
-            });
+            db.run(
+                `INSERT INTO configuracion (clave, valor)
+                 VALUES ('tipoCambioPremio', ?)
+                 ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor`,
+                [tipoCambioPremio.toFixed(2)],
+                function(err2){
+                    if(err2){
+                        console.log("❌ ERROR SQL tipoCambioPremio:", err2.message);
+                        return res.status(500).json({ ok: false });
+                    }
+                    console.log("✅ Tipo de cambio actualizado:", tipoCambioCobro, tipoCambioPremio);
+                    res.json({
+                        ok: true,
+                        tipoCambioCobro: tipoCambioCobro.toFixed(2),
+                        tipoCambioPremio: tipoCambioPremio.toFixed(2)
+                    });
+                }
+            );
         }
     );
 });
