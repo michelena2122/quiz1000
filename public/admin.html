@@ -158,24 +158,23 @@ function verificarClave() {
         return;
     }
 
-    fetch("/api/admin/tipo-cambio", {
-        headers: { "x-admin-key": clave }
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.ok !== false || data.tipoCambioCobro) {
-            ADMIN_KEY = clave;
-            sessionStorage.setItem("adminKey", clave);
-            document.getElementById("loginAdmin").style.display = "none";
-            document.getElementById("panelAdmin").style.display = "block";
-            iniciarAdmin();
-        } else {
-            document.getElementById("errorLogin").textContent = "Contraseña incorrecta.";
-        }
-    })
-    .catch(() => {
-        document.getElementById("errorLogin").textContent = "Error de conexión.";
-    });
+fetch("/api/admin/tipo-cambio", {
+    headers: { "x-admin-key": clave }
+})
+.then(res => {
+    if (res.status === 200) {
+        ADMIN_KEY = clave;
+        sessionStorage.setItem("adminKey", clave);
+        document.getElementById("loginAdmin").style.display = "none";
+        document.getElementById("panelAdmin").style.display = "block";
+        iniciarAdmin();
+    } else {
+        document.getElementById("errorLogin").textContent = "Contraseña incorrecta.";
+    }
+})
+.catch(() => {
+    document.getElementById("errorLogin").textContent = "Error de conexión.";
+});
 }
 
 // Permitir Enter en el input
