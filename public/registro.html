@@ -182,6 +182,10 @@ if(usuarioActivo){
 
 const params = new URLSearchParams(window.location.search);
 let numero = params.get("numero");
+if (new URLSearchParams(window.location.search).get("error") === "email_no_coincide") {
+    document.getElementById("errorMsg").textContent = 
+        "El correo que escribiste no coincide con el de tu cuenta Google o Facebook. Usa el mismo correo en ambos campos.";
+}
 
 if (!numero) {
     numero = localStorage.getItem("numeroSeleccionado") || "0";
