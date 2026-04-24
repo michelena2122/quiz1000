@@ -2116,19 +2116,15 @@ function crearNuevoTablero(){
 
 }
 function convertirTiempoATotal(tiempoTexto){
-
     if(!tiempoTexto || typeof tiempoTexto !== "string"){
         return Number.MAX_SAFE_INTEGER;
     }
-
     const partes = tiempoTexto.split(":");
-
-    const dias = parseInt(partes[0], 10) || 0;
-    const horas = parseInt(partes[1], 10) || 0;
-    const minutos = parseInt(partes[2], 10) || 0;
-    const segundos = parseInt(partes[3], 10) || 0;
-
-    return (dias * 86400) + (horas * 3600) + (minutos * 60) + segundos;
+    const minutos = parseFloat(partes[0]) || 0;
+    const segundos = parseFloat(partes[1]) || 0;
+    const decimas = parseFloat(partes[2]) || 0;
+    const centesimas = parseFloat(partes[3]) || 0;
+    return (minutos * 60) + segundos + (decimas / 10) + (centesimas / 100);
 }
 
 function detectarTablerosVencidos(){
