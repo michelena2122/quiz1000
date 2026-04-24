@@ -338,28 +338,37 @@ function construirUrlGoogle() {
         "0";
 
     const origen = obtenerOrigenGoogle();
+    localStorage.removeItem("origenRegistro");
 
-    return `/auth/google?origen=${encodeURIComponent(origen)}&folio=${encodeURIComponent(folio)}&numero=${encodeURIComponent(numeroActual)}`;
+    const emailCapturado = document.getElementById("email").value.trim().toLowerCase();
+
+    return `/auth/google?origen=${encodeURIComponent(origen)}&folio=${encodeURIComponent(folio)}&numero=${encodeURIComponent(numeroActual)}&email=${encodeURIComponent(emailCapturado)}`;
 }
-
 // ============================
 // Función para construir la URL de Facebook
 // ============================
 function construirUrlFacebook() {
-    const urlBase = "https://quiz1000-nuevo.onrender.com/auth/facebook"; // URL base para Facebook
+    const params = new URLSearchParams(window.location.search);
 
-    // Obtener parámetros para saber de dónde proviene el jugador
-    const origen = new URLSearchParams(window.location.search).get("origen") || "registro"; // "portada" o "index"
+    const folio =
+        params.get("folio") ||
+        localStorage.getItem("folioTableroActual") ||
+        localStorage.getItem("folioTablero") ||
+        "";
 
-    const folio = new URLSearchParams(window.location.search).get("folio") || "";
-    const numero = new URLSearchParams(window.location.search).get("numero") || "";
+    const numeroActual =
+        params.get("numero") ||
+        localStorage.getItem("numeroSeleccionado") ||
+        "0";
 
-    // Construimos la URL con los parámetros necesarios
-    const url = `${urlBase}?origen=${origen}&folio=${folio}&numero=${numero}`;
+    const origenGuardado = localStorage.getItem("origenRegistro");
+    const origen = (origenGuardado === "home" && !folio) ? "home" : "registro";
+    localStorage.removeItem("origenRegistro");
 
-    return url;
+    const emailCapturado = document.getElementById("email").value.trim().toLowerCase();
+
+    return `/auth/facebook?origen=${encodeURIComponent(origen)}&folio=${encodeURIComponent(folio)}&numero=${encodeURIComponent(numeroActual)}&email=${encodeURIComponent(emailCapturado)}`;
 }
-
 // ============================
 // Función para renderizar el botón de Google
 // ============================
