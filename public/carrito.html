@@ -215,7 +215,32 @@ if(jugadorActual && jugadorActual.nombre){
     document.getElementById("mensajeJugador").textContent =
         "¡Estás muy cerca de los 1,000 USD!";
 }
+// Limpiar casillas ya pagadas del carrito
+async function limpiarCarritoPagadas() {
+    try {
+        const res = await fetch(`/api/estado-casillas?folio=${folio}`);
+        const data = await res.json();
+        if (!data.ok) return;
 
+        const pagadas = (data.casillas || [])
+            .filter(c => c.estado === "pagada")
+            .map(c => c.numero);
+
+        if (pagadas.length === 0) return;
+
+        const carritoActual = JSON.parse(localStorage.getItem("carrito_" + folio)) || { items: [] };
+        const itemsLimpios = carritoActual.items.filter(item => !pagadas.includes(item.numero));
+
+        if (itemsLimpios.length !== carritoActual.items.length) {
+            carritoActual.items = itemsLimpios;
+            localStorage.setItem("carrito_" + folio, JSON.stringify(carritoActual));
+            carrito = carritoActual;
+            console.log("🧹 Casillas ya pagadas eliminadas del carrito");
+        }
+    } catch(e) {
+        console.log("Error limpiando carrito:", e);
+    }
+}
 function render(){
     lista.innerHTML = "";
     let total = 0;
@@ -295,7 +320,7 @@ document.getElementById("pagar").addEventListener("click",()=>{
 
 });
 
-render();
+limpiarCarritoPagadas().then(() => render());
 
 </script>
 
