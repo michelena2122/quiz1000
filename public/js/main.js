@@ -669,10 +669,6 @@ fetch("/api/pregunta/" + cell.dataset.id)
 
         modal.classList.add("hidden");
 
-        if (!localStorage.getItem("fechaApertura")) {
-            localStorage.setItem("fechaApertura", Date.now());
-        }
-
         const tiempoFormateado = contador.textContent;
 
         const folioCarrito = folioURL || localStorage.getItem("folioTableroActual");
