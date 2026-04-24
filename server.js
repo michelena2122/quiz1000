@@ -600,41 +600,84 @@ app.get("/facebook/data-deletion-status", (req, res) => {
         <head>
             <meta charset="UTF-8" />
             <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-            <title>Estado de eliminación de datos</title>
+            <title>Eliminación de datos — QUIZ1000</title>
             <style>
-                body{
+                * { box-sizing: border-box; margin: 0; padding: 0; }
+                body {
                     font-family: Arial, sans-serif;
-                    background:#f7f7f7;
-                    padding:40px;
-                    color:#222;
+                    background: url("/assets/images/fondo-rayos.jpg") no-repeat center center fixed;
+                    background-size: cover;
+                    min-height: 100vh;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 30px 20px;
                 }
-                .box{
-                    max-width:700px;
-                    margin:auto;
-                    background:#fff;
-                    border-radius:12px;
-                    padding:30px;
-                    box-shadow:0 4px 18px rgba(0,0,0,0.08);
+                .logo {
+                    width: 160px;
+                    margin-bottom: 24px;
                 }
-                h1{
-                    margin-top:0;
+                .box {
+                    max-width: 560px;
+                    width: 100%;
+                    background: rgba(0,0,0,0.85);
+                    border-radius: 16px;
+                    padding: 36px 32px;
+                    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+                    color: white;
+                    text-align: center;
                 }
-                .code{
-                    background:#f0f0f0;
-                    padding:10px 14px;
-                    border-radius:8px;
-                    display:inline-block;
-                    font-weight:bold;
+                .icon {
+                    font-size: 48px;
+                    margin-bottom: 16px;
+                }
+                h1 {
+                    font-size: 22px;
+                    color: #00ffcc;
+                    margin-bottom: 14px;
+                }
+                p {
+                    font-size: 15px;
+                    color: #cccccc;
+                    line-height: 1.6;
+                    margin-bottom: 14px;
+                }
+                .code-box {
+                    background: #1a1a1a;
+                    border: 1px solid #00ffcc;
+                    border-radius: 8px;
+                    padding: 12px 18px;
+                    font-family: monospace;
+                    font-size: 14px;
+                    color: #00ffcc;
+                    margin: 16px 0;
+                    word-break: break-all;
+                }
+                .footer {
+                    margin-top: 24px;
+                    font-size: 12px;
+                    color: #888;
+                }
+                @media (max-width: 480px) {
+                    .box { padding: 24px 18px; }
+                    h1 { font-size: 20px; }
                 }
             </style>
         </head>
         <body>
+            <img src="/assets/images/logotipo.png" class="logo" alt="Quiz1000">
             <div class="box">
+                <div class="icon">🗑️</div>
                 <h1>Solicitud de eliminación recibida</h1>
-                <p>Tu solicitud de eliminación de datos de Quiz1000 fue registrada correctamente.</p>
-                <p>Código de confirmación:</p>
-                <div class="code">${id}</div>
-                <p style="margin-top:20px;">Si necesitas ayuda adicional, contáctanos desde los medios oficiales de Quiz1000.</p>
+                <p>Tu solicitud de eliminación de datos de <strong>Quiz1000</strong> fue registrada correctamente.</p>
+                <p>Procesaremos tu solicitud en un plazo máximo de <strong>30 días</strong> conforme a nuestra política de privacidad.</p>
+                ${id ? `
+                <p style="margin-bottom:4px;">Código de confirmación:</p>
+                <div class="code-box">${id}</div>
+                ` : ""}
+                <p>Si necesitas ayuda adicional, contáctanos a través de los canales oficiales de Quiz1000.</p>
+                <div class="footer">© 2026 Quiz1000 LLC. All rights reserved.</div>
             </div>
         </body>
         </html>
