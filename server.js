@@ -28,6 +28,31 @@ app.get("/api/debug-tipo-cambio", (req, res) => {
         res.json({ ok: true, configuracion: rows });
     });
 });
+// Limpiar tableros de prueba sin casillas pagadas
+app.post("/api/admin/limpiar-tableros-prueba", verificarAdmin, (req, res) => {
+    db.all(`
+        SELECT t.id FROM tableros t
+        LEFT JOIN casillas c ON c.tableroId = t.id AND c.estado = 'pagada'
+        WHERE c.id IS NULL
+        AND t.completo = 0
+    `, [], (err, rows) => {
+        if (err) return res.json({ ok: false, error: err.message });
+        if (rows.length === 0) return res.json({ ok: true, eliminados: 0 });
+
+        const ids = rows.map(r => r.id);
+        const placeholders = ids.map(() => "?").join(",");
+
+        db.run(`DELETE FROM casillas WHERE tableroId IN (${placeholders})`, ids, (err2) => {
+            if (err2) return res.json({ ok: false, error: err2.message });
+
+            db.run(`DELETE FROM tableros WHERE id IN (${placeholders})`, ids, (err3) => {
+                if (err3) return res.json({ ok: false, error: err3.message });
+                console.log(`🧹 ${ids.length} tableros de prueba eliminados`);
+                res.json({ ok: true, eliminados: ids.length, folios: ids });
+            });
+        });
+    });
+});
 app.get("/healthz", (req, res) => {
     res.status(200).send("ok");
 });
