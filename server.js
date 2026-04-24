@@ -4458,58 +4458,7 @@ app.get("/api/admin/tableros-completos", verificarAdmin, (req, res) => {
     });
 
 });
-// =============================
-// ADMIN - GUARDAR TIPO DE CAMBIO
-// =============================
-app.post("/api/admin/tipo-cambio", (req, res) => {
 
-    const tipoCambioCobro = Number(req.body.tipoCambioCobro);
-    const tipoCambioPremio = Number(req.body.tipoCambioPremio);
-
-    if(
-        !tipoCambioCobro || tipoCambioCobro <= 0 ||
-        !tipoCambioPremio || tipoCambioPremio <= 0
-    ){
-        return res.status(400).json({
-            ok:false,
-            mensaje:"Valores inválidos"
-        });
-    }
-
-    db.run(
-        `INSERT INTO configuracion (clave, valor)
-         VALUES ('tipoCambioCobro', ?)
-         ON CONFLICT(clave) DO UPDATE SET
-         valor = excluded.valor`,
-        [tipoCambioCobro.toFixed(2)],
-        function(err){
-            if(err){
-                console.log("❌ ERROR SQL tipoCambioCobro:", err.message, err);
-                return res.status(500).json({ ok:false });
-            }
-
-            db.run(
-                `INSERT INTO configuracion (clave, valor)
-                 VALUES ('tipoCambioPremio', ?)
-                 ON CONFLICT(clave) DO UPDATE SET
-                 valor = excluded.valor`,
-                [tipoCambioPremio.toFixed(2)],
-                function(err2){
-                    if(err2){
-                        console.log("❌ ERROR SQL tipoCambioPremio:", err2.message, err2);
-                        return res.status(500).json({ ok:false });
-                    }
-
-                    res.json({
-                        ok:true,
-                        tipoCambioCobro: tipoCambioCobro.toFixed(2),
-                        tipoCambioPremio: tipoCambioPremio.toFixed(2)
-                    });
-                }
-            );
-        }
-    );
-});
 inicializarConfiguracion((err) => {
     if(err){
         process.exit(1);
