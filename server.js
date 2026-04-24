@@ -4158,6 +4158,19 @@ app.post("/crear-pago", async (req, res) => {
 // =============================
 // ADMIN - OBTENER TIPO DE CAMBIO
 // =============================
+app.get("/api/admin/tipo-cambio", verificarAdmin, (req, res) => {
+    db.get(`SELECT valor FROM configuracion WHERE clave = 'tipoCambioCobro'`, [], (err1, row1) => {
+        if (err1) return res.json({ ok: false });
+        db.get(`SELECT valor FROM configuracion WHERE clave = 'tipoCambioPremio'`, [], (err2, row2) => {
+            if (err2) return res.json({ ok: false });
+            res.json({
+                ok: true,
+                tipoCambioCobro: row1 ? row1.valor : "",
+                tipoCambioPremio: row2 ? row2.valor : ""
+            });
+        });
+    });
+});
 app.post("/api/admin/tipo-cambio", verificarAdmin, (req, res) => {
     db.all(
         `SELECT clave, valor FROM configuracion
