@@ -1686,42 +1686,6 @@ app.post("/api/abrir-pregunta", (req, res) => {
 
 });
 
-// =============================
-// GUARDAR PREGUNTAS (ADMIN)
-// =============================
-app.post("/api/preguntas", (req, res) => {
-
-    const lista = req.body;
-
-    if (!Array.isArray(lista)) {
-        return res.status(400).json({ error: "Formato inválido." });
-    }
-
-    if (lista.length !== 50) {
-        return res.status(400).json({ error: "Debe haber exactamente 50 preguntas." });
-    }
-
-    const resultados = lista.map(p => p.resultado);
-    const setResultados = new Set(resultados);
-
-    if (setResultados.size !== 50) {
-        return res.status(400).json({ error: "Hay resultados repetidos." });
-    }
-
-    if (!resultados.every(r => r >= 1 && r <= 50)) {
-        return res.status(400).json({ error: "Los resultados deben estar entre 1 y 50." });
-    }
-
-    try {
-        fs.writeFileSync(FILE_PATH, JSON.stringify(lista, null, 2));
-        res.json({ success: true });
-    } catch (error) {
-        res.status(500).json({ error: "Error guardando archivo." });
-    }
-});
-// =============================
-// ESTADO DEL TABLERO
-// =============================
 
 app.get("/api/tablero", (req, res) => {
 
@@ -3287,53 +3251,7 @@ app.get("/api/debug-ranking-guardado/:folio", (req, res) => {
     });
 
 });
-app.get("/api/debug-db-status", (req, res) => {
 
-    db.serialize(() => {
-
-        db.get(`SELECT COUNT(*) AS total FROM usuarios`, [], (err1, usuarios) => {
-            if(err1){
-                return res.json({ ok:false, error: err1.message });
-            }
-
-            db.get(`SELECT COUNT(*) AS total FROM casillas`, [], (err2, casillas) => {
-                if(err2){
-                    return res.json({ ok:false, error: err2.message });
-                }
-
-                db.get(`SELECT COUNT(*) AS total FROM tableros`, [], (err3, tableros) => {
-                    if(err3){
-                        return res.json({ ok:false, error: err3.message });
-                    }
-
-                    db.all(`
-                        SELECT id, completo, fechaCreacion
-                        FROM tableros
-                        ORDER BY fechaCreacion DESC
-                        LIMIT 10
-                    `, [], (err4, ultimosTableros) => {
-                        if(err4){
-                            return res.json({ ok:false, error: err4.message });
-                        }
-
-                        res.json({
-                            ok:true,
-                            dbPath: path.resolve("./usuarios.db"),
-                            conteos: {
-                                usuarios: usuarios.total,
-                                casillas: casillas.total,
-                                tableros: tableros.total
-                            },
-                            ultimosTableros
-                        });
-                    });
-                });
-            });
-        });
-
-    });
-
-});
 
 // =============================
 // RESERVAS ACTIVAS
@@ -4355,55 +4273,7 @@ app.get("/api/admin/tableros-completos", verificarAdmin, (req, res) => {
 // =============================
 // ADMIN - GUARDAR TIPO DE CAMBIO
 // =============================
-app.post("/api/admin/tipo-cambio", (req, res) => {
 
-    const tipoCambioCobro = Number(req.body.tipoCambioCobro);
-    const tipoCambioPremio = Number(req.body.tipoCambioPremio);
-
-    if(
-        !tipoCambioCobro || tipoCambioCobro <= 0 ||
-        !tipoCambioPremio || tipoCambioPremio <= 0
-    ){
-        return res.status(400).json({
-            ok:false,
-            mensaje:"Valores inválidos"
-        });
-    }
-
-    db.run(
-        `INSERT INTO configuracion (clave, valor)
-         VALUES ('tipoCambioCobro', ?)
-         ON CONFLICT(clave) DO UPDATE SET
-         valor = excluded.valor`,
-        [tipoCambioCobro.toFixed(2)],
-        function(err){
-            if(err){
-                console.log("❌ ERROR SQL tipoCambioCobro:", err.message, err);
-                return res.status(500).json({ ok:false });
-            }
-
-            db.run(
-                `INSERT INTO configuracion (clave, valor)
-                 VALUES ('tipoCambioPremio', ?)
-                 ON CONFLICT(clave) DO UPDATE SET
-                 valor = excluded.valor`,
-                [tipoCambioPremio.toFixed(2)],
-                function(err2){
-                    if(err2){
-                        console.log("❌ ERROR SQL tipoCambioPremio:", err2.message, err2);
-                        return res.status(500).json({ ok:false });
-                    }
-
-                    res.json({
-                        ok:true,
-                        tipoCambioCobro: tipoCambioCobro.toFixed(2),
-                        tipoCambioPremio: tipoCambioPremio.toFixed(2)
-                    });
-                }
-            );
-        }
-    );
-});
 inicializarConfiguracion((err) => {
     if(err){
         process.exit(1);
@@ -4436,23 +4306,6 @@ app.post("/api/crear-tablero", (req, res) => {
 
 });
 
-app.get("/api/tableros", (req, res) => {
-    db.all(`
-        SELECT id, completo, fechaCreacion
-        FROM tableros
-        ORDER BY fechaCreacion DESC
-    `, [], (err, rows) => {
-        if (err) {
-            console.error("ERROR CONSULTANDO TABLEROS:", err.message);
-            return res.json({ ok:false, tableros: [] });
-        }
-
-        res.json({
-            ok: true,
-            tableros: rows || []
-        });
-    });
-});
 
 app.get("/api/estado-casillas", (req, res) => {
 
@@ -4925,9 +4778,7 @@ app.get("/api/prueba-version", (req, res) => {
         mensaje: "version nueva cargada"
     });
 });
-app.get("/healthz", (req, res) => {
-    res.status(200).send("OK");
-});
+
 app.listen(PORT, "0.0.0.0", () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
 
