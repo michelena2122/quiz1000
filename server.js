@@ -3623,11 +3623,12 @@ console.log("DATA COMPLETA MP:", JSON.stringify(data, null, 2));
 console.log("🧪 METADATA CRUDA MP:", data.metadata);
 
 const metadata = data.metadata || {};
-
 const folio = metadata.folio;
 const jugadorId = metadata.jugador_id || metadata.jugadorId || null;
 const casillasMetadata = metadata.casillas || [];
 const tiempos = metadata.tiempos || [];
+const tipoCambioMetadata = metadata.tipoCambioCobro || null;
+console.log("🧾 tipoCambioCobro en metadata:", tipoCambioMetadata);
 
 console.log("📦 METADATA RECIBIDA:", {
     folio,
@@ -3693,7 +3694,7 @@ if(data.status === "approved"){
             Date.now(),
             JSON.stringify(casillasMetadata),
             JSON.stringify(tiempos),
-            "pago_aprobado"
+            `pago_aprobado|tc:${tipoCambioMetadata || "no_registrado"}`
         ],
         function(errInsert){
 
