@@ -96,89 +96,112 @@ button:hover{
 
 <body>
 
+<!-- LOGIN ADMIN -->
+<div id="loginAdmin" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;">
+    <h2 style="color:#00ffcc;">Panel Administrador</h2>
+    <input id="inputClave" type="password" placeholder="Contraseña admin" style="padding:12px;border-radius:8px;border:none;font-size:16px;width:280px;margin-bottom:12px;">
+    <button onclick="verificarClave()" style="width:280px;">Entrar</button>
+    <div id="errorLogin" style="color:red;margin-top:10px;"></div>
+</div>
+
+<!-- PANEL ADMIN (oculto hasta autenticar) -->
+<div id="panelAdmin" style="display:none;">
+
 <h1>QUIZ1000 - Panel Administrador</h1>
 
 <div id="ganador" style="margin-top:20px;font-size:18px;color:#ffd700;"></div>
 
 <div class="bloque-admin">
     <h2>Tipo de cambio</h2>
-
     <div class="campo">
         <label for="tipoCambioCobro">Tipo de cambio de cobro (MXN por USD)</label>
         <input id="tipoCambioCobro" type="number" step="0.01">
     </div>
-
     <div class="campo">
         <label for="tipoCambioPremio">Tipo de cambio para pago del premio (MXN por USD)</label>
         <input id="tipoCambioPremio" type="number" step="0.01">
     </div>
-
     <button id="btnGuardarTipoCambio">Guardar tipo de cambio</button>
-
     <div id="mensajeTipoCambio"></div>
 </div>
-<!-- ============================= -->
-<!-- ADMINISTRAR PREGUNTAS -->
-<!-- ============================= -->
+
 <div class="bloque-admin" style="margin-top:40px;">
     <h2>Tableros completos</h2>
-
     <button id="btnCargarTablerosCompletos">Cargar tableros completos</button>
     <button id="btnOcultarTablerosCompletos">Ocultar tableros completos</button>
-
     <div id="mensajeTablerosCompletos" style="margin-top:10px;"></div>
-
     <div id="listaTablerosCompletos" style="margin-top:20px;"></div>
 </div>
 
 <div class="bloque-admin" style="margin-top:40px;">
     <h2>Tableros incompletos</h2>
-
     <button id="btnCargarIncompletos">Ver tableros incompletos</button>
     <button id="btnOcultarIncompletos">Ocultar</button>
-
     <div id="tablaIncompletos" style="margin-top:20px;"></div>
 </div>
+
 <h2>💰 Solicitudes de Premio</h2>
-
 <div id="tablaPremios"></div>
+
+</div><!-- fin panelAdmin -->
+
 <script>
-
 // =============================
-// TABLERO (YA EXISTENTE)
+// AUTENTICACIÓN ADMIN
 // =============================
-// =============================
-// TABLERO (YA EXISTENTE)
-// =============================
-async function cargarTablero(){
+let ADMIN_KEY = "";
 
-    console.log("ENTRANDO A cargarTablero()");
-    console.log("URL FETCH ADMIN:", "/admin/tablero");
-
-    const res = await fetch("/admin/tablero");
-    console.log("STATUS /admin/tablero:", res.status);
-
-    const textoCrudo = await res.text();
-    console.log("RESPUESTA CRUDA /admin/tablero:", textoCrudo);
-
-    const data = JSON.parse(textoCrudo);
-    console.log("DATA PARSEADA /admin/tablero:", data);
-
-    const ocupadasEl = document.getElementById("ocupadas");
-        if (ocupadasEl) {
-    ocupadasEl.innerText = data.ocupadas;
+function verificarClave() {
+    const clave = document.getElementById("inputClave").value.trim();
+    if (!clave) {
+        document.getElementById("errorLogin").textContent = "Escribe la contraseña.";
+        return;
     }
 
-    const tabla = document.getElementById("tabla");
+    fetch("/api/admin/tipo-cambio", {
+        headers: { "x-admin-key": clave }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.ok !== false || data.tipoCambioCobro) {
+            ADMIN_KEY = clave;
+            sessionStorage.setItem("adminKey", clave);
+            document.getElementById("loginAdmin").style.display = "none";
+            document.getElementById("panelAdmin").style.display = "block";
+            iniciarAdmin();
+        } else {
+            document.getElementById("errorLogin").textContent = "Contraseña incorrecta.";
+        }
+    })
+    .catch(() => {
+        document.getElementById("errorLogin").textContent = "Error de conexión.";
+    });
+}
 
-if (tabla) {
-    tabla.innerHTML = "";
+// Permitir Enter en el input
+document.getElementById("inputClave").addEventListener("keydown", function(e) {
+    if (e.key === "Enter") verificarClave();
+});
 
-    data.casillas.forEach(c => {
+// Si ya autenticó en esta sesión
+const savedKey = sessionStorage.getItem("adminKey");
+if (savedKey) {
+    ADMIN_KEY = savedKey;
+    document.getElementById("loginAdmin").style.display = "none";
+    document.getElementById("panelAdmin").style.display = "block";
+}
 
-        const fila = document.createElement("tr");
+// Helper para fetch con auth
+function adminFetch(url, options = {}) {
+    options.headers = options.headers || {};
+    options.headers["x-admin-key"] = ADMIN_KEY;
+    return fetch(url, options);
+}
 
-        function esc(str) {
+// =============================
+// FUNCIÓN ESC
+// =============================
+function esc(str) {
     return String(str || "")
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
@@ -187,239 +210,111 @@ if (tabla) {
         .replace(/'/g, "&#39;");
 }
 
-fila.innerHTML = `
-        <td>${esc(c.jugador)}</td>
-        <td>${esc(c.casilla)}</td>
-        <td>${esc(c.email)}</td>
-        <td>${esc(c.tiempo)}</td>
-        `;
-
-        tabla.appendChild(fila);
-
-    });
+// =============================
+// INICIAR ADMIN
+// =============================
+function iniciarAdmin() {
+    cargarTablero();
+    cargarTipoCambio();
+    cargarSolicitudesPremio();
+    setInterval(cargarTablero, 3000);
 }
-
-    const estado = document.getElementById("estadoTablero");
-if (estado) {
-    if(data.completo){
-        estado.innerText = "⚠ TABLERO COMPLETO";
-        estado.style.color = "red";
-    } else {
-        estado.innerText = "TABLERO ACTIVO";
-        estado.style.color = "#00ffcc";
-    }
-}
-
-    if(data.casillas.length > 0){
-
-        const tiempos = data.casillas.map(c => {
-
-            const partes = c.tiempo.split(":");
-
-            const minutos = parseFloat(partes[0]) || 0;
-            const segundos = parseFloat(partes[1]) || 0;
-            const decimas = parseFloat(partes[2]) || 0;
-            const centesimas = parseFloat(partes[3]) || 0;
-
-            const tiempoTotal =
-                (minutos * 60) +
-                segundos +
-                (decimas / 10) +
-                (centesimas / 100);
-
-            return {
-                jugador: c.jugador,
-                casilla: c.casilla,
-                tiempo: tiempoTotal,
-                tiempoTexto: c.tiempo
-            };
-        });
-
-        tiempos.sort((a,b) => a.tiempo - b.tiempo);
-
-        const ganador = tiempos[0];
-
-        document.getElementById("ganador").innerHTML =
-            "🏆 Ganador actual: <b>" +
-            ganador.jugador +
-            "</b> — Casilla " +
-            ganador.casilla +
-            " — Tiempo " +
-            ganador.tiempoTexto;
-
-    }else{
-        document.getElementById("ganador").innerHTML = "";
-    }
-}
-
 
 // =============================
-// TIPO DE CAMBIO (YA EXISTENTE)
+// TABLERO
 // =============================
-async function cargarTipoCambio(){
-    try{
-        const res = await fetch("/api/admin/tipo-cambio");
+async function cargarTablero() {
+    try {
+        const res = await adminFetch("/admin/tablero");
         const data = await res.json();
 
-        if(!data.ok){
-            return;
+        const tabla = document.getElementById("tabla");
+        if (tabla) {
+            tabla.innerHTML = "";
+            data.casillas.forEach(c => {
+                const fila = document.createElement("tr");
+                fila.innerHTML = `
+                    <td>${esc(c.jugador)}</td>
+                    <td>${esc(c.casilla)}</td>
+                    <td>${esc(c.email)}</td>
+                    <td>${esc(c.tiempo)}</td>
+                `;
+                tabla.appendChild(fila);
+            });
         }
 
+        const estado = document.getElementById("estadoTablero");
+        if (estado) {
+            if (data.completo) {
+                estado.innerText = "⚠ TABLERO COMPLETO";
+                estado.style.color = "red";
+            } else {
+                estado.innerText = "TABLERO ACTIVO";
+                estado.style.color = "#00ffcc";
+            }
+        }
+
+        if (data.casillas && data.casillas.length > 0) {
+            const tiempos = data.casillas.map(c => {
+                const partes = c.tiempo.split(":");
+                const minutos = parseFloat(partes[0]) || 0;
+                const segundos = parseFloat(partes[1]) || 0;
+                const decimas = parseFloat(partes[2]) || 0;
+                const centesimas = parseFloat(partes[3]) || 0;
+                const tiempoTotal = (minutos * 60) + segundos + (decimas / 10) + (centesimas / 100);
+                return { jugador: c.jugador, casilla: c.casilla, tiempo: tiempoTotal, tiempoTexto: c.tiempo };
+            });
+            tiempos.sort((a, b) => a.tiempo - b.tiempo);
+            const ganador = tiempos[0];
+            document.getElementById("ganador").innerHTML =
+                "🏆 Ganador actual: <b>" + esc(ganador.jugador) + "</b> — Casilla " + esc(ganador.casilla) + " — Tiempo " + esc(ganador.tiempoTexto);
+        } else {
+            document.getElementById("ganador").innerHTML = "";
+        }
+    } catch(e) {
+        console.log("Error cargando tablero:", e);
+    }
+}
+
+// =============================
+// TIPO DE CAMBIO
+// =============================
+async function cargarTipoCambio() {
+    try {
+        const res = await adminFetch("/api/admin/tipo-cambio");
+        const data = await res.json();
+        if (!data.ok) return;
         document.getElementById("tipoCambioCobro").value = data.tipoCambioCobro;
         document.getElementById("tipoCambioPremio").value = data.tipoCambioPremio;
-
-    }catch(error){
+    } catch(error) {
         console.log("Error cargando tipo de cambio:", error);
     }
 }
 
-document.getElementById("btnGuardarTipoCambio").addEventListener("click", async function(){
-
+document.getElementById("btnGuardarTipoCambio").addEventListener("click", async function() {
     const tipoCambioCobro = document.getElementById("tipoCambioCobro").value;
     const tipoCambioPremio = document.getElementById("tipoCambioPremio").value;
     const mensaje = document.getElementById("mensajeTipoCambio");
-
-    try{
-
-        const res = await fetch("/api/admin/tipo-cambio", {
+    try {
+        const res = await adminFetch("/api/admin/tipo-cambio", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                tipoCambioCobro,
-                tipoCambioPremio
-            })
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ tipoCambioCobro, tipoCambioPremio })
         });
-
         const data = await res.json();
-
-        if(data.ok){
+        if (data.ok) {
             mensaje.textContent = "Tipo de cambio guardado correctamente";
             mensaje.style.color = "#00ffcc";
-        }else{
+        } else {
             mensaje.textContent = data.mensaje || "Error guardando tipo de cambio";
             mensaje.style.color = "red";
         }
-
-    }catch(error){
-        console.log("Error guardando tipo de cambio:", error);
+    } catch(error) {
         mensaje.textContent = "Error de conexión";
         mensaje.style.color = "red";
     }
-
 });
 
-
-// =============================
-// 🔥 NUEVO: PREGUNTAS
-// =============================
-const btnCargarPreguntas = document.getElementById("btnCargarPreguntas");
-const btnOcultarPreguntas = document.getElementById("btnOcultarPreguntas");
-const btnGuardarPreguntas = document.getElementById("btnGuardarPreguntas");
-const listaPreguntas = document.getElementById("listaPreguntas");
-const mensajePreguntas = document.getElementById("mensajePreguntas");
-
-function mostrarMensajePreguntas(texto, color = "black") {
-    mensajePreguntas.textContent = texto;
-    mensajePreguntas.style.color = color;
-}
-
-function renderizarPreguntas(preguntas) {
-    listaPreguntas.innerHTML = "";
-
-    preguntas.forEach((item, index) => {
-
-        const fila = document.createElement("div");
-
-        fila.style.border = "1px solid #ccc";
-        fila.style.padding = "10px";
-        fila.style.marginBottom = "10px";
-        fila.style.borderRadius = "8px";
-
-        fila.innerHTML = `
-            <div><b>Resultado:</b> ${item.resultado}</div>
-
-            <input 
-                type="text"
-                value="${item.pregunta.replace(/"/g, "&quot;")}"
-                data-index="${index}"
-                class="input-pregunta"
-                style="width:100%; margin-top:5px; padding:5px;"
-            >
-        `;
-
-        listaPreguntas.appendChild(fila);
-
-    });
-}
-function ocultarPreguntas() {
-    listaPreguntas.innerHTML = "";
-    mostrarMensajePreguntas("Preguntas ocultas.", "#00ffcc");
-}
-async function cargarPreguntas() {
-    try {
-        mostrarMensajePreguntas("Cargando...", "blue");
-
-        const res = await fetch("/api/preguntas");
-        const preguntas = await res.json();
-
-        renderizarPreguntas(preguntas);
-
-        mostrarMensajePreguntas("OK", "#00ffcc");
-
-    } catch (error) {
-        console.log(error);
-        mostrarMensajePreguntas("Error cargando", "red");
-    }
-}
-
-async function guardarPreguntas() {
-    try {
-
-        const inputs = document.querySelectorAll(".input-pregunta");
-
-        const preguntas = [];
-
-        inputs.forEach((input, i) => {
-            preguntas.push({
-                pregunta: input.value.trim(),
-                resultado: i + 1
-            });
-        });
-
-        mostrarMensajePreguntas("Guardando...", "blue");
-
-        const res = await fetch("/api/preguntas", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(preguntas)
-        });
-
-        const data = await res.json();
-
-        console.log(data);
-
-        mostrarMensajePreguntas("Guardado OK", "#00ffcc");
-
-    } catch (error) {
-        console.log(error);
-        mostrarMensajePreguntas("Error guardando", "red");
-    }
-}
-
-// listeners seguros
-if(btnCargarPreguntas){
-    btnCargarPreguntas.addEventListener("click", cargarPreguntas);
-}
-if(btnOcultarPreguntas){
-    btnOcultarPreguntas.addEventListener("click", ocultarPreguntas);
-}
-if(btnGuardarPreguntas){
-    btnGuardarPreguntas.addEventListener("click", guardarPreguntas);
-}
 // =============================
 // TABLEROS COMPLETOS
 // =============================
@@ -435,124 +330,71 @@ function mostrarMensajeTablerosCompletos(texto, color = "black") {
 
 function renderizarTablerosCompletos(tableros) {
     listaTablerosCompletos.innerHTML = "";
-
     if (!tableros || tableros.length === 0) {
         listaTablerosCompletos.innerHTML = "<div>No hay tableros completos.</div>";
         return;
     }
-
     tableros.forEach(tablero => {
         const fila = document.createElement("div");
-
-        fila.style.border = "1px solid #ccc";
-        fila.style.padding = "12px";
-        fila.style.marginBottom = "10px";
-        fila.style.borderRadius = "8px";
-
+        fila.style.cssText = "border:1px solid #ccc;padding:12px;margin-bottom:10px;border-radius:8px;";
         fila.innerHTML = `
-            <div><b>Folio:</b> ${tablero.id}</div>
+            <div><b>Folio:</b> ${esc(tablero.id)}</div>
             <div><b>Completo:</b> ${tablero.completo ? "Sí" : "No"}</div>
-            <div><b>Casillas pagadas:</b> ${tablero.totalPagadas}</div>
-
+            <div><b>Casillas pagadas:</b> ${esc(tablero.totalPagadas)}</div>
             <div style="margin-top:10px;">
-                <button type="button" onclick="verDetalleTableroCompleto('${tablero.id}')">
-                    Ver detalle
-                </button>
-                <button type="button" onclick="ocultarDetalleTableroCompleto('${tablero.id}')">
-                    Ocultar detalle
-                </button>
+                <button type="button" onclick="verDetalleTableroCompleto('${esc(tablero.id)}')">Ver detalle</button>
+                <button type="button" onclick="ocultarDetalleTableroCompleto('${esc(tablero.id)}')">Ocultar detalle</button>
             </div>
-
-            <div id="detalle-${tablero.id}" style="margin-top:15px;"></div>
+            <div id="detalle-${esc(tablero.id)}" style="margin-top:15px;"></div>
         `;
-
         listaTablerosCompletos.appendChild(fila);
     });
 }
+
 async function verDetalleTableroCompleto(folio) {
     const contenedor = document.getElementById(`detalle-${folio}`);
-
-    if (!contenedor) {
-        return;
-    }
-
+    if (!contenedor) return;
     contenedor.innerHTML = "Cargando detalle...";
-
     try {
-        const res = await fetch(`/api/admin/tablero-detalle/${encodeURIComponent(folio)}`);
+        const res = await adminFetch(`/api/admin/tablero-detalle/${encodeURIComponent(folio)}`);
         const data = await res.json();
-
-        if (!data.ok) {
-            contenedor.innerHTML = "<div style='color:red;'>Error cargando detalle.</div>";
-            return;
-        }
-
-        if (!data.casillas || data.casillas.length === 0) {
-            contenedor.innerHTML = "<div>No hay casillas pagadas en este tablero.</div>";
-            return;
-        }
-
-        let html = `
-            <table style="width:100%; margin-top:10px; border-collapse:collapse;">
-                <thead>
-                    <tr>
-                        <th style="border:1px solid #ccc; padding:8px;">Jugador</th>
-                        <th style="border:1px solid #ccc; padding:8px;">Casilla</th>
-                        <th style="border:1px solid #ccc; padding:8px;">Email</th>
-                        <th style="border:1px solid #ccc; padding:8px;">Tiempo</th>
-                    </tr>
-                </thead>
-                <tbody>
-        `;
-
+        if (!data.ok) { contenedor.innerHTML = "<div style='color:red;'>Error cargando detalle.</div>"; return; }
+        if (!data.casillas || data.casillas.length === 0) { contenedor.innerHTML = "<div>No hay casillas pagadas.</div>"; return; }
+        let html = `<table style="width:100%;margin-top:10px;border-collapse:collapse;"><thead><tr>
+            <th style="border:1px solid #ccc;padding:8px;">Jugador</th>
+            <th style="border:1px solid #ccc;padding:8px;">Casilla</th>
+            <th style="border:1px solid #ccc;padding:8px;">Email</th>
+            <th style="border:1px solid #ccc;padding:8px;">Tiempo</th>
+        </tr></thead><tbody>`;
         data.casillas.forEach(c => {
-    html += `
-        <tr>
-            <td style="border:1px solid #ccc; padding:8px;">${esc(c.jugador || "")}</td>
-            <td style="border:1px solid #ccc; padding:8px;">${esc(c.casilla || "")}</td>
-            <td style="border:1px solid #ccc; padding:8px;">${esc(c.email || "")}</td>
-            <td style="border:1px solid #ccc; padding:8px;">${esc(c.tiempo || "")}</td>
-        </tr>
-    `;
-});
-
-        html += `
-                </tbody>
-            </table>
-        `;
-
+            html += `<tr>
+                <td style="border:1px solid #ccc;padding:8px;">${esc(c.jugador || "")}</td>
+                <td style="border:1px solid #ccc;padding:8px;">${esc(c.casilla || "")}</td>
+                <td style="border:1px solid #ccc;padding:8px;">${esc(c.email || "")}</td>
+                <td style="border:1px solid #ccc;padding:8px;">${esc(c.tiempo || "")}</td>
+            </tr>`;
+        });
+        html += `</tbody></table>`;
         contenedor.innerHTML = html;
-
-    } catch (error) {
-        console.log("ERROR DETALLE TABLERO COMPLETO:", error);
+    } catch(error) {
         contenedor.innerHTML = "<div style='color:red;'>Error de conexión.</div>";
     }
 }
 
 function ocultarDetalleTableroCompleto(folio) {
     const contenedor = document.getElementById(`detalle-${folio}`);
-
-    if (contenedor) {
-        contenedor.innerHTML = "";
-    }
+    if (contenedor) contenedor.innerHTML = "";
 }
+
 async function cargarTablerosCompletos() {
     try {
         mostrarMensajeTablerosCompletos("Cargando...", "blue");
-
-        const res = await fetch("/api/admin/tableros-completos");
+        const res = await adminFetch("/api/admin/tableros-completos");
         const data = await res.json();
-
-        if (!data.ok) {
-            mostrarMensajeTablerosCompletos("Error cargando tableros completos.", "red");
-            return;
-        }
-
+        if (!data.ok) { mostrarMensajeTablerosCompletos("Error cargando tableros completos.", "red"); return; }
         renderizarTablerosCompletos(data.tableros);
         mostrarMensajeTablerosCompletos("Tableros completos cargados correctamente.", "#00ffcc");
-
-    } catch (error) {
-        console.log("ERROR CARGANDO TABLEROS COMPLETOS:", error);
+    } catch(error) {
         mostrarMensajeTablerosCompletos("Error de conexión.", "red");
     }
 }
@@ -562,173 +404,83 @@ function ocultarTablerosCompletos() {
     mostrarMensajeTablerosCompletos("Tableros completos ocultos.", "#00ffcc");
 }
 
-if (btnCargarTablerosCompletos) {
-    btnCargarTablerosCompletos.addEventListener("click", cargarTablerosCompletos);
-}
-
-if (btnOcultarTablerosCompletos) {
-    btnOcultarTablerosCompletos.addEventListener("click", ocultarTablerosCompletos);
-}
-// =============================
-// INIT
-// =============================
-cargarTablero();
-cargarTipoCambio();
+if (btnCargarTablerosCompletos) btnCargarTablerosCompletos.addEventListener("click", cargarTablerosCompletos);
+if (btnOcultarTablerosCompletos) btnOcultarTablerosCompletos.addEventListener("click", ocultarTablerosCompletos);
 
 // =============================
 // TABLEROS INCOMPLETOS
 // =============================
-
 const tablaIncompletos = document.getElementById("tablaIncompletos");
 const btnCargarIncompletos = document.getElementById("btnCargarIncompletos");
 const btnOcultarIncompletos = document.getElementById("btnOcultarIncompletos");
 
-async function cargarTablerosIncompletos(){
-
-    const res = await fetch("/admin/tableros-incompletos");
+async function cargarTablerosIncompletos() {
+    const res = await adminFetch("/admin/tableros-incompletos");
     const data = await res.json();
-
     tablaIncompletos.innerHTML = "";
-
     if (!data.tableros || data.tableros.length === 0) {
         tablaIncompletos.innerHTML = "<div>No hay tableros incompletos.</div>";
         return;
     }
-
     data.tableros.forEach((t, index) => {
-
         let color = "#00ffcc";
         if (t.estatus === "vencido") color = "orange";
         if (t.estatus === "reembolso_en_proceso") color = "gold";
         if (t.estatus === "reembolsado") color = "red";
-
         const bloque = document.createElement("div");
-
-        bloque.style.border = "1px solid #333";
-        bloque.style.borderRadius = "14px";
-        bloque.style.marginBottom = "12px";
-        bloque.style.overflow = "hidden";
-        bloque.style.background = "#161616";
-
+        bloque.style.cssText = "border:1px solid #333;border-radius:14px;margin-bottom:12px;overflow:hidden;background:#161616;";
         bloque.innerHTML = `
-            <button
-                type="button"
-                onclick="toggleIncompleto(${index})"
-                style="
-                    width:100%;
-                    background:#0d2a7a;
-                    color:white;
-                    border:none;
-                    padding:16px 18px;
-                    display:flex;
-                    justify-content:space-between;
-                    align-items:center;
-                    font-size:18px;
-                    font-weight:bold;
-                    cursor:pointer;
-                "
-            >
-                <span>
-                    ${t.id} | 
-                    <span style="color:${color};">${t.estatus}</span>
-                </span>
+            <button type="button" onclick="toggleIncompleto(${index})"
+                style="width:100%;background:#0d2a7a;color:white;border:none;padding:16px 18px;display:flex;justify-content:space-between;align-items:center;font-size:18px;font-weight:bold;cursor:pointer;">
+                <span>${esc(t.id)} | <span style="color:${color};">${esc(t.estatus)}</span></span>
                 <span id="flechaIncompleto-${index}">▼</span>
             </button>
-
-            <div
-                id="detalleIncompleto-${index}"
-                style="display:none; padding:18px; background:#111; line-height:1.7;"
-            >
-                <div><b>Folio:</b> ${t.id}</div>
-                <div><b>Estatus:</b> <span style="color:${color}; font-weight:bold;">${t.estatus}</span></div>
-                <div><b>Estado reembolso:</b> ${t.estadoReembolso || "pendiente"}</div>
-                <div><b>Procesado:</b> ${t.reembolsoProcesado}</div>
-                <div><b>Premio pagado:</b> ${t.premioPagado}</div>
+            <div id="detalleIncompleto-${index}" style="display:none;padding:18px;background:#111;line-height:1.7;">
+                <div><b>Folio:</b> ${esc(t.id)}</div>
+                <div><b>Estatus:</b> <span style="color:${color};font-weight:bold;">${esc(t.estatus)}</span></div>
+                <div><b>Estado reembolso:</b> ${esc(t.estadoReembolso || "pendiente")}</div>
+                <div><b>Procesado:</b> ${esc(t.reembolsoProcesado)}</div>
+                <div><b>Premio pagado:</b> ${esc(t.premioPagado)}</div>
             </div>
         `;
-
         tablaIncompletos.appendChild(bloque);
     });
-
 }
+
 function toggleIncompleto(index) {
     const detalle = document.getElementById(`detalleIncompleto-${index}`);
     const flecha = document.getElementById(`flechaIncompleto-${index}`);
-
     if (!detalle || !flecha) return;
-
     const abierto = detalle.style.display === "block";
-
     detalle.style.display = abierto ? "none" : "block";
     flecha.innerText = abierto ? "▼" : "▲";
 }
-function ocultarTablerosIncompletos(){
-    tablaIncompletos.innerHTML = "";
-}
 
-if (btnCargarIncompletos) {
-    btnCargarIncompletos.addEventListener("click", cargarTablerosIncompletos);
-}
+function ocultarTablerosIncompletos() { tablaIncompletos.innerHTML = ""; }
+if (btnCargarIncompletos) btnCargarIncompletos.addEventListener("click", cargarTablerosIncompletos);
+if (btnOcultarIncompletos) btnOcultarIncompletos.addEventListener("click", ocultarTablerosIncompletos);
 
-if (btnOcultarIncompletos) {
-    btnOcultarIncompletos.addEventListener("click", ocultarTablerosIncompletos);
-}
+// =============================
+// SOLICITUDES DE PREMIO
+// =============================
 async function cargarSolicitudesPremio() {
     try {
-        const res = await fetch("/api/admin/solicitudes-premio");
+        const res = await adminFetch("/api/admin/solicitudes-premio");
         const data = await res.json();
-
         if (!data.ok) return;
-
         const contenedor = document.getElementById("tablaPremios");
-
         if (!data.solicitudes || data.solicitudes.length === 0) {
             contenedor.innerHTML = "<div style='margin-top:10px;'>No hay solicitudes de premio.</div>";
             return;
         }
-
         contenedor.innerHTML = data.solicitudes.map((s, index) => `
-            <div style="
-                border:1px solid #3a3a3a;
-                border-radius:14px;
-                margin:14px 0;
-                overflow:hidden;
-                background:#161616;
-            ">
-                <button
-                    type="button"
-                    onclick="toggleSolicitudPremio(${index})"
-                    style="
-                        width:100%;
-                        background:#0d2a7a;
-                        color:white;
-                        border:none;
-                        padding:16px 18px;
-                        display:flex;
-                        justify-content:space-between;
-                        align-items:center;
-                        font-size:18px;
-                        font-weight:bold;
-                        cursor:pointer;
-                    "
-                >
-                    <span>
-                        Folio: ${s.tableroId || ""} 
-                        | ${s.estatus === "pagado" ? "✅ PAGADO" : "💰 POR PAGAR"}
-                    </span>
+            <div style="border:1px solid #3a3a3a;border-radius:14px;margin:14px 0;overflow:hidden;background:#161616;">
+                <button type="button" onclick="toggleSolicitudPremio(${index})"
+                    style="width:100%;background:#0d2a7a;color:white;border:none;padding:16px 18px;display:flex;justify-content:space-between;align-items:center;font-size:18px;font-weight:bold;cursor:pointer;">
+                    <span>Folio: ${esc(s.tableroId || "")} | ${s.estatus === "pagado" ? "✅ PAGADO" : "💰 POR PAGAR"}</span>
                     <span id="flechaSolicitud-${index}" style="font-size:20px;">▼</span>
                 </button>
-
-                <div
-                    id="detalleSolicitud-${index}"
-                    style="
-                        display:none;
-                        padding:18px;
-                        background:#111;
-                        color:white;
-                        line-height:1.7;
-                    "
-                >
+                <div id="detalleSolicitud-${index}" style="display:none;padding:18px;background:#111;color:white;line-height:1.7;">
                     <div><b>Ganador ID:</b> ${esc(s.ganadorId || "")}</div>
                     <div><b>Nombre:</b> ${esc(s.nombreCompleto || "")}</div>
                     <div><b>Email:</b> ${esc(s.email || "")}</div>
@@ -736,61 +488,44 @@ async function cargarSolicitudesPremio() {
                     <div><b>Cuenta:</b> ${esc(s.cuenta || "")}</div>
                     <div><b>CLABE:</b> ${esc(s.clabe || "")}</div>
                     <div><b>Documento:</b> ${esc(s.tipoDocumento || "")}</div>
-                    <div>
-                        <b>Identificación:</b>
-                        ${
-                            s.identificacionPath
-                                ? `<a href="${s.identificacionPath}" target="_blank" style="color:#00ffcc;">Ver identificación</a>`
-                                : 'No disponible'
-                        }
-                    </div>
-                    <div><b>Estatus:</b> ${s.estatus || ""}</div>
-
+                    <div><b>Identificación:</b> ${s.identificacionPath ? `<a href="${s.identificacionPath}" target="_blank" style="color:#00ffcc;">Ver identificación</a>` : "No disponible"}</div>
+                    <div><b>Estatus:</b> ${esc(s.estatus || "")}</div>
                     <div style="margin-top:14px;">
-                        ${s.estatus !== 'pagado' ? `
-                            <button onclick="pagarPremio(${s.id})">
-                                Marcar como pagado
-                            </button>
-                        ` : '<b style="color:#90ee90;">✅ PAGADO</b>'}
+                        ${s.estatus !== "pagado" ? `<button onclick="pagarPremio(${s.id})">Marcar como pagado</button>` : '<b style="color:#90ee90;">✅ PAGADO</b>'}
                     </div>
                 </div>
             </div>
         `).join("");
-    } catch (error) {
+    } catch(error) {
         console.log("Error cargando solicitudes de premio:", error);
     }
 }
+
 function toggleSolicitudPremio(index) {
     const detalle = document.getElementById(`detalleSolicitud-${index}`);
     const flecha = document.getElementById(`flechaSolicitud-${index}`);
-
     if (!detalle || !flecha) return;
-
     const abierto = detalle.style.display === "block";
-
     detalle.style.display = abierto ? "none" : "block";
     flecha.innerText = abierto ? "▼" : "▲";
 }
+
 async function pagarPremio(id) {
-
     if (!confirm("¿Confirmar pago?")) return;
-
-    const res = await fetch("/api/admin/pagar-premio", {
+    const res = await adminFetch("/api/admin/pagar-premio", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ idSolicitud: id })
     });
-
     const data = await res.json();
-
     if (data.ok) {
         alert("Pago marcado correctamente");
         cargarSolicitudesPremio();
     }
-
 }
-cargarSolicitudesPremio();
-setInterval(cargarTablero, 3000);
+
+// Iniciar si ya hay sesión guardada
+if (savedKey) iniciarAdmin();
 
 </script>
 
