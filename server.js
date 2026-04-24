@@ -235,10 +235,9 @@ app.get("/auth/google", (req, res, next) => {
     const origen = req.query.origen || "registro";
     const folio = req.query.folio || "";
     const numero = req.query.numero || "";
-    const email = req.query.email || "";
 
     const state = Buffer.from(
-        JSON.stringify({ origen, folio, numero, email })
+        JSON.stringify({ origen, folio, numero })
     ).toString("base64");
 
     console.log("🟡 /auth/google");
@@ -273,32 +272,21 @@ app.get("/auth/google/callback", (req, res, next) => {
             }
 
             let origen = "registro";
-let folio = "";
-let numero = "";
-let emailEsperado = "";
+            let folio = "";
+            let numero = "";
 
-try {
-    if (req.query.state) {
-        const parsed = JSON.parse(
-            Buffer.from(req.query.state, "base64").toString("utf8")
-        );
-        origen = parsed.origen || "registro";
-        folio = parsed.folio || "";
-        numero = parsed.numero || "";
-        emailEsperado = parsed.email || "";
-    }
-} catch (e) {
-    console.log("ERROR LEYENDO STATE GOOGLE:", e.message);
-}
-
-if (emailEsperado && user.email) {
-    const emailGoogle = user.email.toLowerCase().trim();
-    const emailForm = emailEsperado.toLowerCase().trim();
-    if (emailGoogle !== emailForm) {
-        console.log("⚠️ EMAIL GOOGLE NO COINCIDE:", { emailGoogle, emailForm });
-        return res.redirect(`/registro.html?error=email_no_coincide`);
-    }
-}
+            try {
+                if (req.query.state) {
+                    const parsed = JSON.parse(
+                        Buffer.from(req.query.state, "base64").toString("utf8")
+                    );
+                    origen = parsed.origen || "registro";
+                    folio = parsed.folio || "";
+                    numero = parsed.numero || "";
+                }
+            } catch (e) {
+                console.log("ERROR LEYENDO STATE GOOGLE:", e.message);
+            }
 
             const id = encodeURIComponent(user.id || "");
             const nombre = encodeURIComponent(user.nombre || "");
@@ -438,12 +426,12 @@ passport.use(new FacebookStrategy({
 }));
 
 app.get("/auth/facebook", (req, res, next) => {
-    const origen = req.query.origen || "registro";
-    const folio = req.query.folio || "";
-    const numero = req.query.numero || "";
-    const email = req.query.email || "";
+    const origen = req.query.origen || "registro";  // Puede venir de la URL
+    const folio = req.query.folio || "";  // Asegúrate de que esto sea pasado correctamente
+    const numero = req.query.numero || "";  // Y que número se pase también
 
-    const stateObj = { origen, folio, numero, email };
+    // Crear objeto de estado con los valores necesarios
+    const stateObj = { origen, folio, numero };
 
     // Codificar el objeto de estado en base64
     const stateEncoded = Buffer.from(JSON.stringify(stateObj)).toString("base64");
@@ -452,7 +440,6 @@ app.get("/auth/facebook", (req, res, next) => {
     console.log("   origen =", origen);
     console.log("   folio  =", folio);
     console.log("   numero =", numero);
-    console.log("   email  =", email);
 
     // Redirigir a Facebook con el estado codificado
     passport.authenticate("facebook", {
@@ -483,30 +470,19 @@ app.get("/auth/facebook/callback", (req, res, next) => {
             }
 
             let origen = "registro";
-let folio = "";
-let emailEsperado = "";
+            let folio = "";
 
-try {
-    if (req.query.state) {
-        const parsed = JSON.parse(
-            Buffer.from(req.query.state, "base64").toString("utf8")
-        );
-        origen = parsed.origen || "registro";
-        folio = parsed.folio || "";
-        emailEsperado = parsed.email || "";
-    }
-} catch (e) {
-    console.log("ERROR LEYENDO STATE FACEBOOK:", e.message);
-}
-
-if (emailEsperado && user.email) {
-    const emailFacebook = user.email.toLowerCase().trim();
-    const emailForm = emailEsperado.toLowerCase().trim();
-    if (emailFacebook !== emailForm) {
-        console.log("⚠️ EMAIL FACEBOOK NO COINCIDE:", { emailFacebook, emailForm });
-        return res.redirect(`/registro.html?error=email_no_coincide`);
-    }
-}
+            try {
+                if (req.query.state) {
+                    const parsed = JSON.parse(
+                        Buffer.from(req.query.state, "base64").toString("utf8")
+                    );
+                    origen = parsed.origen || "registro";
+                    folio = parsed.folio || "";
+                }
+            } catch (e) {
+                console.log("ERROR LEYENDO STATE FACEBOOK:", e.message);
+            }
 
             const id = encodeURIComponent(user.id || "");
             const nombre = encodeURIComponent(user.nombre || "");
