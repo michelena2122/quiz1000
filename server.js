@@ -22,6 +22,12 @@ const client = new MercadoPagoConfig({
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.get("/api/debug-tipo-cambio", (req, res) => {
+    db.all(`SELECT * FROM configuracion`, [], (err, rows) => {
+        if (err) return res.json({ ok: false, error: err.message });
+        res.json({ ok: true, configuracion: rows });
+    });
+});
 app.get("/healthz", (req, res) => {
     res.status(200).send("ok");
 });
@@ -5025,9 +5031,7 @@ app.get("/api/prueba-version", (req, res) => {
         mensaje: "version nueva cargada"
     });
 });
-app.get("/healthz", (req, res) => {
-    res.status(200).send("OK");
-});
+
 app.listen(PORT, "0.0.0.0", () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
 
