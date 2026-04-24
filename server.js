@@ -646,7 +646,7 @@ const FILE_PATH = path.join(__dirname, "public", "data", "preguntas.json");
 const codigosEmail = {};
 const preguntasAbiertas = {};
 const tokensPremio = {};
-const MP_ACCESS_TOKEN = "TEST-2663546958880234-110418-76e2aeb24b31137cb7f87b000963013f-153115257";
+const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN;
 // ============================
 // BASE DE DATOS USUARIOS
 // ============================
