@@ -3229,57 +3229,55 @@ app.get("/api/premio/:folio", (req, res) => {
 
 });
 app.get("/api/rankings", (req, res) => {
-
     db.all(`
-        SELECT
-            tableroId,
-            ganadorId,
-            ganadorNombre,
-            mejorTiempoTexto,
-            mejorTiempoNumero,
-            totalParticipantes,
-            resumenJson,
-            fechaCierre
+        SELECT tableroId, ganadorId, ganadorNombre, mejorTiempoTexto,
+               mejorTiempoNumero, totalParticipantes, resumenJson, fechaCierre
         FROM rankings_tableros
         ORDER BY fechaCierre DESC
     `, [], (err, rows) => {
-
         if(err){
             console.log("ERROR LISTANDO RANKINGS:", err.message);
-            return res.json({
-                ok:false,
-                rankings:[]
-            });
+            return res.json({ ok:false, rankings:[] });
         }
 
-        const rankings = (rows || []).map(row => {
-            let resumen = null;
+        const tableroIds = (rows || []).map(r => r.tableroId);
+        if(tableroIds.length === 0){
+            return res.json({ ok:true, total:0, rankings:[] });
+        }
 
-            try{
-                resumen = row.resumenJson ? JSON.parse(row.resumenJson) : null;
-            }catch(e){
-                resumen = null;
-            }
+        const placeholders = tableroIds.map(() => "?").join(",");
+        db.all(`
+            SELECT tableroId, observaciones FROM pagos_mp
+            WHERE tableroId IN (${placeholders})
+            AND observaciones LIKE '%tc:%'
+        `, tableroIds, (errPagos, pagosRows) => {
+            const tcMap = {};
+            (pagosRows || []).forEach(p => {
+                if(!tcMap[p.tableroId] && p.observaciones){
+                    const match = p.observaciones.match(/tc:([0-9.]+)/);
+                    if(match) tcMap[p.tableroId] = match[1];
+                }
+            });
 
-            return {
-                tableroId: row.tableroId,
-                ganadorId: row.ganadorId,
-                ganadorNombre: row.ganadorNombre,
-                mejorTiempoTexto: row.mejorTiempoTexto,
-                mejorTiempoNumero: row.mejorTiempoNumero,
-                totalParticipantes: row.totalParticipantes,
-                fechaCierre: row.fechaCierre,
-                ranking: resumen
-            };
-        });
-
-        res.json({
-            ok:true,
-            total: rankings.length,
-            rankings
+            const rankings = (rows || []).map(row => {
+                let resumen = null;
+                try{ resumen = row.resumenJson ? JSON.parse(row.resumenJson) : null; }
+                catch(e){ resumen = null; }
+                return {
+                    tableroId: row.tableroId,
+                    ganadorId: row.ganadorId,
+                    ganadorNombre: row.ganadorNombre,
+                    mejorTiempoTexto: row.mejorTiempoTexto,
+                    mejorTiempoNumero: row.mejorTiempoNumero,
+                    totalParticipantes: row.totalParticipantes,
+                    fechaCierre: row.fechaCierre,
+                    tipoCambioCobro: tcMap[row.tableroId] || "N/D",
+                    ranking: resumen
+                };
+            });
+            res.json({ ok:true, total: rankings.length, rankings });
         });
     });
-
 });
 app.get("/api/debug-resumen-tablero/:folio", async (req, res) => {
 

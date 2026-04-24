@@ -283,6 +283,7 @@ if(ganador){
             <div><strong>Nombre:</strong> ${esc(ganador.nombreSolo || ganador.nombre || "Jugador")}</div>
             <div><strong>ID:</strong> ${esc(ganador.jugadorId || "Sin ID")}</div>
             <div><strong>Mejor tiempo individual:</strong> ${esc(ganador.mejorTiempoTexto || "Sin registro")}</div>
+            <div><strong>Tipo de cambio del pago:</strong> $${esc(item.tipoCambioCobro || "N/D")} MXN/USD</div>
         </div>
     `;
 }
