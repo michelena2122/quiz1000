@@ -541,54 +541,125 @@ function parseFacebookSignedRequest(signedRequest) {
     return data;
 }
 
+// Crear tabla solicitudes_baja si no existe
+db.run(`CREATE TABLE IF NOT EXISTS solicitudes_baja (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    facebookUserId TEXT,
+    email TEXT,
+    confirmationCode TEXT,
+    estatus TEXT DEFAULT 'pendiente',
+    fechaSolicitud INTEGER,
+    fechaEjecucion INTEGER
+)`);
+
 app.post("/facebook/data-deletion", express.urlencoded({ extended: false }), (req, res) => {
     try {
         const signedRequest = req.body.signed_request;
 
         if (!signedRequest) {
-            return res.status(400).json({
-                error: "signed_request no recibido"
-            });
+            return res.status(400).json({ error: "signed_request no recibido" });
         }
 
         const data = parseFacebookSignedRequest(signedRequest);
 
         if (!data || !data.user_id) {
-            return res.status(400).json({
-                error: "signed_request inválido"
-            });
+            return res.status(400).json({ error: "signed_request inválido" });
         }
 
         const facebookUserId = data.user_id;
         const confirmationCode = "FBDEL-" + Date.now();
+        const ahora = Date.now();
 
-        console.log("Solicitud de eliminación Facebook recibida:", {
-            facebookUserId,
-            confirmationCode
-        });
+        console.log("Solicitud de eliminación Facebook recibida:", { facebookUserId, confirmationCode });
 
-        // ============================
-        // AQUÍ INICIAS TU PROCESO DE BAJA
-        // ============================
-        // Por ahora, con cambio mínimo, puedes dejarlo en modo registro/log
-        // y después conectar borrado real de datos si quieres.
-        //
-        // Ejemplo futuro:
-        // db.run("UPDATE usuarios SET facebookEliminacionSolicitada = 1 WHERE facebookId = ?", [facebookUserId])
+        // Buscar email del usuario en la BD
+        db.get(`SELECT email FROM usuarios WHERE id = ?`, [facebookUserId], (err, usuario) => {
+            const emailUsuario = usuario ? usuario.email : "desconocido";
 
-        const statusUrl = `https://quiz1000-nuevo.onrender.com/facebook/data-deletion-status?id=${encodeURIComponent(confirmationCode)}`;
+            // Guardar solicitud en BD
+            db.run(`INSERT INTO solicitudes_baja (facebookUserId, email, confirmationCode, estatus, fechaSolicitud)
+                    VALUES (?, ?, ?, 'pendiente', ?)`,
+                [facebookUserId, emailUsuario, confirmationCode, ahora],
+                function(insertErr) {
+                    if (insertErr) {
+                        console.error("Error guardando solicitud baja:", insertErr.message);
+                    }
+                }
+            );
 
-        return res.json({
-            url: statusUrl,
-            confirmation_code: confirmationCode
+            // Enviar email al admin
+            transporter.sendMail({
+                from: `"Quiz $1000" <${process.env.OUTLOOK_USER}>`,
+                to: process.env.OUTLOOK_USER,
+                subject: "⚠️ Solicitud de eliminación de datos — Facebook",
+                html: `
+                    <h2>Solicitud de eliminación de datos recibida</h2>
+                    <p><b>Facebook User ID:</b> ${facebookUserId}</p>
+                    <p><b>Email en BD:</b> ${emailUsuario}</p>
+                    <p><b>Código:</b> ${confirmationCode}</p>
+                    <p><b>Fecha:</b> ${new Date(ahora).toLocaleString("es-MX")}</p>
+                    <p>Ingresa al panel de administrador para ejecutar la baja.</p>
+                `
+            }).catch(e => console.error("Error enviando email baja:", e.message));
+
+            const statusUrl = `https://quiz1000-nuevo.onrender.com/facebook/data-deletion-status?id=${encodeURIComponent(confirmationCode)}`;
+
+            return res.json({
+                url: statusUrl,
+                confirmation_code: confirmationCode
+            });
         });
 
     } catch (error) {
         console.error("Error en /facebook/data-deletion:", error);
-        return res.status(500).json({
-            error: "Error interno"
-        });
+        return res.status(500).json({ error: "Error interno" });
     }
+});
+
+// Endpoint para obtener solicitudes de baja
+app.get("/api/admin/solicitudes-baja", verificarAdmin, (req, res) => {
+    db.all(`SELECT * FROM solicitudes_baja ORDER BY fechaSolicitud DESC`, [], (err, rows) => {
+        if (err) return res.json({ ok: false });
+        res.json({ ok: true, solicitudes: rows || [] });
+    });
+});
+
+// Endpoint para ejecutar baja
+app.post("/api/admin/ejecutar-baja", verificarAdmin, (req, res) => {
+    const { id } = req.body;
+    if (!id) return res.json({ ok: false, mensaje: "ID requerido" });
+
+    db.get(`SELECT * FROM solicitudes_baja WHERE id = ?`, [id], (err, solicitud) => {
+        if (err || !solicitud) return res.json({ ok: false, mensaje: "Solicitud no encontrada" });
+        if (solicitud.estatus === "ejecutada") return res.json({ ok: false, mensaje: "Ya fue ejecutada" });
+
+        // Anonimizar datos del usuario
+        db.run(`UPDATE usuarios SET
+            nombre = 'Usuario eliminado',
+            apellidos = '',
+            email = NULL,
+            telefono = NULL,
+            password = NULL,
+            nacionalidad = NULL
+            WHERE id = ?`,
+            [solicitud.facebookUserId],
+            function(updateErr) {
+                if (updateErr) {
+                    console.error("Error anonimizando usuario:", updateErr.message);
+                    return res.json({ ok: false, mensaje: "Error ejecutando baja" });
+                }
+
+                // Marcar solicitud como ejecutada
+                db.run(`UPDATE solicitudes_baja SET estatus = 'ejecutada', fechaEjecucion = ? WHERE id = ?`,
+                    [Date.now(), id],
+                    function(updateErr2) {
+                        if (updateErr2) return res.json({ ok: false });
+                        res.json({ ok: true, mensaje: "Baja ejecutada correctamente" });
+                    }
+                );
+            }
+        );
+    });
 });
 
 app.get("/facebook/data-deletion-status", (req, res) => {

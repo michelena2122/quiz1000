@@ -142,7 +142,11 @@ button:hover{
 
 <h2>💰 Solicitudes de Premio</h2>
 <div id="tablaPremios"></div>
-
+<div class="bloque-admin" style="margin-top:40px;">
+    <h2>⚠️ Solicitudes de baja (Facebook)</h2>
+    <button onclick="cargarSolicitudesBaja()">Cargar solicitudes</button>
+    <div id="tablaBajas" style="margin-top:15px;"></div>
+</div>
 </div><!-- fin panelAdmin -->
 
 <script>
@@ -215,6 +219,66 @@ function esc(str) {
 function iniciarAdmin() {
     cargarTablero();
     cargarTipoCambio();
+    // =============================
+// SOLICITUDES DE BAJA
+// =============================
+async function cargarSolicitudesBaja() {
+    try {
+        const res = await adminFetch("/api/admin/solicitudes-baja");
+        const data = await res.json();
+
+        const contenedor = document.getElementById("tablaBajas");
+        if (!contenedor) return;
+
+        if (!data.ok || !data.solicitudes || data.solicitudes.length === 0) {
+            contenedor.innerHTML = "<div style='margin-top:10px;color:#888;'>No hay solicitudes de baja pendientes.</div>";
+            return;
+        }
+
+        contenedor.innerHTML = data.solicitudes.map((s, index) => `
+            <div style="border:1px solid #3a3a3a;border-radius:14px;margin:14px 0;overflow:hidden;background:#161616;">
+                <div style="padding:16px 18px;display:flex;justify-content:space-between;align-items:center;">
+                    <div>
+                        <div style="font-weight:bold;color:${s.estatus === 'ejecutada' ? '#90ee90' : '#ff9800'};">
+                            ${s.estatus === 'ejecutada' ? '✅ EJECUTADA' : '⚠️ PENDIENTE'}
+                        </div>
+                        <div style="font-size:13px;margin-top:4px;color:#ccc;">
+                            <b>Email:</b> ${esc(s.email || "desconocido")} &nbsp;|&nbsp;
+                            <b>Código:</b> ${esc(s.confirmationCode)} &nbsp;|&nbsp;
+                            <b>Fecha:</b> ${new Date(s.fechaSolicitud).toLocaleString("es-MX")}
+                        </div>
+                    </div>
+                    ${s.estatus !== 'ejecutada' ? `
+                        <button onclick="ejecutarBaja(${s.id})" style="background:#ff5252;color:white;border:none;padding:10px 16px;border-radius:8px;font-weight:bold;cursor:pointer;white-space:nowrap;">
+                            Ejecutar baja
+                        </button>
+                    ` : '<b style="color:#90ee90;">✅ Completada</b>'}
+                </div>
+            </div>
+        `).join("");
+    } catch(error) {
+        console.log("Error cargando solicitudes de baja:", error);
+    }
+}
+
+async function ejecutarBaja(id) {
+    if (!confirm("¿Confirmar eliminación de datos? Esta acción anonimiza los datos del usuario y no se puede deshacer.")) return;
+
+    const res = await adminFetch("/api/admin/ejecutar-baja", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id })
+    });
+
+    const data = await res.json();
+
+    if (data.ok) {
+        alert("✅ Baja ejecutada correctamente");
+        cargarSolicitudesBaja();
+    } else {
+        alert("Error: " + (data.mensaje || "No se pudo ejecutar la baja"));
+    }
+}
     cargarSolicitudesPremio();
     setInterval(cargarTablero, 3000);
 }
