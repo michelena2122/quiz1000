@@ -541,17 +541,6 @@ function parseFacebookSignedRequest(signedRequest) {
     return data;
 }
 
-// Crear tabla solicitudes_baja si no existe
-db.run(`CREATE TABLE IF NOT EXISTS solicitudes_baja (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    facebookUserId TEXT,
-    email TEXT,
-    confirmationCode TEXT,
-    estatus TEXT DEFAULT 'pendiente',
-    fechaSolicitud INTEGER,
-    fechaEjecucion INTEGER
-)`);
-
 app.post("/facebook/data-deletion", express.urlencoded({ extended: false }), (req, res) => {
     try {
         const signedRequest = req.body.signed_request;
