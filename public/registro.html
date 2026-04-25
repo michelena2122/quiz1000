@@ -144,7 +144,12 @@ button{
 
 
 <script>
-  // ============================
+// Guardar origen antes de cualquier redirección
+const _paramsOrigen = new URLSearchParams(window.location.search);
+if (_paramsOrigen.get("origen") === "home") {
+    localStorage.setItem("origenRegistro", "home");
+}
+// ============================
 // EVITAR DOBLE REGISTRO
 // ============================
 
