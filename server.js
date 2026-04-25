@@ -1917,7 +1917,7 @@ try {
     }
 
     const ahora = Date.now();
-    const expiraReserva = ahora + 300000;
+    const expiraReserva = ahora + 900000;
 
     db.get(
     `SELECT id
