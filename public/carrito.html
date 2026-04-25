@@ -222,9 +222,9 @@ async function limpiarCarritoPagadas() {
         const data = await res.json();
         if (!data.ok) return;
 
-        const pagadas = (data.casillas || [])
-            .filter(c => c.estado === "pagada")
-            .map(c => c.numero);
+       const pagadas = (data.casillas || [])
+    .filter(c => c.estado === "pagada")
+    .map(c => c.casilla);
 
         if (pagadas.length === 0) return;
 
