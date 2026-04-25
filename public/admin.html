@@ -124,7 +124,14 @@ button:hover{
     <button id="btnGuardarTipoCambio">Guardar tipo de cambio</button>
     <div id="mensajeTipoCambio"></div>
 </div>
-
+<div class="bloque-admin" style="margin-top:40px;">
+    <h2>📝 Preguntas del tablero</h2>
+    <button id="btnCargarPreguntas">Cargar preguntas</button>
+    <button id="btnOcultarPreguntas">Ocultar</button>
+    <button id="btnGuardarPreguntas">Guardar cambios</button>
+    <div id="mensajePreguntas" style="margin-top:10px;"></div>
+    <div id="listaPreguntas" style="margin-top:15px;"></div>
+</div>
 <div class="bloque-admin" style="margin-top:40px;">
     <h2>Tableros completos</h2>
     <button id="btnCargarTablerosCompletos">Cargar tableros completos</button>
@@ -218,6 +225,85 @@ function esc(str) {
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#39;");
 }
+// =============================
+// PREGUNTAS
+// =============================
+const btnCargarPreguntas = document.getElementById("btnCargarPreguntas");
+const btnOcultarPreguntas = document.getElementById("btnOcultarPreguntas");
+const btnGuardarPreguntas = document.getElementById("btnGuardarPreguntas");
+const listaPreguntas = document.getElementById("listaPreguntas");
+const mensajePreguntas = document.getElementById("mensajePreguntas");
+
+function mostrarMensajePreguntas(texto, color = "black") {
+    mensajePreguntas.textContent = texto;
+    mensajePreguntas.style.color = color;
+}
+
+function renderizarPreguntas(preguntas) {
+    listaPreguntas.innerHTML = "";
+    preguntas.forEach((item, index) => {
+        const fila = document.createElement("div");
+        fila.style.cssText = "border:1px solid #ccc;padding:10px;margin-bottom:10px;border-radius:8px;";
+        fila.innerHTML = `
+            <div><b>Resultado:</b> ${item.resultado}</div>
+            <input 
+                type="text"
+                value="${item.pregunta.replace(/"/g, "&quot;")}"
+                data-index="${index}"
+                class="input-pregunta"
+                style="width:100%;margin-top:5px;padding:5px;background:#222;color:white;border:1px solid #555;border-radius:4px;"
+            >
+        `;
+        listaPreguntas.appendChild(fila);
+    });
+}
+
+function ocultarPreguntas() {
+    listaPreguntas.innerHTML = "";
+    mostrarMensajePreguntas("Preguntas ocultas.", "#00ffcc");
+}
+
+async function cargarPreguntas() {
+    try {
+        mostrarMensajePreguntas("Cargando...", "blue");
+        const res = await adminFetch("/api/preguntas");
+        const preguntas = await res.json();
+        renderizarPreguntas(preguntas);
+        mostrarMensajePreguntas("Preguntas cargadas correctamente.", "#00ffcc");
+    } catch (error) {
+        console.log(error);
+        mostrarMensajePreguntas("Error cargando preguntas.", "red");
+    }
+}
+
+async function guardarPreguntas() {
+    try {
+        const inputs = document.querySelectorAll(".input-pregunta");
+        const preguntas = [];
+        inputs.forEach((input, i) => {
+            preguntas.push({
+                pregunta: input.value.trim(),
+                resultado: i + 1
+            });
+        });
+        mostrarMensajePreguntas("Guardando...", "blue");
+        const res = await adminFetch("/api/preguntas", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(preguntas)
+        });
+        const data = await res.json();
+        console.log(data);
+        mostrarMensajePreguntas("✅ Preguntas guardadas correctamente.", "#00ffcc");
+    } catch (error) {
+        console.log(error);
+        mostrarMensajePreguntas("Error guardando preguntas.", "red");
+    }
+}
+
+if(btnCargarPreguntas) btnCargarPreguntas.addEventListener("click", cargarPreguntas);
+if(btnOcultarPreguntas) btnOcultarPreguntas.addEventListener("click", ocultarPreguntas);
+if(btnGuardarPreguntas) btnGuardarPreguntas.addEventListener("click", guardarPreguntas);
 async function limpiarTablerosPrueba() {
     if (!confirm("¿Eliminar todos los tableros sin casillas pagadas? Esta acción no se puede deshacer.")) return;
     const res = await adminFetch("/api/admin/limpiar-tableros-prueba", { method: "POST" });
