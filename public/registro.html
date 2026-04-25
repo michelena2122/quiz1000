@@ -295,8 +295,11 @@ pagarBtn.addEventListener("click", async function () {
         const data = await res.json();
 
         if (data.ok) {
-            alert("📧 Te enviamos un código de verificación");
-            window.location.href = "validar.html";
+    if (params.get("origen") === "home") {
+        localStorage.setItem("origenRegistro", "home");
+    }
+    alert("📧 Te enviamos un código de verificación");
+    window.location.href = "validar.html";
         } else {
             errorMsg.textContent = data.mensaje || "Error enviando el correo";
         }
