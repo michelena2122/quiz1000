@@ -3673,7 +3673,7 @@ const folio = metadata.folio;
 const jugadorId = metadata.jugador_id || metadata.jugadorId || null;
 const casillasMetadata = metadata.casillas || [];
 const tiempos = metadata.tiempos || [];
-const tipoCambioMetadata = metadata.tipoCambioCobro || null;
+const tipoCambioMetadata = metadata.tipoCambioCobro || metadata.tipo_cambio_cobro || null;
 console.log("🧾 tipoCambioCobro en metadata:", tipoCambioMetadata);
 
 console.log("📦 METADATA RECIBIDA:", {
