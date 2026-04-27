@@ -284,6 +284,12 @@
             mensaje.style.color = "#ffb3b3";
             return;
         }
+
+        if(!/^\d{18}$/.test(clabe)){
+            mensaje.innerText = "La CLABE debe tener exactamente 18 dígitos numéricos.";
+            mensaje.style.color = "#ffb3b3";
+            return;
+        }
 (async function(){
 
     try{
