@@ -211,9 +211,45 @@ document.getElementById("amountText").innerHTML =
     "<strong>Continúa, vas en serio por los 1,000 USD </strong>";
 
 // Cambiar texto del botón
+// Cambiar texto del botón
 const pagarBtn = document.getElementById("pagarBtn");
-pagarBtn.textContent =
-    `Tu número es ${numero} — págalo y sigue rumbo a los 1,000 USD`;
+const origenActual = localStorage.getItem("origenRegistro");
+
+if(origenActual === "home"){
+
+    pagarBtn.textContent = "Continuar";
+
+} else {
+
+    const folioActual = localStorage.getItem("folioTableroActual") || "";
+    let totalUSD = 0;
+    let cantidadItems = 0;
+
+    if(folioActual){
+        const carritoRaw = localStorage.getItem("carrito_" + folioActual);
+        if(carritoRaw){
+            const carritoData = JSON.parse(carritoRaw);
+            const items = carritoData.items || [];
+            cantidadItems = items.length;
+            totalUSD = items.reduce((sum, item) => sum + Number(item.numero || 0), 0);
+        }
+    }
+
+    // Fallback: si no hay carrito, usar el numero de la URL
+    if(cantidadItems === 0 && numero && Number(numero) > 0){
+        totalUSD = Number(numero);
+        cantidadItems = 1;
+    }
+
+    if(cantidadItems === 1){
+        pagarBtn.textContent = `Tu número vale $${totalUSD} USD — págalo y sigue rumbo a los 1,000 USD`;
+    } else if(cantidadItems > 1){
+        pagarBtn.textContent = `${cantidadItems} números — $${totalUSD} USD en total — págalos y sigue rumbo a los 1,000 USD`;
+    } else {
+        pagarBtn.textContent = "Continuar al Pago";
+    }
+
+}
 
 const errorMsg = document.getElementById("errorMsg");
 
