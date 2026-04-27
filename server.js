@@ -3338,6 +3338,26 @@ app.get("/api/premio/:folio", (req, res) => {
     });
 
 });
+// ── MIS PREMIOS ──
+app.get('/api/mis-premios/:jugadorId', (req, res) => {
+    const jugadorId = String(req.params.jugadorId);
+    db.all(
+        `SELECT tableroId, mejorTiempoTexto, fechaCierre
+         FROM rankings_tableros
+         WHERE ganadorId = ?
+         ORDER BY fechaCierre DESC`,
+        [jugadorId],
+        (err, rows) => {
+            if(err){ return res.json({ ok: false, error: err.message }); }
+            const premios = (rows || []).map(row => ({
+                folio:       row.tableroId,
+                mejorTiempo: row.mejorTiempoTexto || "N/D",
+                fechaCierre: row.fechaCierre || null
+            }));
+            res.json({ ok: true, premios });
+        }
+    );
+});
 app.get("/api/rankings", (req, res) => {
     db.all(`
         SELECT tableroId, ganadorId, ganadorNombre, mejorTiempoTexto,
