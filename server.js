@@ -1169,7 +1169,7 @@ function asegurarColumnasSolicitudesPremio(callback){
     });
 
 }
-ript// ============================
+// ============================
 // MIGRACION: columnas bajaEmail / bajaWhatsapp en usuarios
 // ============================
 function asegurarColumnasNotificacionesUsuarios(callback){
