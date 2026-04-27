@@ -956,22 +956,6 @@ function asegurarColumnasReembolsoTablero(callback){
             console.log("Columna premioPagado ya existe en tableros");
         }
 
-        if(!existeAceptaCorreos){
-            tareas.push((done) => {
-                db.run(
-                    `ALTER TABLE usuarios ADD COLUMN aceptaCorreos INTEGER DEFAULT 1`,
-                    [],
-                    (errAlter) => {
-                        if(errAlter){ console.log("Error agregando aceptaCorreos:", errAlter.message); return done(errAlter); }
-                        console.log("Columna aceptaCorreos agregada en usuarios");
-                        done(null);
-                    }
-                );
-            });
-        }else{
-            console.log("Columna aceptaCorreos ya existe en usuarios");
-        }
-
         if(tareas.length === 0){
             if(callback) return callback(null);
             return;
@@ -1230,6 +1214,22 @@ function asegurarColumnasNotificacionesUsuarios(callback){
             });
         }else{
             console.log("Columna bajaWhatsapp ya existe en usuarios");
+        }
+
+        if(!existeAceptaCorreos){
+            tareas.push((done) => {
+                db.run(
+                    `ALTER TABLE usuarios ADD COLUMN aceptaCorreos INTEGER DEFAULT 1`,
+                    [],
+                    (errAlter) => {
+                        if(errAlter){ console.log("Error agregando aceptaCorreos:", errAlter.message); return done(errAlter); }
+                        console.log("Columna aceptaCorreos agregada en usuarios");
+                        done(null);
+                    }
+                );
+            });
+        }else{
+            console.log("Columna aceptaCorreos ya existe en usuarios");
         }
 
         if(tareas.length === 0){
