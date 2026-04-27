@@ -92,6 +92,7 @@ function verificarAdmin(req, res, next) {
 }
 app.use(express.json());
 app.use(express.static("public"));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.use(session({
     secret: "quiz1000-secret",
