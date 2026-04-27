@@ -5101,6 +5101,13 @@ app.get("/api/prueba-version", (req, res) => {
     });
 });
 
+app.get("/api/debug-usuarios-schema", (req, res) => {
+    db.all(`PRAGMA table_info(usuarios)`, [], (err, cols) => {
+        if(err) return res.json({ ok: false });
+        res.json({ ok: true, columnas: cols.map(c => c.name) });
+    });
+});
+
 app.listen(PORT, "0.0.0.0", () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
 
