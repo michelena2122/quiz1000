@@ -318,6 +318,72 @@ document.addEventListener("DOMContentLoaded", function(){
 
     cargarMisTableros();
 
+    // ============================
+    // MOSTRAR TABLEROS GANADOS
+    // ============================
+    async function cargarMisPremios(){
+        const jugador = JSON.parse(localStorage.getItem("jugadorActual"));
+        if(!jugador || !jugador.id) return;
+
+        try {
+            const res  = await fetch(`/api/mis-premios/${jugador.id}`);
+            const data = await res.json();
+
+            // Buscar o crear el contenedor de premios dentro de seccionTableros
+            let contenedorPremios = document.getElementById("misPremiosPerfil");
+            if(!contenedorPremios){
+                contenedorPremios = document.createElement("div");
+                contenedorPremios.id = "misPremiosPerfil";
+                const seccion = document.getElementById("seccionTableros");
+                if(seccion) seccion.appendChild(contenedorPremios);
+            }
+
+            if(!data.ok || !data.premios || data.premios.length === 0){
+                contenedorPremios.innerHTML = "";
+                return;
+            }
+
+            contenedorPremios.innerHTML = `
+                <h3 style="color:#ffd700;margin:24px 0 10px;text-align:center;font-size:18px;">
+                    🏆 Tableros Ganados
+                </h3>
+            `;
+
+            data.premios.forEach(premio => {
+                const div = document.createElement("div");
+                div.style.cssText = `
+                    background:#0d2b0d;
+                    border:2px solid #28a745;
+                    border-radius:10px;
+                    padding:16px;
+                    margin-bottom:12px;
+                    text-align:center;
+                `;
+                div.innerHTML = `
+                    <div style="color:#ffd700;font-weight:bold;font-size:15px;">
+                        🏆 ¡Ganaste el tablero <span style="text-transform:uppercase;">${premio.folio}</span>!
+                    </div>
+                    <div style="color:#ccc;margin-top:6px;font-size:13px;">
+                        Tiempo ganador: <strong style="color:#fff;">${premio.mejorTiempo}</strong>
+                    </div>
+                    <div style="margin-top:14px;">
+                        <a href="premio.html?folio=${encodeURIComponent(premio.folio)}"
+                           style="display:inline-block;background:#ffd700;color:#000;font-weight:bold;
+                                  padding:10px 24px;border-radius:8px;text-decoration:none;font-size:14px;">
+                            🎁 Reclamar mi premio
+                        </a>
+                    </div>
+                `;
+                contenedorPremios.appendChild(div);
+            });
+
+        } catch(e){
+            console.error("Error cargando premios:", e);
+        }
+    }
+
+    cargarMisPremios();
+
     document.getElementById("perfilForm").addEventListener("submit", function(e){
 
         e.preventDefault();
