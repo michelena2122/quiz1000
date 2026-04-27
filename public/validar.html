@@ -206,6 +206,8 @@ error.style.color = "#2ecc71";
 
 // obtener datos del registro
 const registroPendiente = JSON.parse(localStorage.getItem("registroPendiente"));
+const checkboxCorreos = document.getElementById("aceptaCorreos");
+registroPendiente.aceptaCorreos = (checkboxCorreos && checkboxCorreos.checked) ? 1 : 0;
 console.log("REGISTRO PENDIENTE:", registroPendiente);
 
 const resRegistro = await fetch("/registro",{
