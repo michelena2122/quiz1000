@@ -350,6 +350,46 @@ if(ganador){
         </div>
     `;
 });
+(function(){
+    const jugador = JSON.parse(localStorage.getItem("jugadorActual") || "null")
+                 || JSON.parse(localStorage.getItem("usuarioLogueado") || "null");
+    if(!jugador) return;
+
+    const fecha = new Date().toLocaleDateString("es-MX", {
+        weekday: "long", day: "numeric", month: "long", year: "numeric"
+    });
+
+    const bar = document.createElement("div");
+    bar.id = "sessionBar";
+    bar.style.cssText = `
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        z-index: 9999;
+        background: rgba(0,0,0,0.75);
+        backdrop-filter: blur(6px);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 6px 16px;
+        font-size: 13px;
+        color: #fff;
+        font-family: sans-serif;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    `;
+    bar.innerHTML = `
+        <span>👤 <strong>${jugador.nombre || "Jugador"}</strong></span>
+        <span style="color:#aaa;">📅 ${fecha}</span>
+        <a href="/perfil.html"
+           style="background:#1a56db;color:#fff;padding:4px 12px;border-radius:6px;
+                  text-decoration:none;font-weight:bold;font-size:12px;">
+            Mi Perfil
+        </a>
+    `;
+    document.body.prepend(bar);
+
+    document.body.style.paddingTop = (document.body.style.paddingTop
+        ? (parseInt(document.body.style.paddingTop) + 36) : 36) + "px";
+})();
 </script>
 
 </body>
