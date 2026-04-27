@@ -956,13 +956,28 @@ function asegurarColumnasReembolsoTablero(callback){
             console.log("Columna premioPagado ya existe en tableros");
         }
 
+        if(!existeAceptaCorreos){
+            tareas.push((done) => {
+                db.run(
+                    `ALTER TABLE usuarios ADD COLUMN aceptaCorreos INTEGER DEFAULT 1`,
+                    [],
+                    (errAlter) => {
+                        if(errAlter){ console.log("Error agregando aceptaCorreos:", errAlter.message); return done(errAlter); }
+                        console.log("Columna aceptaCorreos agregada en usuarios");
+                        done(null);
+                    }
+                );
+            });
+        }else{
+            console.log("Columna aceptaCorreos ya existe en usuarios");
+        }
+
         if(tareas.length === 0){
             if(callback) return callback(null);
             return;
         }
 
         let index = 0;
-
         function ejecutarSiguiente(error){
             if(error){
                 if(callback) return callback(error);
@@ -1181,7 +1196,8 @@ function asegurarColumnasNotificacionesUsuarios(callback){
         }
 
         const existeBajaEmail    = columnas.some(col => col.name === "bajaEmail");
-        const existeBajaWhatsapp = columnas.some(col => col.name === "bajaWhatsapp");
+        const existeBajaWhatsapp  = columnas.some(col => col.name === "bajaWhatsapp");
+        const existeAceptaCorreos = columnas.some(col => col.name === "aceptaCorreos");
         const tareas = [];
 
         if(!existeBajaEmail){
@@ -1489,7 +1505,8 @@ telefono,
 email,
 password,
 numeroComprado,
-folioTablero
+folioTablero,
+aceptaCorreos
 } = req.body;
 
 console.log("BODY /registro:", req.body);
@@ -1505,8 +1522,8 @@ console.log("ID GENERADO /registro:", id);
 db.run(
 
 `INSERT INTO usuarios
-(id,nombre,apellidos,edad,nacionalidad,telefono,email,password,numeroComprado,folioTablero,mejorTiempoGlobal)
-VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
+(id,nombre,apellidos,edad,nacionalidad,telefono,email,password,numeroComprado,folioTablero,mejorTiempoGlobal,aceptaCorreos)
+VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
 
 [
 id,
@@ -1519,7 +1536,8 @@ email,
 hash,
 numeroComprado,
 folioTablero,
-null
+null,
+aceptaCorreos ?? 1
 ],
 
 function(err){
