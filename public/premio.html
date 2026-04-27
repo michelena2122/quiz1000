@@ -174,12 +174,34 @@
     </div>
 <script>
 (async function(){
-
     const params = new URLSearchParams(window.location.search);
-    const folio = params.get("folio");
+    const token      = params.get("token");
+    const folioParam = params.get("folio");
+    let folio        = folioParam;
 
-    if(!folio){
-        alert("Link inválido");
+    if(token){
+        /* El link viene de email/WhatsApp con ?token=xxx → validamos primero */
+        try {
+            const respVal = await fetch(`/api/validar-link-premio?token=${encodeURIComponent(token)}`);
+            const dataVal = await respVal.json();
+            if(!respVal.ok || !dataVal.folio){
+                document.body.innerHTML = `<div style="text-align:center;padding:60px;color:#fff;font-family:sans-serif;">
+                    <h2>⛔ Link inválido o expirado</h2>
+                    <p>Este enlace ya no es válido. Contacta a soporte si crees que es un error.</p>
+                </div>`;
+                return;
+            }
+            folio = dataVal.folio;
+        } catch(e){
+            document.body.innerHTML = `<div style="text-align:center;padding:60px;color:#fff;font-family:sans-serif;">
+                <h2>❌ Error de conexión</h2><p>No se pudo verificar el link. Intenta de nuevo.</p>
+            </div>`;
+            return;
+        }
+    } else if(!folio){
+        document.body.innerHTML = `<div style="text-align:center;padding:60px;color:#fff;font-family:sans-serif;">
+            <h2>⛔ Link inválido</h2><p>No se encontró información del premio.</p>
+        </div>`;
         return;
     }
 
