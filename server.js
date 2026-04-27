@@ -1169,6 +1169,68 @@ function asegurarColumnasSolicitudesPremio(callback){
     });
 
 }
+ript// ============================
+// MIGRACION: columnas bajaEmail / bajaWhatsapp en usuarios
+// ============================
+function asegurarColumnasNotificacionesUsuarios(callback){
+    db.all(`PRAGMA table_info(usuarios)`, [], (err, columnas) => {
+        if(err){
+            console.log("Error consultando columnas de usuarios:", err.message);
+            if(callback) return callback(err);
+            return;
+        }
+
+        const existeBajaEmail    = columnas.some(col => col.name === "bajaEmail");
+        const existeBajaWhatsapp = columnas.some(col => col.name === "bajaWhatsapp");
+        const tareas = [];
+
+        if(!existeBajaEmail){
+            tareas.push((done) => {
+                db.run(
+                    `ALTER TABLE usuarios ADD COLUMN bajaEmail INTEGER DEFAULT 0`,
+                    [],
+                    (errAlter) => {
+                        if(errAlter){ console.log("Error agregando bajaEmail:", errAlter.message); return done(errAlter); }
+                        console.log("Columna bajaEmail agregada en usuarios");
+                        done(null);
+                    }
+                );
+            });
+        }else{
+            console.log("Columna bajaEmail ya existe en usuarios");
+        }
+
+        if(!existeBajaWhatsapp){
+            tareas.push((done) => {
+                db.run(
+                    `ALTER TABLE usuarios ADD COLUMN bajaWhatsapp INTEGER DEFAULT 0`,
+                    [],
+                    (errAlter) => {
+                        if(errAlter){ console.log("Error agregando bajaWhatsapp:", errAlter.message); return done(errAlter); }
+                        console.log("Columna bajaWhatsapp agregada en usuarios");
+                        done(null);
+                    }
+                );
+            });
+        }else{
+            console.log("Columna bajaWhatsapp ya existe en usuarios");
+        }
+
+        if(tareas.length === 0){
+            if(callback) return callback(null);
+            return;
+        }
+
+        let index = 0;
+        function ejecutarSiguiente(error){
+            if(error){ if(callback) return callback(error); return; }
+            if(index >= tareas.length){ if(callback) return callback(null); return; }
+            const tarea = tareas[index++];
+            tarea(ejecutarSiguiente);
+        }
+        ejecutarSiguiente(null);
+    });
+}
 // ============================
 // BASE DE DATOS
 // ============================
@@ -1645,37 +1707,25 @@ usuario:row
 
 app.post("/actualizar-perfil", async (req,res)=>{
 
-const { id, email, telefono, password } = req.body;
+const { id, email, telefono, password, edad, bajaEmail, bajaWhatsapp } = req.body;
 
 let query;
 let params;
 
 if(password){
-
-const hash = await bcrypt.hash(password,10);
-
-query = `
-UPDATE usuarios
-SET email=?, telefono=?, password=?
-WHERE id=?`;
-
-params = [email,telefono,hash,id];
-
-}else{
-
-query = `
-UPDATE usuarios
-SET email=?, telefono=?
-WHERE id=?`;
-
-params = [email,telefono,id];
-
+    const hash = await bcrypt.hash(password, 10);
+    query = `UPDATE usuarios SET email=?, telefono=?, password=?, edad=?, bajaEmail=?, bajaWhatsapp=? WHERE id=?`;
+    params = [email, telefono, hash, edad, bajaEmail ?? 0, bajaWhatsapp ?? 0, id];
+} else {
+    query = `UPDATE usuarios SET email=?, telefono=?, edad=?, bajaEmail=?, bajaWhatsapp=? WHERE id=?`;
+    params = [email, telefono, edad, bajaEmail ?? 0, bajaWhatsapp ?? 0, id];
 }
 
 db.run(query,params,function(err){
 
 if(err){
-return res.json({ok:false});
+    console.log("Error actualizando perfil:", err.message);
+    return res.json({ok:false});
 }
 
 res.json({ok:true});
@@ -5044,6 +5094,13 @@ app.listen(PORT, "0.0.0.0", () => {
                 console.log("❌ ERROR asegurando columnas:", err);
             }else{
                 console.log("✅ Columnas de tableros verificadas correctamente");
+            }
+        });
+        asegurarColumnasNotificacionesUsuarios((err) => {
+            if(err){
+                console.log("❌ ERROR asegurando columnas de notificaciones:", err);
+            }else{
+                console.log("✅ Columnas bajaEmail/bajaWhatsapp verificadas correctamente");
             }
         });
         asegurarColumnasSolicitudesPremio((err) => {

@@ -155,6 +155,27 @@ footer{
             <button type="submit">Guardar Cambios</button>
         </div>
 
+        <div class="campo" style="text-align:left;margin-top:16px;">
+            <label style="font-weight:bold;margin-bottom:8px;display:block;">
+                Preferencias de notificaciones
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;margin-bottom:8px;font-weight:normal;">
+                <input type="checkbox" id="bajaEmail">
+                Darme de baja del Email
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;font-weight:normal;">
+                <input type="checkbox" id="bajaWhatsapp">
+                Darme de baja de WhatsApp
+            </label>
+        </div>
+
+        <div class="campo-boton" style="margin-top:24px;">
+            <button type="button" onclick="logout()"
+                style="background:#c0392b;color:white;border:none;padding:12px 24px;border-radius:8px;cursor:pointer;font-size:16px;font-weight:bold;width:100%;">
+                Cerrar sesión
+            </button>
+        </div>
+
     </form>
 
     <div id="seccionTableros" style="display:none;">
@@ -201,8 +222,10 @@ document.addEventListener("DOMContentLoaded", function(){
         document.getElementById("perfilEdad").value = jugador.edad || "";
         document.getElementById("perfilEmail").value = jugador.email || "";
         document.getElementById("perfilTelefono").value = jugador.telefono || "";
+            document.getElementById("bajaEmail").checked   = jugador.bajaEmail == 1;
+            document.getElementById("bajaWhatsapp").checked = jugador.bajaWhatsapp == 1;
 
-        if(jugador.tableroID){
+            if(jugador.tableroID){
             const estado = JSON.parse(localStorage.getItem("tableroEstado_" + jugador.tableroID));
 
             if(estado && estado.casillasResueltas){
@@ -266,8 +289,12 @@ document.addEventListener("DOMContentLoaded", function(){
 
                 details.innerHTML = `
                     <summary>
-                        <strong>${folio}</strong>
+                        Folio: <strong>${folio}</strong> — ${compras.length} casilla${compras.length !== 1 ? "s" : ""} pagada${compras.length !== 1 ? "s" : ""}
                     </summary>
+
+                    <div style="background:#d4edda;border:1px solid #28a745;border-radius:8px;padding:10px 14px;margin-top:10px;color:#155724;font-weight:bold;text-align:center;">
+                        ✅ Total de casillas pagadas en este tablero: ${compras.length}
+                    </div>
 
                     <div style="margin-top:10px;">
                         <a href="${whatsappUrl}" target="_blank" class="btn-invitar-whatsapp">
@@ -298,9 +325,11 @@ document.addEventListener("DOMContentLoaded", function(){
         const jugadorActual = JSON.parse(localStorage.getItem("jugadorActual"));
         if(!jugadorActual) return;
 
-        const email = document.getElementById("perfilEmail").value;
-        const telefono = document.getElementById("perfilTelefono").value;
-        const password = document.getElementById("perfilPassword").value;
+        const email      = document.getElementById("perfilEmail").value;
+        const telefono   = document.getElementById("perfilTelefono").value;
+        const password   = document.getElementById("perfilPassword").value;
+        const bajaEmail    = document.getElementById("bajaEmail").checked ? 1 : 0;
+        const bajaWhatsapp = document.getElementById("bajaWhatsapp").checked ? 1 : 0;
 
         fetch("/actualizar-perfil", {
             method:"POST",
@@ -311,7 +340,9 @@ document.addEventListener("DOMContentLoaded", function(){
                 id: jugadorActual.id,
                 email,
                 telefono,
-                password
+                password,
+                bajaEmail,
+                bajaWhatsapp
             })
         })
         .then(res => res.json())
@@ -319,8 +350,10 @@ document.addEventListener("DOMContentLoaded", function(){
 
             if(data.ok){
 
-                jugadorActual.email = email;
-                jugadorActual.telefono = telefono;
+                jugadorActual.email        = email;
+                jugadorActual.telefono     = telefono;
+                jugadorActual.bajaEmail    = bajaEmail;
+                jugadorActual.bajaWhatsapp = bajaWhatsapp;
 
                 localStorage.setItem("jugadorActual", JSON.stringify(jugadorActual));
 
