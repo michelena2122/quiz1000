@@ -257,6 +257,12 @@ res.sendFile(path.join(__dirname, "public", "recuperar.html"));
 app.get("/admin", (req, res) => {
 res.sendFile(path.join(__dirname, "public", "admin.html"));
 });
+app.get("/premio", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "premio.html"));
+});
+app.get("/recuperar-validar", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "recuperar-validar.html"));
+});
 // ============================
 // LOGIN CON GOOGLE
 // ============================
