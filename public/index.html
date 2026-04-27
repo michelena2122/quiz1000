@@ -226,12 +226,35 @@
         }
 
         if (tipo === "folio") {
-            const folioActual = localStorage.getItem("folioTableroActual");
+            const jugador = JSON.parse(localStorage.getItem("jugadorActual") || "null")
+                         || JSON.parse(localStorage.getItem("usuarioLogueado") || "null");
 
-            html = `
-                <b>Recuperar folio</b><br><br>
-                ${folioActual ? "Tu folio actual es: <b>" + folioActual + "</b>" : "No tienes un folio activo en este momento."}
-            `;
+            if(!jugador || !jugador.id){
+                contenedor.innerHTML = "<b>Recuperar folio</b><br><br>No tienes sesión activa.";
+                return;
+            }
+
+            contenedor.innerHTML = "<b>Recuperar folio</b><br><br>⏳ Cargando tus tableros...";
+
+            fetch(`/api/mis-tableros/${jugador.id}`)
+                .then(res => res.json())
+                .then(data => {
+                    if(!data.ok || !data.tableros || Object.keys(data.tableros).length === 0){
+                        contenedor.innerHTML = "<b>Recuperar folio</b><br><br>No tienes tableros activos en este momento.";
+                        return;
+                    }
+                    const folios = Object.keys(data.tableros);
+                    let resultado = "<b>Tus tableros:</b><br><br>";
+                    folios.forEach(folio => {
+                        const compras = data.tableros[folio];
+                        resultado += `📋 Folio: <b>${folio}</b> — ${compras.length} casilla${compras.length !== 1 ? "s" : ""} pagada${compras.length !== 1 ? "s" : ""}<br>`;
+                    });
+                    contenedor.innerHTML = resultado;
+                })
+                .catch(() => {
+                    contenedor.innerHTML = "<b>Recuperar folio</b><br><br>Error cargando tableros. Intenta de nuevo.";
+                });
+            return;
         }
 
         contenedor.innerHTML = html;
