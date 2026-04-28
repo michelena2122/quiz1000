@@ -1,7 +1,6 @@
 const express = require("express");
 const rateLimit = require("express-rate-limit");
 const nodemailer = require("nodemailer");
-const rateLimit = require("express-rate-limit");
 const cors = require("cors");
 const path = require("path");
 const fs = require("fs");
