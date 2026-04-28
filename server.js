@@ -4980,6 +4980,90 @@ app.post("/api/premio/solicitud", uploadPremio.single("archivoDocumentoPremio"),
     });
 
 });
+// ── EXPORTACIÓN Y LIMPIEZA DE DB ──
+app.get('/api/admin/exportar-ganadores', verificarAdmin, (req, res) => {
+    db.all(`
+        SELECT rt.*, sp.banco, sp.cuenta, sp.clabe, sp.nombreCompleto,
+               sp.email, sp.telefono, sp.estatus as estatusPago, sp.fechaSolicitud
+        FROM rankings_tableros rt
+        LEFT JOIN solicitudes_premio sp ON rt.tableroId = sp.tableroId
+        ORDER BY rt.fechaCierre DESC
+    `, [], (err, rows) => {
+        if(err) return res.json({ ok: false, error: err.message });
+        res.setHeader('Content-Disposition', 'attachment; filename=ganadores_quiz1000.json');
+        res.setHeader('Content-Type', 'application/json');
+        res.send(JSON.stringify({ exportado: new Date().toISOString(), total: rows.length, ganadores: rows }, null, 2));
+    });
+});
+
+app.get('/api/admin/exportar-tableros-completos', verificarAdmin, (req, res) => {
+    db.all(`SELECT * FROM tableros WHERE completo = 1 ORDER BY id DESC`, [], (err, tableros) => {
+        if(err) return res.json({ ok: false, error: err.message });
+        if(!tableros || tableros.length === 0){
+            res.setHeader('Content-Disposition', 'attachment; filename=tableros_completos_quiz1000.json');
+            res.setHeader('Content-Type', 'application/json');
+            return res.send(JSON.stringify({ exportado: new Date().toISOString(), total: 0, tableros: [] }, null, 2));
+        }
+        const ids = tableros.map(t => t.id);
+        const placeholders = ids.map(() => '?').join(',');
+        db.all(`SELECT * FROM casillas WHERE tableroId IN (${placeholders}) ORDER BY tableroId, numero ASC`, ids, (errC, casillas) => {
+            const casillasPorTablero = {};
+            (casillas || []).forEach(c => {
+                if(!casillasPorTablero[c.tableroId]) casillasPorTablero[c.tableroId] = [];
+                casillasPorTablero[c.tableroId].push(c);
+            });
+            const resultado = tableros.map(t => ({ ...t, casillas: casillasPorTablero[t.id] || [] }));
+            res.setHeader('Content-Disposition', 'attachment; filename=tableros_completos_quiz1000.json');
+            res.setHeader('Content-Type', 'application/json');
+            res.send(JSON.stringify({ exportado: new Date().toISOString(), total: resultado.length, tableros: resultado }, null, 2));
+        });
+    });
+});
+
+app.get('/api/admin/exportar-reembolsados', verificarAdmin, (req, res) => {
+    db.all(`SELECT * FROM tableros WHERE estatus = 'reembolsado' ORDER BY id DESC`, [], (err, tableros) => {
+        if(err) return res.json({ ok: false, error: err.message });
+        if(!tableros || tableros.length === 0){
+            res.setHeader('Content-Disposition', 'attachment; filename=tableros_reembolsados_quiz1000.json');
+            res.setHeader('Content-Type', 'application/json');
+            return res.send(JSON.stringify({ exportado: new Date().toISOString(), total: 0, tableros: [] }, null, 2));
+        }
+        const ids = tableros.map(t => t.id);
+        const placeholders = ids.map(() => '?').join(',');
+        db.all(`SELECT * FROM pagos_mp WHERE tableroId IN (${placeholders}) ORDER BY tableroId`, ids, (errP, pagos) => {
+            const pagosPorTablero = {};
+            (pagos || []).forEach(p => {
+                if(!pagosPorTablero[p.tableroId]) pagosPorTablero[p.tableroId] = [];
+                pagosPorTablero[p.tableroId].push(p);
+            });
+            const resultado = tableros.map(t => ({ ...t, pagos: pagosPorTablero[t.id] || [] }));
+            res.setHeader('Content-Disposition', 'attachment; filename=tableros_reembolsados_quiz1000.json');
+            res.setHeader('Content-Type', 'application/json');
+            res.send(JSON.stringify({ exportado: new Date().toISOString(), total: resultado.length, tableros: resultado }, null, 2));
+        });
+    });
+});
+
+app.post('/api/admin/limpiar-db-antigua', verificarAdmin, (req, res) => {
+    const mesesAtras = 6;
+    const limite = Date.now() - (mesesAtras * 30 * 24 * 60 * 60 * 1000);
+
+    db.run(`DELETE FROM casillas WHERE tableroId IN (
+        SELECT id FROM tableros WHERE completo = 1 AND fechaCreacion < ?
+    )`, [limite], function(err1) {
+        db.run(`DELETE FROM pagos_mp WHERE tableroId IN (
+            SELECT id FROM tableros WHERE estatus = 'reembolsado' AND fechaCreacion < ?
+        )`, [limite], function(err2) {
+            db.run(`DELETE FROM tableros WHERE (completo = 1 OR estatus = 'reembolsado') AND fechaCreacion < ?`,
+            [limite], function(err3) {
+                if(err1 || err2 || err3){
+                    return res.json({ ok: false, error: 'Error en limpieza' });
+                }
+                res.json({ ok: true, mensaje: `Limpieza completada. Registros anteriores a ${mesesAtras} meses eliminados.` });
+            });
+        });
+    });
+});
 // ── BUSCADOR DE JUGADORES ──
 app.get('/api/admin/buscar-jugador', verificarAdmin, (req, res) => {
     const q = (req.query.q || '').trim();
