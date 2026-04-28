@@ -150,6 +150,19 @@ button:hover{
 <h2>💰 Solicitudes de Premio</h2>
 <div id="tablaPremios"></div>
 <div class="bloque-admin" style="margin-top:40px;">
+    <h2>🔍 Buscador de jugadores</h2>
+    <p style="color:#ccc;font-size:13px;margin-bottom:12px;">Busca por nombre, apellido o email.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <input id="inputBuscarJugador" type="text" placeholder="ej: juan o juan@mail.com"
+               style="flex:1;min-width:200px;padding:10px;border-radius:8px;border:none;font-size:15px;">
+        <button onclick="buscarJugador()"
+                style="padding:10px 20px;border-radius:8px;background:#1a56db;color:#fff;border:none;font-weight:bold;cursor:pointer;">
+            Buscar
+        </button>
+    </div>
+    <div id="resultadoBusquedaJugador" style="margin-top:16px;"></div>
+</div>
+<div class="bloque-admin" style="margin-top:40px;">
     <h2>🧹 Limpiar tableros de prueba</h2>
     <p style="color:#ccc;font-size:13px;margin-bottom:12px;">Elimina tableros sin casillas pagadas. No afecta tableros con jugadores reales.</p>
     <button onclick="limpiarTablerosPrueba()">Limpiar tableros vacíos</button>
