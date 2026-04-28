@@ -1,4 +1,5 @@
 const express = require("express");
+const rateLimit = require("express-rate-limit");
 const nodemailer = require("nodemailer");
 const rateLimit = require("express-rate-limit");
 const cors = require("cors");
@@ -91,6 +92,32 @@ function verificarAdmin(req, res, next) {
     next();
 }
 app.use(express.json());
+// ── RATE LIMITING ──
+const limitGeneral = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutos
+    max: 200,
+    message: { ok: false, mensaje: "Demasiadas peticiones. Intenta en 15 minutos." },
+    standardHeaders: true,
+    legacyHeaders: false
+});
+
+const limitLogin = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    message: { ok: false, mensaje: "Demasiados intentos de login. Intenta en 15 minutos." }
+});
+
+const limitPagos = rateLimit({
+    windowMs: 60 * 1000, // 1 minuto
+    max: 15,
+    message: { ok: false, mensaje: "Demasiadas peticiones de pago. Espera un momento." }
+});
+
+app.use("/api/", limitGeneral);
+app.use("/login", limitLogin);
+app.use("/registro", limitLogin);
+app.use("/api/pago", limitPagos);
+app.use("/api/premio/solicitud", limitPagos);
 app.use(express.static("public"));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
