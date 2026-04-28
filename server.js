@@ -2071,13 +2071,43 @@ app.get("/admin/tablero", verificarAdmin, (req, res) => {
 
         const data = fs.readFileSync(filePath, "utf8");
         const tablero = JSON.parse(data);
+        const casillas = tablero.casillas || [];
 
-        res.json({
-            completo: tablero.completo || false,
-            ocupadas: tablero.casillas.length,
-            restantes: 50 - tablero.casillas.length,
-            casillas: tablero.casillas
-        });
+        // Obtener jugadorIds únicos para cruzar con usuarios
+        const ids = [...new Set(casillas.map(c => c.jugador).filter(Boolean))];
+
+        if(ids.length === 0){
+            return res.json({
+                completo: tablero.completo || false,
+                ocupadas: casillas.length,
+                restantes: 50 - casillas.length,
+                casillas
+            });
+        }
+
+        const placeholders = ids.map(() => "?").join(",");
+        db.all(
+            `SELECT id, email FROM usuarios WHERE id IN (${placeholders})`,
+            ids,
+            (err, usuarios) => {
+                const emailMap = {};
+                (usuarios || []).forEach(u => { emailMap[u.id] = u.email; });
+
+                const casillasEnriquecidas = casillas.map(c => ({
+                    ...c,
+                    email: (c.email && c.email !== "pendiente")
+                        ? c.email
+                        : (emailMap[c.jugador] || c.email || "pendiente")
+                }));
+
+                res.json({
+                    completo: tablero.completo || false,
+                    ocupadas: casillasEnriquecidas.length,
+                    restantes: 50 - casillasEnriquecidas.length,
+                    casillas: casillasEnriquecidas
+                });
+            }
+        );
 
     } catch (error) {
 
