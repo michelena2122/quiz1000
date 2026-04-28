@@ -304,6 +304,73 @@ async function guardarPreguntas() {
 if(btnCargarPreguntas) btnCargarPreguntas.addEventListener("click", cargarPreguntas);
 if(btnOcultarPreguntas) btnOcultarPreguntas.addEventListener("click", ocultarPreguntas);
 if(btnGuardarPreguntas) btnGuardarPreguntas.addEventListener("click", guardarPreguntas);
+
+// ── BUSCADOR DE JUGADORES ──
+async function buscarJugador() {
+    const q = document.getElementById("inputBuscarJugador").value.trim();
+    const contenedor = document.getElementById("resultadoBusquedaJugador");
+    if(!q){ contenedor.innerHTML = "<p style='color:#ff9800;'>Escribe un nombre o email para buscar.</p>"; return; }
+
+    contenedor.innerHTML = "<p style='color:#aaa;'>Buscando...</p>";
+
+    try {
+        const res = await adminFetch(`/api/admin/buscar-jugador?q=${encodeURIComponent(q)}`);
+        const data = await res.json();
+
+        if(!data.ok){ contenedor.innerHTML = `<p style='color:red;'>${data.mensaje || 'Error en búsqueda'}</p>`; return; }
+        if(!data.jugadores || data.jugadores.length === 0){
+            contenedor.innerHTML = "<p style='color:#aaa;'>No se encontraron jugadores.</p>"; return;
+        }
+
+        contenedor.innerHTML = data.jugadores.map((j, idx) => {
+            const tableros = Object.keys(j.tableros);
+            const tablerosHtml = tableros.length === 0 ? "<p style='color:#888;margin:6px 0;'>Sin tableros registrados.</p>" :
+                tableros.map(folio => {
+                    const casillas = j.tableros[folio];
+                    const listaCasillas = casillas.map(c =>
+                        `<span style='display:inline-block;background:#0d2a7a;color:#fff;padding:2px 8px;border-radius:6px;margin:2px;font-size:12px;'>
+                            Casilla ${esc(c.casilla)} — ${esc(c.tiempo || 'Sin tiempo')}
+                        </span>`
+                    ).join("");
+                    return `<div style='margin:8px 0;'>
+                        <b style='color:#ffd700;'>Folio: ${esc(folio)}</b> — ${casillas.length} casilla(s)<br>
+                        <div style='margin-top:4px;'>${listaCasillas}</div>
+                    </div>`;
+                }).join("");
+
+            return `<div style='background:#161616;border:1px solid #333;border-radius:12px;padding:16px;margin-bottom:14px;'>
+                <div style='display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;'>
+                    <span style='color:#ffd700;font-weight:bold;font-size:16px;'>👤 ${esc(j.nombre)} ${esc(j.apellidos || '')}</span>
+                    <span style='color:#888;font-size:12px;'>ID: ${esc(j.id)}</span>
+                </div>
+                <div style='color:#ccc;font-size:13px;line-height:1.9;'>
+                    <div>📧 <b>Email:</b> ${esc(j.email)}</div>
+                    <div>📱 <b>Teléfono:</b> ${esc(j.telefono || 'No registrado')}</div>
+                    <div>🎂 <b>Edad:</b> ${esc(j.edad || 'No registrada')}</div>
+                    <div>🔑 <b>Contraseña:</b> <span style='font-family:monospace;font-size:11px;color:#aaa;'>${esc(j.password || 'OAuth/Sin contraseña')}</span></div>
+                </div>
+                <div style='margin-top:12px;border-top:1px solid #333;padding-top:10px;'>
+                    <b style='color:#00ffcc;'>Tableros jugados (${tableros.length}):</b>
+                    <div style='margin-top:6px;'>${tablerosHtml}</div>
+                </div>
+            </div>`;
+        }).join("");
+
+    } catch(e) {
+        contenedor.innerHTML = "<p style='color:red;'>Error de conexión.</p>";
+    }
+}
+
+// Buscar con Enter
+document.addEventListener("DOMContentLoaded", function(){
+    const inputBuscar = document.getElementById("inputBuscarJugador");
+    if(inputBuscar){
+        inputBuscar.addEventListener("keydown", function(e){
+            if(e.key === "Enter") buscarJugador();
+        });
+    }
+});
+
 async function limpiarTablerosPrueba() {
     if (!confirm("¿Eliminar todos los tableros sin casillas pagadas? Esta acción no se puede deshacer.")) return;
     const res = await adminFetch("/api/admin/limpiar-tableros-prueba", { method: "POST" });

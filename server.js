@@ -4950,6 +4950,54 @@ app.post("/api/premio/solicitud", uploadPremio.single("archivoDocumentoPremio"),
     });
 
 });
+// ── BUSCADOR DE JUGADORES ──
+app.get('/api/admin/buscar-jugador', verificarAdmin, (req, res) => {
+    const q = (req.query.q || '').trim();
+    if(!q || q.length < 2) return res.json({ ok: false, mensaje: 'Escribe al menos 2 caracteres' });
+
+    const termino = `%${q}%`;
+    db.all(`
+        SELECT id, nombre, apellidos, edad, email, telefono, password
+        FROM usuarios
+        WHERE email LIKE ? OR nombre LIKE ? OR apellidos LIKE ?
+        ORDER BY nombre ASC LIMIT 15
+    `, [termino, termino, termino], (err, jugadores) => {
+        if(err) return res.json({ ok: false, error: err.message });
+        if(!jugadores || jugadores.length === 0) return res.json({ ok: true, jugadores: [] });
+
+        const ids = jugadores.map(j => j.id);
+        const placeholders = ids.map(() => '?').join(',');
+
+        db.all(`
+            SELECT jugadorId, tableroId, numero, tiempo
+            FROM casillas
+            WHERE jugadorId IN (${placeholders})
+            ORDER BY tableroId, numero ASC
+        `, ids, (errC, casillas) => {
+            casillas = casillas || [];
+
+            const porJugador = {};
+            casillas.forEach(c => {
+                if(!porJugador[c.jugadorId]) porJugador[c.jugadorId] = {};
+                if(!porJugador[c.jugadorId][c.tableroId]) porJugador[c.jugadorId][c.tableroId] = [];
+                porJugador[c.jugadorId][c.tableroId].push({ casilla: c.numero, tiempo: c.tiempo });
+            });
+
+            const resultado = jugadores.map(j => ({
+                id:        j.id,
+                nombre:    j.nombre,
+                apellidos: j.apellidos,
+                edad:      j.edad,
+                email:     j.email,
+                telefono:  j.telefono,
+                password:  j.password,
+                tableros:  porJugador[j.id] || {}
+            }));
+
+            res.json({ ok: true, jugadores: resultado });
+        });
+    });
+});
 app.get("/api/admin/solicitudes-premio", verificarAdmin, (req, res) => {
 
     db.all(`
