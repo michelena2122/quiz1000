@@ -190,6 +190,23 @@ footer{
 <a href="index" class="home-icon">
     <img src="./assets/images/home-icon.png" alt="Home">
 </a>
+<div style="text-align:center; padding:16px 0 8px; display:flex; justify-content:center; gap:24px; align-items:center;">
+    <a href="https://instagram.com/quiz1000game" target="_blank" rel="noopener" title="Instagram"
+       style="color:#E1306C; font-size:30px; text-decoration:none; transition:opacity 0.2s;"
+       onmouseover="this.style.opacity='0.75'" onmouseout="this.style.opacity='1'">
+        <i class="fab fa-instagram"></i>
+    </a>
+    <a href="https://facebook.com/quiz1000" target="_blank" rel="noopener" title="Facebook"
+       style="color:#1877F2; font-size:30px; text-decoration:none; transition:opacity 0.2s;"
+       onmouseover="this.style.opacity='0.75'" onmouseout="this.style.opacity='1'">
+        <i class="fab fa-facebook"></i>
+    </a>
+    <a href="https://www.tiktok.com/@quiz1000game" target="_blank" rel="noopener" title="TikTok"
+       style="color:#ffffff; font-size:30px; text-decoration:none; transition:opacity 0.2s;"
+       onmouseover="this.style.opacity='0.75'" onmouseout="this.style.opacity='1'">
+        <i class="fab fa-tiktok"></i>
+    </a>
+</div>
 <footer>
 © 2026 Quiz1000 LLC.<br>
 All rights reserved. QUIZ1000 is a trademark of Quiz1000 LLC.<br>
@@ -283,7 +300,7 @@ document.addEventListener("DOMContentLoaded", function(){
 
                 const linkTablero = `${window.location.origin}/tablero?folio=${encodeURIComponent(folio)}`;
                 const mensajeWhatsapp = encodeURIComponent(
-                    `Estoy jugando este tablero de QUIZ1000. ¡Entra y participa! ${linkTablero}`
+                    `Descubrí este juego en donde puedes ganarte mil dólares! existe mucha probabilidad y la inversión es muy baja, ¡hay que completar un tablero de 50 números!. ¡Entra y participa! ${linkTablero}`
                 );
                 const whatsappUrl = `https://wa.me/?text=${mensajeWhatsapp}`;
 
