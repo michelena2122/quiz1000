@@ -92,6 +92,7 @@ function verificarAdmin(req, res, next) {
     next();
 }
 app.use(express.json());
+app.set("trust proxy", 1); // Render.com usa proxy inverso
 // ── RATE LIMITING ──
 const limitGeneral = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutos
