@@ -5365,6 +5365,7 @@ app.get('/api/notificaciones-tablero', async (req, res) => {
           FROM casillas c
           LEFT JOIN usuarios u ON u.id = c.jugador
           WHERE c.tableroId = ? AND c.estado = 'pagada'
+          AND c.email != 'pendiente' AND c.email LIKE '%@%'
           GROUP BY c.jugador
         `, [tablero.id], (err, rows) => {
           if (err) reject(err);
