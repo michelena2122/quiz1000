@@ -5323,7 +5323,86 @@ app.get("/api/debug-usuarios-schema", (req, res) => {
         res.json({ ok: true, columnas: cols.map(c => c.name) });
     });
 });
+// ─── ENDPOINT: Notificaciones diarias de tableros activos ───────────────────
+app.get('/api/notificaciones-tablero', async (req, res) => {
+  const secret = req.query.secret;
+  if (secret !== process.env.CRON_SECRET) {
+    return res.status(401).json({ ok: false, error: 'No autorizado' });
+  }
 
+  const { enviarNotificacionDias } = require('./mailer');
+  const ahora = Date.now();
+  const DIEZ_DIAS_MS = 10 * 24 * 60 * 60 * 1000;
+
+  try {
+    // Obtener tableros activos con fechaApertura
+    const tableros = await new Promise((resolve, reject) => {
+      db.all(`
+        SELECT id, fechaApertura FROM tableros 
+        WHERE completo = 0 AND fechaApertura IS NOT NULL
+      `, [], (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows || []);
+      });
+    });
+
+    const resultados = [];
+
+    for (const tablero of tableros) {
+      const fechaCierre = tablero.fechaApertura + DIEZ_DIAS_MS;
+      const msRestantes = fechaCierre - ahora;
+      const diasRestantes = Math.ceil(msRestantes / (24 * 60 * 60 * 1000));
+
+      // Solo notificar en días 9, 7, 5, 3, 2, 1
+      if (![9, 7, 5, 3, 2, 1].includes(diasRestantes)) continue;
+      if (msRestantes <= 0) continue;
+
+      // Obtener jugadores con casillas pagadas en este tablero
+      const jugadores = await new Promise((resolve, reject) => {
+        db.all(`
+          SELECT DISTINCT c.jugador, c.email, u.nombre,
+            COUNT(c.id) as casillasJugadas
+          FROM casillas c
+          LEFT JOIN usuarios u ON u.id = c.jugador
+          WHERE c.tableroId = ? AND c.estado = 'pagada'
+          GROUP BY c.jugador
+        `, [tablero.id], (err, rows) => {
+          if (err) reject(err);
+          else resolve(rows || []);
+        });
+      });
+
+      const casillasRestantes = 50 - jugadores.reduce((sum, j) => sum + j.casillasJugadas, 0);
+
+      for (const jugador of jugadores) {
+        if (!jugador.email) continue;
+
+        const resultado = await enviarNotificacionDias({
+          email: jugador.email,
+          nombre: jugador.nombre || 'Jugador',
+          diasRestantes,
+          casillasJugadas: jugador.casillasJugadas,
+          casillasRestantes: Math.max(0, casillasRestantes),
+          folio: tablero.id
+        });
+
+        resultados.push({
+          tablero: tablero.id,
+          email: jugador.email,
+          diasRestantes,
+          ...resultado
+        });
+      }
+    }
+
+    console.log(`📧 Notificaciones enviadas: ${resultados.filter(r => r.ok).length}/${resultados.length}`);
+    return res.json({ ok: true, total: resultados.length, resultados });
+
+  } catch (err) {
+    console.error('❌ Error en notificaciones-tablero:', err.message);
+    return res.status(500).json({ ok: false, error: err.message });
+  }
+});
 app.listen(PORT, "0.0.0.0", () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
 
