@@ -348,12 +348,12 @@ console.log("%cQUIZ1000 nunca te pedirá ejecutar código aquí.", "color:#fffff
   var audio = document.getElementById('audioCarrito');
   if(!audio) return;
   audio.volume = 0.4;
-  function play(){ audio.play().catch(function(){}); }
   document.addEventListener('DOMContentLoaded', function(){
     audio.load();
-    audio.play().catch(function(){
-      document.addEventListener('pointerdown', play, { once: true });
-    });
+    if(localStorage.getItem('reproducirAudioCarrito') === 'si'){
+      localStorage.removeItem('reproducirAudioCarrito');
+      audio.play().catch(function(){});
+    }
   });
 })();
 </script>

@@ -635,6 +635,7 @@ fetch("/api/pregunta/" + cell.dataset.id)
 
    boton.onclick = () => {
 
+    localStorage.setItem('reproducirAudioCarrito', 'si');
     clearInterval(intervalo);
 
     const respuestaUsuario = Number(input.value);
