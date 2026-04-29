@@ -318,7 +318,7 @@ body.pago .probabilidad-box p.nota-tipo-cambio-pago{
 
 
     <button id="btnPagarTodo" class="pagarBtn" style="display:block; width:fit-content; margin:15px auto 0; padding:12px 22px;">
-    CONTINUAR
+    ¡VOY POR MIS 1,000 USD!
 </button>
 
 <div class="probabilidad-box">
@@ -627,81 +627,6 @@ renderPagos();
 console.log("%c⛔ ZONA RESTRINGIDA", "color:#ff0000;font-size:28px;font-weight:bold;");
 console.log("%cSi alguien te pidió abrir esto, te están intentando estafar.", "color:#ff9800;font-size:14px;");
 console.log("%cQUIZ1000 nunca te pedirá ejecutar código aquí.", "color:#ffffff;font-size:14px;");
-</script>
-<!-- POPUP PROGRAMA DE REFERIDOS -->
-<div id="popupReferidos" style="display:none;
-  position:fixed;top:0;left:0;width:100%;height:100%;
-  background:rgba(0,0,0,0.88);z-index:99999;
-  align-items:center;justify-content:center;flex-direction:column;">
-  <img src="/assets/images/popup1.png" style="max-width:92%;max-height:78vh;border-radius:16px;">
-  <div style="width:80%;max-width:400px;height:8px;background:#333;border-radius:4px;margin-top:18px;overflow:hidden;">
-    <div id="popupBarra" style="height:100%;width:100%;background:#00ff88;border-radius:4px;"></div>
-  </div>
-  <p id="popupTexto" style="color:#aaa;font-size:13px;margin-top:10px;"></p>
-</div>
-
-<audio id="audioPopup" src="/assets/audio/audio_pago.mp3" preload="auto"></audio>
-
-<script>
-(function(){
-  if(sessionStorage.getItem('popupReferidosMostrado') === 'si') return;
-// Precargar imagen
-  // Precargar imagen
-  var imgPreload = new Image();
-  imgPreload.src = '/assets/images/popup1.png';
-
-  var audio = document.getElementById('audioPopup');
-  audio.load();
-
-  function mostrarPopup(){
-    var popup = document.getElementById('popupReferidos');
-    var audio = document.getElementById('audioPopup');
-    var barra = document.getElementById('popupBarra');
-    var texto = document.getElementById('popupTexto');
-
-    popup.style.display = 'flex';
-    audio.volume = 0.5;
-    audio.load();
-
-    function intentarAudio(){
-      audio.play().catch(function(){});
-    }
-
-    document.addEventListener('pointerdown', intentarAudio, { once: true });
-    setTimeout(function(){ intentarAudio(); }, 500);
-
-    sessionStorage.setItem('popupReferidosMostrado', 'si');
-
-    // Duración del audio
-    audio.addEventListener('loadedmetadata', function(){
-      var dur = Math.round(audio.duration);
-      texto.textContent = 'Cerrando en ' + dur + ' segundos...';
-      barra.style.transition = 'width ' + dur + 's linear';
-      setTimeout(function(){ barra.style.width = '0%'; }, 100);
-
-      var seg = dur;
-      var timer = setInterval(function(){
-        seg--;
-        texto.textContent = 'Cerrando en ' + seg + ' segundos...';
-        if(seg <= 0) clearInterval(timer);
-      }, 1000);
-
-      setTimeout(function(){
-        popup.style.display = 'none';
-      }, dur * 1000);
-    });
-
-    // Por si loadedmetadata ya pasó
-    if(audio.readyState >= 1){
-      audio.dispatchEvent(new Event('loadedmetadata'));
-    }
-
-  }
-
-  document.addEventListener('pointerdown', function(){
-    setTimeout(mostrarPopup, 300);
-  }, { once: true });
-  })();
 </script>
 
 </body>
