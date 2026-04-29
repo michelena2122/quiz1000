@@ -195,7 +195,7 @@ y aumentar mi posibilidad de ganar 1,000 USD
        onmouseover="this.style.opacity='0.75'" onmouseout="this.style.opacity='1'">
         <i class="fab fa-instagram"></i>
     </a>
-    <a href="https://facebook.com/quiz1000" target="_blank" rel="noopener" title="Facebook"
+    <a href="https://www.facebook.com/profile.php?id=61579571397153&ref=1" target="_blank" rel="noopener" title="Facebook"
        style="color:#1877F2; font-size:30px; text-decoration:none; transition:opacity 0.2s;"
        onmouseover="this.style.opacity='0.75'" onmouseout="this.style.opacity='1'">
         <i class="fab fa-facebook"></i>
@@ -342,7 +342,21 @@ console.log("%c⛔ ZONA RESTRINGIDA", "color:#ff0000;font-size:28px;font-weight:
 console.log("%cSi alguien te pidió abrir esto, te están intentando estafar.", "color:#ff9800;font-size:14px;");
 console.log("%cQUIZ1000 nunca te pedirá ejecutar código aquí.", "color:#ffffff;font-size:14px;");
 </script>
-
+<audio id="audioCarrito" src="/assets/audio/audio_carrito.mp3" preload="auto"></audio>
+<script>
+(function(){
+  var audio = document.getElementById('audioCarrito');
+  if(!audio) return;
+  audio.volume = 0.4;
+  function play(){ audio.play().catch(function(){}); }
+  document.addEventListener('DOMContentLoaded', function(){
+    audio.load();
+    audio.play().catch(function(){
+      document.addEventListener('pointerdown', play, { once: true });
+    });
+  });
+})();
+</script>
 </body>
 </html>
 
