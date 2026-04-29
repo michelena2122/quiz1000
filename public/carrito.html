@@ -348,13 +348,16 @@ console.log("%cQUIZ1000 nunca te pedirá ejecutar código aquí.", "color:#fffff
   var audio = document.getElementById('audioCarrito');
   if(!audio) return;
   audio.volume = 0.4;
+
   document.addEventListener('DOMContentLoaded', function(){
     audio.load();
-    if(localStorage.getItem('reproducirAudioCarrito') === 'si'){
-      localStorage.removeItem('reproducirAudioCarrito');
-      audio.play().catch(function(){});
-    }
   });
+
+  function reproducirAudioCarrito(){
+    audio.play().catch(function(){});
+  }
+
+  document.addEventListener('pointerdown', reproducirAudioCarrito, { once: true });
 })();
 </script>
 </body>
