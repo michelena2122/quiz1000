@@ -50,42 +50,7 @@ EL PREMIO SE PAGA HASTA QUE SE COMPLETA EL TABLERO,<br>
 </div>
 
 </div>
-<!-- BOTON COMPARTIR WHATSAPP -->
-<div id="btn-compartir-wrapper" style="
-  width:90%;
-  max-width:600px;
-  margin:10px auto;
-  text-align:center;
-">
-  <a id="btn-compartir-wa" href="#" target="_blank" style="
-    display:inline-block;
-    background:#25D366;
-    color:#fff;
-    font-weight:800;
-    font-size:14px;
-    padding:12px 24px;
-    border-radius:10px;
-    text-decoration:none;
-    letter-spacing:1px;
-  ">📲 COMPARTIR Y GANAR DÉCIMAS</a>
-</div>
-<script>
-(function(){
-  function generarLinkWA(){
-    const jugador = JSON.parse(localStorage.getItem('jugadorActual') || 'null');
-    const folioEl = document.getElementById('folio');
-    const folio = folioEl ? folioEl.textContent.trim() : '';
-    const jugadorId = jugador ? (jugador.id || '') : '';
-    const link = 'https://quiz1000.llc/portada?ref=' + jugadorId + '&folio=' + folio;
-    const texto = '¡Juega Quiz1000 y gana 1,000 USD! El que contesta más rápido gana. Entra aquí: ' + link;
-    const btnWA = document.getElementById('btn-compartir-wa');
-    if(btnWA) btnWA.href = 'https://wa.me/?text=' + encodeURIComponent(texto);
-  }
-  document.addEventListener('DOMContentLoaded', function(){
-    setTimeout(generarLinkWA, 1500);
-  });
-})();
-</script>
+
 <!-- BANNER JUGADORES EN VIVO -->
 <div id="banner-jugadores" style="
   width:90%;

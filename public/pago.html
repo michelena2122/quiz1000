@@ -628,6 +628,29 @@ console.log("%c⛔ ZONA RESTRINGIDA", "color:#ff0000;font-size:28px;font-weight:
 console.log("%cSi alguien te pidió abrir esto, te están intentando estafar.", "color:#ff9800;font-size:14px;");
 console.log("%cQUIZ1000 nunca te pedirá ejecutar código aquí.", "color:#ffffff;font-size:14px;");
 </script>
+<!-- BOTON COMPARTIR WHATSAPP -->
+<div style="width:90%;max-width:500px;margin:16px auto;text-align:center;">
+  <p style="color:#003366;font-size:13px;margin:0 0 8px;font-weight:600;">
+    🎁 ¡Comparte y gana décimas de segundo en tu tiempo!
+  </p>
+  <a id="btn-wa-pago" href="#" target="_blank" style="
+    display:inline-block;background:#25D366;color:#fff;
+    font-weight:800;font-size:14px;padding:12px 24px;
+    border-radius:10px;text-decoration:none;letter-spacing:1px;width:80%;
+  ">📲 COMPARTIR Y GANAR DÉCIMAS</a>
+</div>
+<script>
+(function(){
+  const jugador = JSON.parse(localStorage.getItem('jugadorActual') || 'null');
+  const folio = new URLSearchParams(window.location.search).get('folio')
+             || localStorage.getItem('folioTableroActual') || '';
+  const jugadorId = jugador ? (jugador.id || '') : '';
+  const link = 'https://quiz1000.llc/portada?ref=' + jugadorId;
+  const texto = '¡Juega Quiz1000 y gana 1,000 USD! El que contesta más rápido gana. Entra aquí: ' + link;
+  const btn = document.getElementById('btn-wa-pago');
+  if(btn) btn.href = 'https://wa.me/?text=' + encodeURIComponent(texto);
+})();
+</script>
 
 </body>
 </html>
