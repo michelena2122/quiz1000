@@ -318,7 +318,8 @@ pagarBtn.addEventListener("click", async function () {
         password,
         folioTablero,
         numeroComprado: numero,
-        mejorTiempoGlobal: null
+        mejorTiempoGlobal: null,
+        referidoPor: localStorage.getItem('referidoPor') || null
     };
 
     localStorage.setItem("registroPendiente", JSON.stringify(jugadorData));

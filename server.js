@@ -1608,7 +1608,8 @@ email,
 password,
 numeroComprado,
 folioTablero,
-aceptaCorreos
+aceptaCorreos,
+referidoPor
 } = req.body;
 
 console.log("BODY /registro:", req.body);
@@ -1639,7 +1640,8 @@ hash,
 numeroComprado,
 folioTablero,
 null,
-aceptaCorreos ?? 1
+aceptaCorreos ?? 1,
+referidoPor || null
 ],
 
 function(err){
@@ -4056,7 +4058,94 @@ function(err){
             console.log("❌ Error al revisar cierre tras pago:", error.message);
         }
     }, 1200);
+// ============================
+    // SISTEMA DE REFERIDOS
+    // ============================
+    if(jugadorId){
+        db.get(`SELECT referidoPor FROM usuarios WHERE id = ?`, [jugadorId], (errRef, usuarioRef) => {
+            if(errRef || !usuarioRef || !usuarioRef.referidoPor) return;
 
+            const referidorId = usuarioRef.referidoPor;
+            console.log(`🤝 Referido detectado: ${jugadorId} fue referido por ${referidorId}`);
+
+            // Registrar en tabla referidos
+            casillas.forEach(casilla => {
+                db.run(`INSERT INTO referidos (referidorId, referidoId, tableroId, casilla, fecha)
+                        VALUES (?,?,?,?,?)`,
+                    [referidorId, jugadorId, folio, casilla, Date.now()],
+                    (errIns) => {
+                        if(errIns) console.log("❌ Error insertando referido:", errIns.message);
+                        else console.log(`✅ Referido registrado: ${referidorId} → ${jugadorId} casilla ${casilla}`);
+                    }
+                );
+            });
+
+            // Contar referidos pagados del referidor
+            db.get(`SELECT COUNT(DISTINCT referidoId) as total FROM referidos WHERE referidorId = ?`,
+                [referidorId],
+                (errCount, rowCount) => {
+                    if(errCount || !rowCount) return;
+                    const totalReferidos = rowCount.total;
+                    console.log(`📊 Total referidos de ${referidorId}: ${totalReferidos}`);
+
+                    // Tabla de descuentos en segundos
+                    const tablaDescuentos = [
+                        { min:5,  max:9,  descuento:0.05 },
+                        { min:10, max:14, descuento:0.10 },
+                        { min:15, max:19, descuento:0.18 },
+                        { min:20, max:24, descuento:0.25 },
+                        { min:25, max:29, descuento:0.33 },
+                        { min:30, max:34, descuento:0.42 },
+                        { min:35, max:39, descuento:0.52 },
+                        { min:40, max:44, descuento:0.63 },
+                        { min:45, max:48, descuento:0.75 },
+                        { min:49, max:999, descuento:0.85 }
+                    ];
+
+                    const nivel = tablaDescuentos.find(n => totalReferidos >= n.min && totalReferidos <= n.max);
+                    if(!nivel) return;
+
+                    // Obtener mejor tiempo del referidor
+                    db.get(`SELECT mejorTiempoGlobal FROM usuarios WHERE id = ?`,
+                        [referidorId],
+                        (errT, rowT) => {
+                            if(errT || !rowT || !rowT.mejorTiempoGlobal) return;
+
+                            // Convertir tiempo HH:MM:SS:CC a centésimas
+                            function tiempoACentesimas(t){
+                                if(!t) return null;
+                                const p = t.split(':').map(Number);
+                                if(p.length < 4) return null;
+                                return p[0]*360000 + p[1]*6000 + p[2]*100 + p[3];
+                            }
+
+                            function centesimasATiempo(c){
+                                const hh = Math.floor(c/360000); c %= 360000;
+                                const mm = Math.floor(c/6000);   c %= 6000;
+                                const ss = Math.floor(c/100);    c %= 100;
+                                return `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}:${String(c).padStart(2,'0')}`;
+                            }
+
+                            const centesimasActuales = tiempoACentesimas(rowT.mejorTiempoGlobal);
+                            if(!centesimasActuales) return;
+
+                            const descuentoCentesimas = Math.round(nivel.descuento * 100);
+                            const nuevasCentesimas = Math.max(0, centesimasActuales - descuentoCentesimas);
+                            const nuevoTiempo = centesimasATiempo(nuevasCentesimas);
+
+                            db.run(`UPDATE usuarios SET mejorTiempoGlobal = ? WHERE id = ?`,
+                                [nuevoTiempo, referidorId],
+                                (errUpdate) => {
+                                    if(errUpdate) console.log("❌ Error actualizando tiempo referidor:", errUpdate.message);
+                                    else console.log(`⏱️ Tiempo actualizado para ${referidorId}: ${rowT.mejorTiempoGlobal} → ${nuevoTiempo} (-${nivel.descuento}s)`);
+                                }
+                            );
+                        }
+                    );
+                }
+            );
+        });
+    }
     if(jugadorId){
 
         db.get(
