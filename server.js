@@ -5590,6 +5590,40 @@ app.get('/api/baja-email', (req, res) => {
     `);
   });
 });
+// ─── ENDPOINT: Mis referidos ─────────────────────────────────────────────────
+app.get('/api/mis-referidos/:jugadorId', (req, res) => {
+    const { jugadorId } = req.params;
+    db.all(`
+        SELECT r.referidoId, r.tableroId, r.casilla, r.fecha,
+               u.nombre, u.apellidos
+        FROM referidos r
+        LEFT JOIN usuarios u ON u.id = r.referidoId
+        WHERE r.referidorId = ?
+        ORDER BY r.fecha DESC
+    `, [jugadorId], (err, rows) => {
+        if(err) return res.json({ ok: false, error: err.message });
+
+        const total = rows.length;
+        const tablaDescuentos = [
+            { min:5,  max:9,  descuento:0.05 },
+            { min:10, max:14, descuento:0.10 },
+            { min:15, max:19, descuento:0.18 },
+            { min:20, max:24, descuento:0.25 },
+            { min:25, max:29, descuento:0.33 },
+            { min:30, max:34, descuento:0.42 },
+            { min:35, max:39, descuento:0.52 },
+            { min:40, max:44, descuento:0.63 },
+            { min:45, max:48, descuento:0.75 },
+            { min:49, max:999, descuento:0.85 }
+        ];
+        const nivel = tablaDescuentos.find(n => total >= n.min && total <= n.max);
+        const descuentoActual = nivel ? nivel.descuento : 0;
+        const siguienteNivel = tablaDescuentos.find(n => n.min > total);
+        const faltanParaSiguiente = siguienteNivel ? siguienteNivel.min - total : 0;
+
+        res.json({ ok: true, total, descuentoActual, faltanParaSiguiente, referidos: rows });
+    });
+});
 app.listen(PORT, "0.0.0.0", () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
 
