@@ -5377,6 +5377,8 @@ app.get('/api/notificaciones-tablero', async (req, res) => {
 
       for (const jugador of jugadores) {
         if (!jugador.email) continue;
+        // Delay de 300ms entre correos para respetar rate limit
+        await new Promise(r => setTimeout(r, 300));
 
         const resultado = await enviarNotificacionDias({
           email: jugador.email,
@@ -5403,6 +5405,33 @@ app.get('/api/notificaciones-tablero', async (req, res) => {
     console.error('❌ Error en notificaciones-tablero:', err.message);
     return res.status(500).json({ ok: false, error: err.message });
   }
+});
+// ─── ENDPOINT: Baja de correos ───────────────────────────────────────────────
+app.get('/api/baja-email', (req, res) => {
+  const email = req.query.email;
+  const folio = req.query.folio;
+  if (!email) return res.send('<h2>Email no válido</h2>');
+
+  db.run(`UPDATE usuarios SET bajaEmail = 1 WHERE email = ?`, [email], (err) => {
+    if (err) {
+      console.error('Error baja email:', err);
+      return res.send('<h2>Error al procesar tu solicitud</h2>');
+    }
+    console.log(`📧 Baja de correo: ${email}`);
+    res.send(`
+      <!DOCTYPE html>
+      <html lang="es">
+      <head><meta charset="UTF-8"><title>Quiz1000 - Baja de correos</title>
+      <style>body{font-family:Arial,sans-serif;background:#0a0a0a;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;}
+      .box{text-align:center;padding:40px;background:#111;border-radius:16px;border:1px solid #333;max-width:400px;}
+      h2{color:#00ff88;}p{color:#aaa;}</style></head>
+      <body><div class="box">
+        <h2>✅ Listo</h2>
+        <p>Tu correo <strong style="color:#fff;">${email}</strong> ha sido dado de baja.</p>
+        <p>Ya no recibirás notificaciones de Quiz1000.</p>
+      </div></body></html>
+    `);
+  });
 });
 app.listen(PORT, "0.0.0.0", () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
