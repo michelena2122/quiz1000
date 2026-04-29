@@ -88,11 +88,6 @@ const limitadorCodigo = rateLimit({
     message: { ok: false, mensaje: "Demasiados envíos. Espera 1 hora." }
 });
 
-const limitadorGeneral = rateLimit({
-    windowMs: 60 * 1000,
-    max: 100,
-    message: { ok: false, mensaje: "Demasiadas peticiones. Espera un momento." }
-});
 
 app.use(limitadorGeneral);
 app.post("/login", limitadorLogin);
