@@ -654,7 +654,14 @@ console.log("%cQUIZ1000 nunca te pedirá ejecutar código aquí.", "color:#fffff
 
     popup.style.display = 'flex';
     audio.volume = 0.5;
-    audio.play().catch(function(){});
+    audio.load();
+
+    function intentarAudio(){
+      audio.play().catch(function(){});
+    }
+
+    document.addEventListener('pointerdown', intentarAudio, { once: true });
+    setTimeout(function(){ intentarAudio(); }, 500);
 
     sessionStorage.setItem('popupReferidosMostrado', 'si');
 
