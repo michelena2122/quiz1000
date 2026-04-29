@@ -1,5 +1,7 @@
 const express = require("express");
 const rateLimit = require("express-rate-limit");
+const { body, validationResult } = require("express-validator");
+const helmet = require("helmet");
 const nodemailer = require("nodemailer");
 const cors = require("cors");
 const path = require("path");
@@ -20,6 +22,11 @@ const client = new MercadoPagoConfig({
 });
 
 const app = express();
+// ─── SEGURIDAD: Headers HTTP ─────────────────────────────────────────────────
+app.use(helmet({
+    contentSecurityPolicy: false, // desactivado para no romper scripts inline
+    crossOriginEmbedderPolicy: false
+}));
 const PORT = process.env.PORT || 3000;
 
 app.get("/api/debug-tipo-cambio", (req, res) => {
@@ -58,6 +65,16 @@ app.get("/healthz", (req, res) => {
 });
 
 app.use(cors());
+
+// Rate limit general para toda la API
+const limitadorGeneral = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 200,
+    message: { ok: false, mensaje: "Demasiadas solicitudes. Espera unos minutos." },
+    skip: (req) => !req.path.startsWith('/api/')
+});
+app.use(limitadorGeneral);
+
 // Rate limiting
 const limitadorLogin = rateLimit({
     windowMs: 15 * 60 * 1000,
@@ -1596,7 +1613,17 @@ app.post("/enviar-codigo", async (req, res) => {
 // REGISTRO DE USUARIO
 // ============================
 
-app.post("/registro", async (req,res)=>{
+app.post("/registro", [
+    body("nombre").trim().escape().notEmpty(),
+    body("apellidos").trim().escape().notEmpty(),
+    body("email").isEmail().normalizeEmail(),
+    body("password").isLength({ min: 4 }),
+    body("telefono").trim().escape()
+], async (req,res)=>{
+    const errores = validationResult(req);
+    if(!errores.isEmpty()){
+        return res.json({ ok: false, mensaje: "Datos inválidos" });
+    }
 
 const {
 nombre,
