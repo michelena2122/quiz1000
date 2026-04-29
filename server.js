@@ -1203,6 +1203,74 @@ function asegurarColumnasSolicitudesPremio(callback){
 
 }
 // ============================
+// MIGRACION: columnas referidos
+// ============================
+function asegurarColumnasReferidos(callback){
+    // Agregar columna referidoPor en usuarios
+    db.all(`PRAGMA table_info(usuarios)`, [], (err, columnas) => {
+        if(err){ if(callback) return callback(err); return; }
+        const existeReferidoPor = columnas.some(col => col.name === 'referidoPor');
+        if(!existeReferidoPor){
+            db.run(`ALTER TABLE usuarios ADD COLUMN referidoPor TEXT DEFAULT NULL`, [], (errAlter) => {
+                if(errAlter){ console.log("Error agregando referidoPor:", errAlter.message); }
+                else { console.log("✅ Columna referidoPor agregada en usuarios"); }
+            });
+        }
+    });
+
+    // Agregar columna referidoPor en casillas
+    db.all(`PRAGMA table_info(casillas)`, [], (err, columnas) => {
+        if(err){ if(callback) return callback(err); return; }
+        const existeReferidoPor = columnas.some(col => col.name === 'referidoPor');
+        const existeRegalada = columnas.some(col => col.name === 'regalada');
+        const tareas = [];
+
+        if(!existeReferidoPor){
+            tareas.push((done) => {
+                db.run(`ALTER TABLE casillas ADD COLUMN referidoPor TEXT DEFAULT NULL`, [], (errAlter) => {
+                    if(errAlter){ console.log("Error agregando referidoPor en casillas:", errAlter.message); return done(errAlter); }
+                    console.log("✅ Columna referidoPor agregada en casillas");
+                    done(null);
+                });
+            });
+        }
+
+        if(!existeRegalada){
+            tareas.push((done) => {
+                db.run(`ALTER TABLE casillas ADD COLUMN regalada INTEGER DEFAULT 0`, [], (errAlter) => {
+                    if(errAlter){ console.log("Error agregando regalada en casillas:", errAlter.message); return done(errAlter); }
+                    console.log("✅ Columna regalada agregada en casillas");
+                    done(null);
+                });
+            });
+        }
+
+        // Crear tabla referidos si no existe
+        db.run(`CREATE TABLE IF NOT EXISTS referidos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            referidorId TEXT,
+            referidoId TEXT,
+            tableroId TEXT,
+            casilla INTEGER,
+            fecha INTEGER,
+            descuentoAplicado REAL DEFAULT 0
+        )`, [], (errTabla) => {
+            if(errTabla){ console.log("Error creando tabla referidos:", errTabla.message); }
+            else { console.log("✅ Tabla referidos verificada"); }
+        });
+
+        let index = 0;
+        function ejecutarSiguiente(error){
+            if(error){ if(callback) return callback(error); return; }
+            if(index >= tareas.length){ if(callback) return callback(null); return; }
+            const tarea = tareas[index]; index++;
+            tarea(ejecutarSiguiente);
+        }
+        ejecutarSiguiente(null);
+    });
+}
+
+// ============================
 // MIGRACION: columnas bajaEmail / bajaWhatsapp en usuarios
 // ============================
 function asegurarColumnasNotificacionesUsuarios(callback){
@@ -5458,6 +5526,13 @@ app.listen(PORT, "0.0.0.0", () => {
                  console.log("❌ ERROR asegurando solicitudes_premio:", err);
              }else{
                  console.log("✅ Columnas de solicitudes_premio verificadas correctamente");
+            }
+        });
+        asegurarColumnasReferidos((err) => {
+            if(err){
+                console.log("❌ ERROR asegurando columnas de referidos:", err);
+            }else{
+                console.log("✅ Columnas de referidos verificadas correctamente");
             }
         });
         setInterval(detectarTablerosVencidos, 60000);
