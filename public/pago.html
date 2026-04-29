@@ -646,17 +646,14 @@ console.log("%cQUIZ1000 nunca te pedirá ejecutar código aquí.", "color:#fffff
 (function(){
   if(sessionStorage.getItem('popupReferidosMostrado') === 'si') return;
 // Precargar imagen
+  // Precargar imagen
   var imgPreload = new Image();
   imgPreload.src = '/assets/images/popup1.png';
 
-  // Preparar audio con primer toque
   var audio = document.getElementById('audioPopup');
   audio.load();
-  function primerToque(){
-    audio.play().then(function(){ audio.pause(); audio.currentTime = 0; }).catch(function(){});
-  }
-  document.addEventListener('pointerdown', primerToque, { once: true });
-  setTimeout(function(){
+
+  function mostrarPopup(){
     var popup = document.getElementById('popupReferidos');
     var audio = document.getElementById('audioPopup');
     var barra = document.getElementById('popupBarra');
@@ -699,8 +696,12 @@ console.log("%cQUIZ1000 nunca te pedirá ejecutar código aquí.", "color:#fffff
       audio.dispatchEvent(new Event('loadedmetadata'));
     }
 
-  }, 2000);
-})();
+  }
+
+  document.addEventListener('pointerdown', function(){
+    setTimeout(mostrarPopup, 300);
+  }, { once: true });
+  })();
 </script>
 
 </body>
