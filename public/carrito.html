@@ -195,7 +195,7 @@ y aumentar mi posibilidad de ganar 1,000 USD
        onmouseover="this.style.opacity='0.75'" onmouseout="this.style.opacity='1'">
         <i class="fab fa-instagram"></i>
     </a>
-    <a href="https://www.facebook.com/profile.php?id=61579571397153&ref=1" target="_blank" rel="noopener" title="Facebook"
+    <a href="https://facebook.com/quiz1000" target="_blank" rel="noopener" title="Facebook"
        style="color:#1877F2; font-size:30px; text-decoration:none; transition:opacity 0.2s;"
        onmouseover="this.style.opacity='0.75'" onmouseout="this.style.opacity='1'">
         <i class="fab fa-facebook"></i>
@@ -327,65 +327,13 @@ document.getElementById("pagar").addEventListener("click",()=>{
 
     console.log("jugadorActual:", jugadorActual);
 
-    const destino = (!jugadorActual || !jugadorActual.id)
-        ? "registro.html?folio=" + folio
-        : "pago.html?folio=" + folio;
-
-    // Mostrar popup
-    const overlay = document.createElement("div");
-    overlay.id = "popupReferidos";
-    overlay.style.cssText = `
-        position:fixed;top:0;left:0;width:100%;height:100%;
-        background:rgba(0,0,0,0.85);z-index:99999;
-        display:flex;flex-direction:column;
-        align-items:center;justify-content:center;
-    `;
-
-    const img = document.createElement("img");
-    img.src = "/assets/images/popup1.png";
-    img.style.cssText = "max-width:90%;max-height:75vh;border-radius:16px;";
-
-    const barra = document.createElement("div");
-    barra.style.cssText = `
-        width:80%;max-width:400px;height:8px;
-        background:#333;border-radius:4px;margin-top:20px;overflow:hidden;
-    `;
-    const progreso = document.createElement("div");
-    progreso.style.cssText = `
-        height:100%;width:100%;background:#00ff88;
-        border-radius:4px;transition:width 35s linear;
-    `;
-    barra.appendChild(progreso);
-
-    const texto = document.createElement("p");
-    texto.style.cssText = "color:#aaa;font-size:13px;margin-top:10px;";
-    texto.textContent = "Continuando en 35 segundos...";
-
-    overlay.appendChild(img);
-    overlay.appendChild(barra);
-    overlay.appendChild(texto);
-    document.body.appendChild(overlay);
-
-    // Audio popup
-    const audioPopup = new Audio("/assets/audio/audio_pago.mp3");
-    audioPopup.volume = 0.5;
-    audioPopup.play().catch(function(){});
-
-    // Barra de progreso
-    setTimeout(() => { progreso.style.width = "0%"; }, 100);
-
-    // Cuenta regresiva
-    let seg = 35;
-    const timer = setInterval(() => {
-        seg--;
-        texto.textContent = "Continuando en " + seg + " segundos...";
-        if(seg <= 0) clearInterval(timer);
-    }, 1000);
-
-    // Redirigir después de 35 segundos
-    setTimeout(() => {
-        window.location.href = destino;
-    }, 35000);
+    if(!jugadorActual || !jugadorActual.id){
+        console.log("IR A REGISTRO");
+        window.location.href = "registro.html?folio=" + folio;
+    }else{
+        console.log("IR A PAGO");
+        window.location.href = "pago.html?folio=" + folio;
+    }
 
 });
 
@@ -394,21 +342,7 @@ console.log("%c⛔ ZONA RESTRINGIDA", "color:#ff0000;font-size:28px;font-weight:
 console.log("%cSi alguien te pidió abrir esto, te están intentando estafar.", "color:#ff9800;font-size:14px;");
 console.log("%cQUIZ1000 nunca te pedirá ejecutar código aquí.", "color:#ffffff;font-size:14px;");
 </script>
-<audio id="audioCarrito" src="/assets/audio/audio_carrito.mp3" preload="auto"></audio>
-<script>
-(function(){
-  var audio = document.getElementById('audioCarrito');
-  if(!audio) return;
-  audio.volume = 0.4;
-  audio.load();
 
-  function reproducirAudioCarrito(){
-    audio.play().catch(function(){});
-  }
-
-  document.addEventListener('pointerdown', reproducirAudioCarrito, { once: true });
-})();
-</script>
 </body>
 </html>
 
