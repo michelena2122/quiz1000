@@ -129,7 +129,7 @@ async function enviarNotificacionDias({ email, nombre, diasRestantes, casillasJu
       from: `${FROM_NAME} <${FROM_EMAIL}>`,
       to: email,
       subject: asunto,
-      html: templateDiasRestantes({ nombre, diasRestantes, casillasJugadas, casillasRestantes, folio })
+      html: templateDiasRestantes({ nombre, diasRestantes, casillasJugadas, casillasRestantes, folio, destinatario: email })
     });
 
     if (error) {
