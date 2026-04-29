@@ -30,7 +30,7 @@ function templateDiasRestantes({ nombre, diasRestantes, casillasJugadas, casilla
         <!-- HEADER CON LOGO -->
         <tr>
           <td style="background:linear-gradient(135deg,#001a3a,#003366);padding:30px 40px 20px;text-align:center;">
-            <img src="https://quiz1000-nuevo.onrender.com/assets/images/logotipo.png" alt="Quiz1000" style="width:180px;height:auto;display:block;margin:0 auto 16px;">
+            <img src="https://www.quiz1000.llc/assets/images/logotipo.png" alt="Quiz1000" style="width:180px;height:auto;display:block;margin:0 auto 16px;">
             <h1 style="color:#ffffff;margin:0;font-size:22px;letter-spacing:2px;font-weight:800;">INFORME DE TU TABLERO</h1>
           </td>
         </tr>
@@ -41,7 +41,7 @@ function templateDiasRestantes({ nombre, diasRestantes, casillasJugadas, casilla
             <table width="100%" cellpadding="0" cellspacing="0">
               <tr>
                 <td width="90" style="vertical-align:middle;">
-                  <img src="https://quiz1000-nuevo.onrender.com/assets/images/robot.png" alt="Robot" style="width:80px;height:auto;">
+                  <img src="https://www.quiz1000.llc/assets/images/robot.png" alt="Robot" style="width:80px;height:auto;">
                 </td>
                 <td style="vertical-align:middle;padding-left:16px;background:#0d1a2e;border-radius:12px;padding:16px;">
                   <p style="color:#ffffff;font-size:18px;font-weight:800;margin:0 0 6px;text-transform:uppercase;">
