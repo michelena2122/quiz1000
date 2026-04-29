@@ -1625,8 +1625,8 @@ console.log("ID GENERADO /registro:", id);
 db.run(
 
 `INSERT INTO usuarios
-(id,nombre,apellidos,edad,nacionalidad,telefono,email,password,numeroComprado,folioTablero,mejorTiempoGlobal,aceptaCorreos)
-VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
+(id,nombre,apellidos,edad,nacionalidad,telefono,email,password,numeroComprado,folioTablero,mejorTiempoGlobal,aceptaCorreos,referidoPor)
+VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
 
 [
 id,
