@@ -175,24 +175,6 @@ console.log("%cQUIZ1000 nunca te pedirá ejecutar código aquí.", "color:#fffff
     </script>
     <script src="/js/main.js"></script>
 
-<audio id="audioCarrito" src="/assets/audio/audio_carrito.mp3" preload="auto"></audio>
-<script>
-(function(){
-  var audio = document.getElementById('audioCarrito');
-  if(!audio) return;
-  audio.load();
-
-  var boton = document.querySelector('.portada-boton');
-  if(!boton) return;
-
-  boton.addEventListener('click', function(){
-    audio.currentTime = 0;
-    audio.volume = 0.5;
-    audio.play().catch(function(){});
-  }, { once: true });
-})();
-</script>
-
 </body>
 </html>
 
