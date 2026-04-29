@@ -348,10 +348,7 @@ console.log("%cQUIZ1000 nunca te pedirá ejecutar código aquí.", "color:#fffff
   var audio = document.getElementById('audioCarrito');
   if(!audio) return;
   audio.volume = 0.4;
-
-  document.addEventListener('DOMContentLoaded', function(){
-    audio.load();
-  });
+  audio.load();
 
   function reproducirAudioCarrito(){
     audio.play().catch(function(){});
