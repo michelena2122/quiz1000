@@ -6,7 +6,7 @@ const FROM_EMAIL = 'onboarding@resend.dev';
 const FROM_NAME = 'Quiz1000';
 
 // ─── TEMPLATE: Notificación de días restantes ───────────────────────────────
-function templateDiasRestantes({ nombre, diasRestantes, casillasJugadas, casillasRestantes, folio }) {
+function templateDiasRestantes({ nombre, diasRestantes, casillasJugadas, casillasRestantes, folio, destinatario }) {
   const urgencia = diasRestantes <= 2 ? '🚨' : diasRestantes <= 5 ? '⚠️' : '📅';
   const mensajeUrgencia = diasRestantes === 1
     ? '¡Último día! El tablero cierra mañana.'
@@ -104,7 +104,7 @@ function templateDiasRestantes({ nombre, diasRestantes, casillasJugadas, casilla
               &nbsp;·&nbsp;
               <a href="https://www.quiz1000.llc/legales.html" style="color:#aaaaaa;text-decoration:none;font-size:12px;">Privacidad</a>
               &nbsp;·&nbsp;
-              <a href="https://quiz1000-nuevo.onrender.com/api/baja-email?email=${encodeURIComponent(email)}&folio=${folio}" style="color:#666666;text-decoration:none;font-size:11px;">No deseo recibir más correos</a>
+              <a href="https://quiz1000-nuevo.onrender.com/api/baja-email?email=${encodeURIComponent(destinatario)}&folio=${folio}" style="color:#666666;text-decoration:none;font-size:11px;">No deseo recibir más correos</a>
             </p>
           </td>
         </tr>
