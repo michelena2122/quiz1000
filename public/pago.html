@@ -645,7 +645,17 @@ console.log("%cQUIZ1000 nunca te pedirá ejecutar código aquí.", "color:#fffff
 <script>
 (function(){
   if(sessionStorage.getItem('popupReferidosMostrado') === 'si') return;
+// Precargar imagen
+  var imgPreload = new Image();
+  imgPreload.src = '/assets/images/popup1.png';
 
+  // Preparar audio con primer toque
+  var audio = document.getElementById('audioPopup');
+  audio.load();
+  function primerToque(){
+    audio.play().then(function(){ audio.pause(); audio.currentTime = 0; }).catch(function(){});
+  }
+  document.addEventListener('pointerdown', primerToque, { once: true });
   setTimeout(function(){
     var popup = document.getElementById('popupReferidos');
     var audio = document.getElementById('audioPopup');
