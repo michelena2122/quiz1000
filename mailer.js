@@ -2,7 +2,7 @@
 const { Resend } = require('resend');
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const FROM_EMAIL = 'noreply@quiz1000.llc';
+const FROM_EMAIL = 'onboarding@resend.dev';
 const FROM_NAME = 'Quiz1000';
 
 // ─── TEMPLATE: Notificación de días restantes ───────────────────────────────
