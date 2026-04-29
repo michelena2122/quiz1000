@@ -100,11 +100,11 @@ function templateDiasRestantes({ nombre, diasRestantes, casillasJugadas, casilla
               Quiz1000 · quiz1000.llc
             </p>
             <p style="margin:0;">
-              <a href="https://quiz1000.llc/reglas.html" style="color:#aaaaaa;text-decoration:none;font-size:12px;">Reglas del juego</a>
+              <a href="https://www.quiz1000.llc/reglas.html" style="color:#aaaaaa;text-decoration:none;font-size:12px;">Reglas del juego</a>
               &nbsp;·&nbsp;
-              <a href="https://quiz1000.llc/legales.html" style="color:#aaaaaa;text-decoration:none;font-size:12px;">Privacidad</a>
+              <a href="https://www.quiz1000.llc/legales.html" style="color:#aaaaaa;text-decoration:none;font-size:12px;">Privacidad</a>
               &nbsp;·&nbsp;
-              <a href="https://quiz1000-nuevo.onrender.com/api/baja-email?email=${encodeURIComponent('{{email}}')}&folio=${folio}" style="color:#666666;text-decoration:none;font-size:11px;">No deseo recibir más correos</a>
+              <a href="https://quiz1000-nuevo.onrender.com/api/baja-email?email=${encodeURIComponent(email)}&folio=${folio}" style="color:#666666;text-decoration:none;font-size:11px;">No deseo recibir más correos</a>
             </p>
           </td>
         </tr>
