@@ -570,7 +570,7 @@ fetch("/crear-pago", {
 document.getElementById("btnWhatsapp").addEventListener("click", function(){
     const jugador = JSON.parse(localStorage.getItem('jugadorActual') || 'null');
     const jugadorId = jugador ? (jugador.id || '') : '';
-    const link = 'https://quiz1000.llc/portada?ref=' + jugadorId;
+    const link = 'https://quiz1000-nuevo.onrender.com/portada?ref=' + jugadorId;
     const mensajeWhatsapp = '¡Juega Quiz1000 y gana 1,000 USD! El que contesta más rápido gana. Entra aquí: ' + link;
     const url = 'https://wa.me/?text=' + encodeURIComponent(mensajeWhatsapp);
     window.open(url, '_blank');
