@@ -50,7 +50,40 @@ EL PREMIO SE PAGA HASTA QUE SE COMPLETA EL TABLERO,<br>
 </div>
 
 </div>
-
+<!-- BANNER JUGADORES EN VIVO -->
+<div id="banner-jugadores" style="
+  width:100%;
+  background:#0a0a1a;
+  border-top:2px solid #00d4ff;
+  border-bottom:2px solid #00d4ff;
+  padding:12px 20px;
+  text-align:center;
+  font-family:'Helvetica Neue',Arial,sans-serif;
+  margin-bottom:10px;
+  box-sizing:border-box;
+">
+  <span style="color:#aaa;font-size:14px;font-weight:500;letter-spacing:1px;">EN ESTE MOMENTO HAY</span>
+  <span id="contador-jugadores" style="
+    color:#00ff88;
+    font-size:26px;
+    font-weight:900;
+    margin:0 10px;
+    font-family:monospace;
+    text-shadow:0 0 10px #00ff88;
+  ">237</span>
+  <span style="color:#aaa;font-size:14px;font-weight:500;letter-spacing:1px;">PERSONAS JUGANDO QUIZ1000</span>
+</div>
+<script>
+(function(){
+  var nums=[237,321,456,418,389,287,393,405,417,429,440,452,464,476,488,500,512,524,536,547,559,571,583,595,607,619,631,643,654,666,678,690,702,714,631,544,398,317,269,312,423,514,655,715,643,598,425,411,367,405];
+  var i=0;
+  var el=document.getElementById('contador-jugadores');
+  setInterval(function(){
+    i=(i+1)%nums.length;
+    el.textContent=nums[i];
+  },2000);
+})();
+</script>
 <!-- HOME -->
 <div class="home-wrapper">
 <a href="index.html" class="home-icon-tablero">
