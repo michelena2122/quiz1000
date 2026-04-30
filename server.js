@@ -3198,31 +3198,16 @@ app.get("/api/pregunta/:id", (req, res) => {
 // =============================
 
 app.get("/api/tableros", (req,res)=>{
-
-db.all(
-
-`SELECT id, completo
-FROM tableros
-WHERE completo = 0
-ORDER BY fechaCreacion ASC`,
-
-[],
-
-(err,rows)=>{
-
-if(err){
-return res.json({ ok:false });
-}
-
-res.json({
-ok:true,
-tableros:rows
-});
-
-}
-
-);
-
+    db.all(`
+        SELECT id, completo, fechaCreacion
+        FROM tableros
+        WHERE completo = 0
+        ORDER BY fechaCreacion DESC
+        LIMIT 20
+    `, [], (err, rows) => {
+        if(err) return res.json({ ok:false, tableros:[] });
+        res.json({ ok:true, tableros: rows || [] });
+    });
 });
 // =============================
 // ADMIN: DETALLE TABLERO COMPLETO
@@ -4878,24 +4863,6 @@ app.post("/api/crear-tablero", (req, res) => {
 
     });
 
-});
-
-app.get("/api/tableros", (req, res) => {
-    db.all(`
-        SELECT id, completo, fechaCreacion
-        FROM tableros
-        ORDER BY fechaCreacion DESC
-    `, [], (err, rows) => {
-        if (err) {
-            console.error("ERROR CONSULTANDO TABLEROS:", err.message);
-            return res.json({ ok:false, tableros: [] });
-        }
-
-        res.json({
-            ok: true,
-            tableros: rows || []
-        });
-    });
 });
 
 app.get("/api/estado-casillas", (req, res) => {
