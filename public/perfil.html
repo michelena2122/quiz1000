@@ -330,9 +330,13 @@ document.addEventListener("DOMContentLoaded", function(){
                         ✅ Total de casillas pagadas en este tablero: ${compras.length}
                     </div>
 
-                    <div style="margin-top:10px;">
+                    <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
                         <a href="${whatsappUrl}" target="_blank" class="btn-invitar-whatsapp">
-                            Invita a tus amigos
+                            📲 Invita a tus amigos
+                        </a>
+                        <a href="/tablero?folio=${folio}" 
+                           style="display:inline-block;background:#003366;color:#fff;font-weight:800;font-size:13px;padding:10px 20px;border-radius:8px;text-decoration:none;">
+                           🎯 Ir al tablero
                         </a>
                     </div>
 
