@@ -147,8 +147,27 @@ button:hover{
     <div id="tablaIncompletos" style="margin-top:20px;"></div>
 </div>
 
-<h2>💰 Solicitudes de Premio</h2>
-<div id="tablaPremios"></div>
+<h2>💰 Solicitudes de Premio 
+    <button onclick="togglePremios()" id="btnTogglePremios"
+        style="margin-left:12px;background:#1a56db;color:#fff;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:bold;">
+        Mostrar
+    </button>
+</h2>
+<div id="tablaPremios" style="display:none;"></div>
+<script>
+function togglePremios(){
+    const div = document.getElementById('tablaPremios');
+    const btn = document.getElementById('btnTogglePremios');
+    if(div.style.display === 'none'){
+        div.style.display = 'block';
+        btn.textContent = 'Ocultar';
+        cargarSolicitudesPremio();
+    } else {
+        div.style.display = 'none';
+        btn.textContent = 'Mostrar';
+    }
+}
+</script>
 <div class="bloque-admin" style="margin-top:40px;">
     <h2>💾 Exportación y limpieza de base de datos</h2>
     <p style="color:#ccc;font-size:13px;margin-bottom:16px;">
