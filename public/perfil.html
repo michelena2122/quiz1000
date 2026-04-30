@@ -313,9 +313,11 @@ document.addEventListener("DOMContentLoaded", function(){
                     return `<li>Número ${c.numero} — Tiempo: ${c.tiempo || "Sin registro"}</li>`;
                 }).join("");
 
-                const linkTablero = `${window.location.origin}/tablero?folio=${encodeURIComponent(folio)}`;
+                const jugadorRef = JSON.parse(localStorage.getItem('jugadorActual') || 'null');
+                const jugadorRefId = jugadorRef ? (jugadorRef.id || '') : '';
+                const linkReferido = `https://quiz1000-nuevo.onrender.com/portada?ref=${jugadorRefId}`;
                 const mensajeWhatsapp = encodeURIComponent(
-                    `Descubrí este juego en donde puedes ganarte mil dólares! existe mucha probabilidad y la inversión es muy baja, ¡hay que completar un tablero de 50 números!. ¡Entra y participa! ${linkTablero}`
+                    `¡Juega Quiz1000 y gana 1,000 USD! El que contesta más rápido gana. Entra aquí: ${linkReferido}`
                 );
                 const whatsappUrl = `https://wa.me/?text=${mensajeWhatsapp}`;
 
