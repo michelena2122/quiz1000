@@ -1547,15 +1547,20 @@ function obtenerConfiguracion(clave){
 // CONFIGURAR EMAIL OUTLOOK
 // ============================
 
-const transporter = nodemailer.createTransport({
-    host: "smtp.office365.com",
-    port: 587,
-    secure: false,
-    auth: {
-        user: "juanjmichelena@outlook.com",
-        pass: "xndzynqcazodcfjw"
-    }
-});
+const { Resend } = require('resend');
+const resendOTP = new Resend(process.env.RESEND_API_KEY);
+
+// Función para enviar correos via Resend
+async function enviarCorreo({ to, subject, html }) {
+    const { data, error } = await resendOTP.emails.send({
+        from: 'noreply@quiz1000.llc <noreply@quiz1000.llc>',
+        to,
+        subject,
+        html
+    });
+    if (error) throw new Error(error.message);
+    return data;
+}
 
 /// ============================
 // ENVIAR CODIGO
@@ -1580,24 +1585,26 @@ app.post("/enviar-codigo", async (req, res) => {
     console.log("Enviando código a:", email);
     console.log("Código generado:", codigo);
 
-    const mailOptions = {
-        from: '"Quiz $1000" <juanjmichelena@outlook.com>',
-        to: email,
-        subject: "Código de verificación",
-        html: `
-            <h2>Tu código es: ${codigo}</h2>
-            <p>Este código expira en 5 minutos.</p>
-        `
-    };
-
-    transporter.sendMail(mailOptions)
-        .then(() => {
-            console.log("Código enviado por email:", codigo);
-        })
-        .catch((error) => {
-            console.error("ERROR ENVIANDO EMAIL:", error);
-            console.log("Modo pruebas activo. Código disponible en log:", codigo);
+    try {
+        await enviarCorreo({
+            to: email,
+            subject: "Tu código de verificación - Quiz1000",
+            html: `
+                <div style="font-family:Arial,sans-serif;max-width:400px;margin:0 auto;padding:30px;background:#0a0a0a;border-radius:12px;border:1px solid #333;">
+                    <img src="https://quiz1000-nuevo.onrender.com/assets/images/logotipo.png" style="width:150px;display:block;margin:0 auto 20px;">
+                    <h2 style="color:#00d4ff;text-align:center;">Tu código de verificación</h2>
+                    <div style="background:#111;border:2px solid #00ff88;border-radius:10px;padding:20px;text-align:center;margin:20px 0;">
+                        <span style="font-size:36px;font-weight:900;color:#00ff88;letter-spacing:8px;">${codigo}</span>
+                    </div>
+                    <p style="color:#aaa;text-align:center;font-size:13px;">Este código expira en 5 minutos.</p>
+                </div>
+            `
         });
+        console.log("✅ Código enviado por Resend a:", email);
+    } catch(error) {
+        console.error("❌ ERROR ENVIANDO EMAIL Resend:", error.message);
+        console.log("Modo pruebas. Código en log:", codigo);
+    }
 
     return res.json({
         ok: true,
