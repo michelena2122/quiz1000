@@ -671,9 +671,8 @@ app.post("/facebook/data-deletion", express.urlencoded({ extended: false }), (re
             );
 
             // Enviar email al admin
-            transporter.sendMail({
-                from: `"Quiz $1000" <${process.env.OUTLOOK_USER}>`,
-                to: process.env.OUTLOOK_USER,
+            enviarCorreo({
+                to: 'juanjmichelena@outlook.com',
                 subject: "⚠️ Solicitud de eliminación de datos — Facebook",
                 html: `
                     <h2>Solicitud de eliminación de datos recibida</h2>
@@ -2454,13 +2453,10 @@ async function enviarCorreos(casillas, ganador){
 
     for(const email of participantes){
 
-        await transporter.sendMail({
-
-            from: '"Quiz $1000" <juanjmichelena@outlook.com>',
+        await enviarCorreo({
             to: email,
             subject: "Resultado del tablero QUIZ1000",
             html: html
-
         });
 
     }
@@ -2988,8 +2984,7 @@ async function enviarCorreoRankingFinal(resumen){
         `;
 
         for(const participante of participantesConEmail){
-            await transporter.sendMail({
-                from: '"Quiz $1000" <juanjmichelena@outlook.com>',
+           await enviarCorreo({
                 to: participante.email,
                 subject: `Ranking final QUIZ1000 - ${resumen.tableroId}`,
                 html
@@ -4203,20 +4198,24 @@ function(err){
 
             try{
 
-                await transporter.sendMail({
-                    from: '"Quiz $1000" <juanjmichelena@outlook.com>',
+                await enviarCorreo({
                     to: usuario.email,
-                    subject: "Confirmación de compra - QUIZ1000",
+                    subject: "✅ Compra confirmada - QUIZ1000",
                     html: `
-                        <h2>Compra confirmada</h2>
-                        <p>Hola ${nombreCompleto},</p>
-                        <p>Tu pago fue aprobado correctamente.</p>
-                        <p><strong>Folio:</strong> ${folio}</p>
-                        <p><strong>Casillas compradas:</strong> ${listaCasillas}</p>
-                        <p>
-                            Puedes revisar tus jugadas aquí:
-                            <a href="https://quiz1000-nuevo.onrender.com/perfil">Mi perfil</a>
-                        </p>
+                        <div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;padding:30px;background:#0a0a0a;border-radius:12px;border:1px solid #333;">
+                            <img src="https://quiz1000-nuevo.onrender.com/assets/images/logotipo.png" style="width:150px;display:block;margin:0 auto 20px;">
+                            <h2 style="color:#00ff88;text-align:center;">¡Compra confirmada!</h2>
+                            <p style="color:#fff;">Hola <strong>${nombreCompleto}</strong>,</p>
+                            <p style="color:#aaa;">Tu pago fue aprobado correctamente.</p>
+                            <div style="background:#111;border:1px solid #333;border-radius:8px;padding:16px;margin:16px 0;">
+                                <p style="color:#fff;margin:4px 0;"><strong>Folio:</strong> ${folio}</p>
+                                <p style="color:#fff;margin:4px 0;"><strong>Casillas compradas:</strong> ${listaCasillas}</p>
+                            </div>
+                            <a href="https://quiz1000-nuevo.onrender.com/perfil" 
+                               style="display:block;background:#003366;color:#fff;text-align:center;padding:12px;border-radius:8px;text-decoration:none;font-weight:bold;margin-top:16px;">
+                               Ver mi perfil
+                            </a>
+                        </div>
                     `
                 });
 
