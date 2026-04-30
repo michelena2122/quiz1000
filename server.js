@@ -3213,29 +3213,22 @@ app.get("/api/tableros", (req,res)=>{
 // ADMIN: DETALLE TABLERO COMPLETO
 // =============================
 app.get("/api/admin/tablero-detalle/:folio", verificarAdmin, (req, res) => {
-
     const folio = req.params.folio;
 
-    db.all(`
-        SELECT jugador, casilla, email, tiempo
-        FROM casillas
-        WHERE tableroId = ?
-        AND estado = 'pagada'
-        ORDER BY casilla ASC
-    `, [folio], (err, rows) => {
+    db.get(`SELECT id, completo, fechaCreacion, fechaApertura FROM tableros WHERE id = ?`,
+    [folio], (errT, tablero) => {
+        if(errT || !tablero) return res.json({ ok: false, mensaje: "Tablero no encontrado" });
 
-        if (err) {
-            console.error("ERROR DETALLE TABLERO:", err.message);
-            return res.json({ ok:false });
-        }
-
-        res.json({
-            ok: true,
-            casillas: rows
+        db.all(`
+            SELECT jugador, casilla, email, tiempo, estado
+            FROM casillas
+            WHERE tableroId = ?
+            ORDER BY casilla ASC
+        `, [folio], (err, rows) => {
+            if(err) return res.json({ ok: false });
+            res.json({ ok: true, tablero, casillas: rows || [] });
         });
-
     });
-
 });
 // =============================
 // VER CASILLAS EN BASE DE DATOS
