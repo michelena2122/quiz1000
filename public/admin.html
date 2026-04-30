@@ -219,6 +219,25 @@ function togglePremios(){
     </div>
     <div id="resultadoBusquedaJugador" style="margin-top:16px;"></div>
 </div>
+
+<div class="bloque-admin" style="margin-top:40px;">
+    <h2>🔍 Buscador de tablero por folio</h2>
+    <p style="color:#ccc;font-size:13px;margin-bottom:12px;">Busca un tablero por su folio exacto (ej: TAB-123456).</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <input id="inputBuscarTablero" type="text" placeholder="ej: TAB-123456"
+               style="flex:1;min-width:200px;padding:10px;border-radius:8px;border:none;font-size:15px;">
+        <button onclick="buscarTablero()"
+                style="padding:10px 20px;border-radius:8px;background:#1a56db;color:#fff;border:none;font-weight:bold;cursor:pointer;">
+            Buscar
+        </button>
+        <button onclick="document.getElementById('inputBuscarTablero').value=''; document.getElementById('resultadoBusquedaTablero').innerHTML='';"
+                style="padding:10px 20px;border-radius:8px;background:#444;color:#fff;border:none;font-weight:bold;cursor:pointer;">
+            Limpiar
+        </button>
+    </div>
+    <div id="resultadoBusquedaTablero" style="margin-top:16px;"></div>
+</div>
+</div>
 <div class="bloque-admin" style="margin-top:40px;">
     <h2>🧹 Limpiar tableros de prueba</h2>
     <p style="color:#ccc;font-size:13px;margin-bottom:12px;">Elimina tableros sin casillas pagadas. No afecta tableros con jugadores reales.</p>
@@ -375,6 +394,48 @@ if(btnCargarPreguntas) btnCargarPreguntas.addEventListener("click", cargarPregun
 if(btnOcultarPreguntas) btnOcultarPreguntas.addEventListener("click", ocultarPreguntas);
 if(btnGuardarPreguntas) btnGuardarPreguntas.addEventListener("click", guardarPreguntas);
 
+async function buscarTablero() {
+    const folio = document.getElementById('inputBuscarTablero').value.trim().toUpperCase();
+    const contenedor = document.getElementById('resultadoBusquedaTablero');
+    if(!folio){ contenedor.innerHTML = "<p style='color:#ff9800;'>Escribe un folio para buscar.</p>"; return; }
+    try {
+        const res = await adminFetch(`/api/admin/tablero-detalle/${encodeURIComponent(folio)}`);
+        const data = await res.json();
+        if(!data.ok || !data.tablero){
+            contenedor.innerHTML = "<p style='color:#ff4444;'>Tablero no encontrado.</p>";
+            return;
+        }
+        const t = data.tablero;
+        const casillas = data.casillas || [];
+        contenedor.innerHTML = `
+            <div style="background:#111;border:1px solid #333;border-radius:12px;padding:20px;color:#fff;">
+                <h3 style="color:#00d4ff;">📋 ${esc(t.id)}</h3>
+                <div><b>Estado:</b> ${t.completo ? '✅ Completo' : '🟡 En curso'}</div>
+                <div><b>Fecha apertura:</b> ${t.fechaApertura ? new Date(t.fechaApertura).toLocaleString('es-MX') : 'Sin iniciar'}</div>
+                <div><b>Casillas pagadas:</b> ${casillas.filter(c => c.estado === 'pagada').length}/50</div>
+                <div><b>Casillas reservadas:</b> ${casillas.filter(c => c.estado === 'reservada').length}</div>
+                <hr style="border-color:#333;margin:12px 0;">
+                <h4 style="color:#aaa;">Casillas pagadas:</h4>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
+                    ${casillas.filter(c => c.estado === 'pagada').map(c => `
+                        <div style="background:#0d2137;border:1px solid #00d4ff33;border-radius:6px;padding:6px 10px;font-size:12px;">
+                            <b style="color:#00d4ff;">#${c.casilla}</b><br>
+                            <span style="color:#aaa;">${esc(c.jugador || '')}</span><br>
+                            <span style="color:#00ff88;">${esc(c.tiempo || '')}</span>
+                        </div>
+                    `).join('') || '<span style="color:#aaa;">Ninguna</span>'}
+                </div>
+            </div>
+        `;
+    } catch(error) {
+        contenedor.innerHTML = "<p style='color:#ff4444;'>Error buscando tablero.</p>";
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const inputTablero = document.getElementById('inputBuscarTablero');
+    if(inputTablero) inputTablero.addEventListener('keydown', e => { if(e.key === 'Enter') buscarTablero(); });
+});
 // ── BUSCADOR DE JUGADORES ──
 async function buscarJugador() {
     const q = document.getElementById("inputBuscarJugador").value.trim();
