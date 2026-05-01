@@ -162,8 +162,12 @@
     }
 
     async function crearTablero(){
+        const jugador = JSON.parse(localStorage.getItem('jugadorActual') || 'null');
+        const jugadorId = jugador ? (jugador.id || null) : null;
         const res = await fetch("/api/crear-tablero",{
-            method:"POST"
+            method:"POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ jugadorId })
         });
 
         const data = await res.json();
