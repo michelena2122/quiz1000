@@ -4197,9 +4197,18 @@ function(err){
                                                             <div style="font-size:48px;font-weight:900;color:#ffcc00;">#${regalo.casilla}</div>
                                                             <div style="color:#aaa;font-size:13px;margin-top:4px;">TU CASILLA GRATIS</div>
                                                         </div>
-                                                        <p style="color:#aaa;text-align:center;font-size:13px;">
-                                                            La casilla se registrará automáticamente con tu mejor tiempo<br>
-                                                            cuando abras tu próximo tablero desde Lobby.
+                                                        <div style="background:#111;border:1px solid #333;border-radius:8px;padding:16px;margin:16px 0;text-align:left;">
+                                                            <p style="color:#00d4ff;font-weight:900;margin:0 0 10px;font-size:14px;">📋 ¿CÓMO RECLAMAR TU CASILLA?</p>
+                                                            <ol style="color:#aaa;font-size:13px;line-height:1.8;margin:0;padding-left:18px;">
+                                                                <li>Ingresa a <strong style="color:#fff;">quiz1000-nuevo.onrender.com</strong></li>
+                                                                <li>Ve a <strong style="color:#fff;">Lobby</strong></li>
+                                                                <li>Abre un <strong style="color:#fff;">nuevo tablero</strong></li>
+                                                                <li>Tu casilla <strong style="color:#ffcc00;">#${regalo.casilla}</strong> aparecerá automáticamente marcada con tu mejor tiempo</li>
+                                                                <li>¡Completa el tablero y compite por los <strong style="color:#00ff88;">1,000 USD!</strong></li>
+                                                            </ol>
+                                                        </div>
+                                                        <p style="color:#666;text-align:center;font-size:11px;margin:10px 0;">
+                                                            Este premio tiene vigencia de 30 días. Si no es reclamado en ese plazo,<br>quedará sin efecto. Quiz1000 LLC.
                                                         </p>
                                                         <a href="https://quiz1000-nuevo.onrender.com/lobby" 
                                                            style="display:block;background:#00ff88;color:#000;text-align:center;padding:14px;border-radius:8px;text-decoration:none;font-weight:900;font-size:16px;margin-top:16px;">
