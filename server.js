@@ -850,6 +850,13 @@ const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN;
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, "usuarios.db");
 const db = new sqlite3.Database(DB_PATH);
 
+// Activar WAL mode para mejor concurrencia
+db.run("PRAGMA journal_mode=WAL");
+db.run("PRAGMA synchronous=NORMAL");
+db.run("PRAGMA cache_size=10000");
+db.run("PRAGMA temp_store=MEMORY");
+
+
 function asegurarColumnaFechaApertura(callback){
 
     db.all(`PRAGMA table_info(tableros)`, [], (err, columnas) => {
