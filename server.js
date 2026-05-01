@@ -4909,6 +4909,7 @@ app.post("/api/crear-tablero", (req, res) => {
 
     const folio = "TAB-" + Math.floor(100000 + Math.random() * 900000);
     const ahora = Date.now();
+    const jugadorId = req.body && req.body.jugadorId ? req.body.jugadorId : null;
 
     db.run(`
         INSERT INTO tableros (id, completo, fechaCreacion)
@@ -4922,11 +4923,43 @@ app.post("/api/crear-tablero", (req, res) => {
 
         console.log("TABLERO CREADO:", folio);
 
-        res.json({
-            ok:true,
-            folio: folio
-        });
+        // Verificar si el jugador tiene casilla regalada pendiente
+        if(!jugadorId){
+            return res.json({ ok:true, folio });
+        }
 
+        db.get(`SELECT casillaRegalada, mejorTiempoGlobal FROM usuarios WHERE id = ?`,
+            [jugadorId],
+            (errU, usuario) => {
+                if(errU || !usuario || !usuario.casillaRegalada){
+                    return res.json({ ok:true, folio });
+                }
+
+                const casilla = usuario.casillaRegalada;
+                const tiempo = usuario.mejorTiempoGlobal || '00:00:00:00';
+
+                // Insertar casilla regalada en el nuevo tablero
+                db.run(`INSERT INTO casillas (tableroId, casilla, jugador, email, tiempo, estado, regalada, fecha)
+                        VALUES (?, ?, ?, ?, ?, 'pagada', 1, ?)`,
+                    [folio, casilla, jugadorId, null, tiempo, Date.now()],
+                    (errIns) => {
+                        if(errIns){
+                            console.log("❌ Error insertando casilla regalada:", errIns.message);
+                            return res.json({ ok:true, folio });
+                        }
+                        console.log(`🎁 Casilla ${casilla} regalada insertada en ${folio} para ${jugadorId}`);
+
+                        // Limpiar casilla regalada del usuario
+                        db.run(`UPDATE usuarios SET casillaRegalada = NULL WHERE id = ?`,
+                            [jugadorId],
+                            () => {
+                                res.json({ ok:true, folio, casillaRegalada: casilla });
+                            }
+                        );
+                    }
+                );
+            }
+        );
     });
 
 });
