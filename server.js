@@ -1221,10 +1221,19 @@ function asegurarColumnasReferidos(callback){
     db.all(`PRAGMA table_info(usuarios)`, [], (err, columnas) => {
         if(err){ if(callback) return callback(err); return; }
         const existeReferidoPor = columnas.some(col => col.name === 'referidoPor');
+        const existeCasillaRegalada = columnas.some(col => col.name === 'casillaRegalada');
+
         if(!existeReferidoPor){
             db.run(`ALTER TABLE usuarios ADD COLUMN referidoPor TEXT DEFAULT NULL`, [], (errAlter) => {
                 if(errAlter){ console.log("Error agregando referidoPor:", errAlter.message); }
                 else { console.log("✅ Columna referidoPor agregada en usuarios"); }
+            });
+        }
+
+        if(!existeCasillaRegalada){
+            db.run(`ALTER TABLE usuarios ADD COLUMN casillaRegalada INTEGER DEFAULT NULL`, [], (errAlter) => {
+                if(errAlter){ console.log("Error agregando casillaRegalada:", errAlter.message); }
+                else { console.log("✅ Columna casillaRegalada agregada en usuarios"); }
             });
         }
     });
@@ -4142,6 +4151,70 @@ function(err){
                                     else console.log(`⏱️ Tiempo actualizado para ${referidorId}: ${rowT.mejorTiempoGlobal} → ${nuevoTiempo} (-${nivel.descuento}s)`);
                                 }
                             );
+
+                            // ============================
+                            // CASILLAS REGALADAS POR REFERIDOS
+                            // ============================
+                            const tablaRegalos = [
+                                { exacto: 10, casilla: 10 },
+                                { exacto: 15, casilla: 25 },
+                                { exacto: 25, casilla: 50 }
+                            ];
+
+                            const regalo = tablaRegalos.find(r => r.exacto === totalReferidos);
+                            if(regalo){
+                                console.log(`🎁 ¡${referidorId} alcanzó ${totalReferidos} referidos! Casilla ${regalo.casilla} regalada.`);
+
+                                // Guardar casilla regalada pendiente en usuarios
+                                db.run(`UPDATE usuarios SET casillaRegalada = ? WHERE id = ?`,
+                                    [regalo.casilla, referidorId],
+                                    (errRegalo) => {
+                                        if(errRegalo) console.log("❌ Error guardando casilla regalada:", errRegalo.message);
+                                        else console.log(`✅ Casilla ${regalo.casilla} marcada como regalo para ${referidorId}`);
+                                    }
+                                );
+
+                                // Enviar correo al referidor
+                                db.get(`SELECT nombre, apellidos, email FROM usuarios WHERE id = ?`,
+                                    [referidorId],
+                                    async (errU, usuario) => {
+                                        if(errU || !usuario || !usuario.email) return;
+                                        const nombre = [usuario.nombre, usuario.apellidos].filter(Boolean).join(' ');
+                                        try {
+                                            await enviarCorreo({
+                                                to: usuario.email,
+                                                subject: `🎁 ¡Ganaste la casilla ${regalo.casilla} gratis! - Quiz1000`,
+                                                html: `
+                                                    <div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;padding:30px;background:#0a0a0a;border-radius:12px;border:1px solid #333;">
+                                                        <img src="https://quiz1000-nuevo.onrender.com/assets/images/logotipo.png" style="width:150px;display:block;margin:0 auto 20px;">
+                                                        <h2 style="color:#00ff88;text-align:center;">🎁 ¡Felicidades ${nombre}!</h2>
+                                                        <p style="color:#fff;text-align:center;font-size:16px;">
+                                                            Alcanzaste <strong style="color:#00d4ff;">${totalReferidos} referidos pagados</strong><br>
+                                                            y ganaste la <strong style="color:#ffcc00;">casilla #${regalo.casilla} GRATIS</strong>
+                                                            en tu próximo tablero.
+                                                        </p>
+                                                        <div style="background:#111;border:2px solid #00ff88;border-radius:10px;padding:20px;text-align:center;margin:20px 0;">
+                                                            <div style="font-size:48px;font-weight:900;color:#ffcc00;">#${regalo.casilla}</div>
+                                                            <div style="color:#aaa;font-size:13px;margin-top:4px;">TU CASILLA GRATIS</div>
+                                                        </div>
+                                                        <p style="color:#aaa;text-align:center;font-size:13px;">
+                                                            La casilla se registrará automáticamente con tu mejor tiempo<br>
+                                                            cuando abras tu próximo tablero desde Lobby.
+                                                        </p>
+                                                        <a href="https://quiz1000-nuevo.onrender.com/lobby" 
+                                                           style="display:block;background:#00ff88;color:#000;text-align:center;padding:14px;border-radius:8px;text-decoration:none;font-weight:900;font-size:16px;margin-top:16px;">
+                                                           🎯 IR A LOBBY Y RECLAMAR MI CASILLA
+                                                        </a>
+                                                    </div>
+                                                `
+                                            });
+                                            console.log(`📧 Correo de casilla regalada enviado a ${usuario.email}`);
+                                        } catch(errEmail) {
+                                            console.log("❌ Error enviando correo de regalo:", errEmail.message);
+                                        }
+                                    }
+                                );
+                            }
                         }
                     );
                 }
