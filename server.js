@@ -1585,25 +1585,6 @@ async function enviarWhatsApp({ to, mensaje }) {
     }
 }
 
-// Twilio WhatsApp
-const twilio = require('twilio');
-const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
-
-async function enviarWhatsApp({ to, mensaje }) {
-    try {
-        const telefono = to.startsWith('whatsapp:') ? to : `whatsapp:+52${to.replace(/\D/g,'')}`;
-        const msg = await twilioClient.messages.create({
-            from: process.env.TWILIO_WHATSAPP_FROM,
-            to: telefono,
-            body: mensaje
-        });
-        console.log(`✅ WhatsApp enviado a ${to}: ${msg.sid}`);
-        return { ok: true, sid: msg.sid };
-    } catch(err) {
-        console.error(`❌ Error WhatsApp a ${to}:`, err.message);
-        return { ok: false, error: err.message };
-    }
-}
 
 // Función para enviar correos via Resend
 async function enviarCorreo({ to, subject, html }) {
