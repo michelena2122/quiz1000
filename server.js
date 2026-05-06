@@ -5790,6 +5790,19 @@ app.get('/api/mis-referidos/:jugadorId', (req, res) => {
         res.json({ ok: true, total, descuentoActual, faltanParaSiguiente, referidos: rows });
     });
 });
+// ─── ENDPOINT PRUEBA WHATSAPP ────────────────────────────────────────────────
+app.get('/api/test-whatsapp', async (req, res) => {
+    const secret = req.query.secret;
+    if(secret !== process.env.CRON_SECRET) return res.status(401).json({ ok: false });
+    const telefono = req.query.tel;
+    if(!telefono) return res.json({ ok: false, error: 'Falta tel' });
+    const resultado = await enviarWhatsApp({
+        to: telefono,
+        mensaje: '🎯 *Quiz1000* - Prueba de WhatsApp funcionando correctamente. ¡Bienvenido al juego!'
+    });
+    res.json(resultado);
+});
+
 app.listen(PORT, "0.0.0.0", () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
 
