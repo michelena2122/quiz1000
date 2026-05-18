@@ -3925,7 +3925,8 @@ const pago = await payment.get({
 
 console.log("PAYMENT GET EJECUTADO");
 
-const data = pago.body || pago;
+const data = pago;
+console.log("🔍 PAGO CRUDO (sin .body):", JSON.stringify(pago, null, 2));
 console.log("DATA COMPLETA MP:", JSON.stringify(data, null, 2));
 console.log("🧪 METADATA CRUDA MP:", data.metadata);
 
