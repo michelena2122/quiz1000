@@ -336,6 +336,14 @@ document.getElementById("pagar").addEventListener("click",()=>{
 
     sessionStorage.setItem('popupMostrado', 'si');
 
+    function cerrarPopupReferidos(){
+    var popup = document.getElementById('popupReferidos');
+    var audio = document.getElementById('audioPopup');
+    audio.pause();
+    audio.currentTime = 0;
+    popup.style.display = 'none';
+    window.location.href = destino;
+}
     // Mostrar popup
     var popup = document.getElementById('popupReferidos');
     popup.style.display = 'flex';
@@ -375,6 +383,18 @@ console.log("%cQUIZ1000 nunca te pedirá ejecutar código aquí.", "color:#fffff
     <div id="popupBarra" style="height:100%;width:100%;background:#00ff88;border-radius:4px;transition:width 35s linear;"></div>
   </div>
   <p id="popupTexto" style="color:#aaa;font-size:13px;margin-top:10px;">Cerrando automáticamente...</p>
+  <button onclick="cerrarPopupReferidos()" style="
+  margin-top:14px;
+  padding:10px 28px;
+  background:#00ff88;
+  color:#000;
+  border:none;
+  border-radius:8px;
+  font-size:15px;
+  font-weight:bold;
+  cursor:pointer;">
+  Saltar →
+</button>
 </div>
 
 <audio id="audioPopup" src="/assets/audio/audio_pago.mp3" preload="auto"></audio>
