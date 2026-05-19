@@ -1585,6 +1585,65 @@ async function enviarWhatsApp({ to, mensaje }) {
     }
 }
 
+// ─── TWILIO: Templates aprobados por Meta ────────────────────────────────────
+const TWILIO_TEMPLATES = {
+    recordatorio_tablero: 'HXb15be1d174726aa2f86218e87570bf4c',
+    casilla_regalada:     'HX00b0c88dcfdb233f0a6abd4b448c7456',
+    confirmacion_pago:    'HX3001e72d27354faacdcb18a9951dd045',
+    ganador:              'HX518bdfbe8905838165df6d71f2383cd5'
+};
+
+async function enviarWhatsAppTemplate({ to, template, variables }) {
+    try {
+        const telefono = to.startsWith('whatsapp:') ? to : `whatsapp:+52${to.replace(/\D/g,'')}`;
+        const contentSid = TWILIO_TEMPLATES[template];
+        if (!contentSid) {
+            console.error(`❌ Template desconocido: ${template}`);
+            return { ok: false, error: `Template desconocido: ${template}` };
+        }
+        const msg = await twilioClient.messages.create({
+            from: process.env.TWILIO_WHATSAPP_FROM,
+            to: telefono,
+            contentSid,
+            contentVariables: JSON.stringify(variables)
+        });
+        console.log(`✅ WA template [${template}] → ${to}: ${msg.sid}`);
+        return { ok: true, sid: msg.sid };
+    } catch(err) {
+        console.error(`❌ Error WA template [${template}] → ${to}:`, err.message);
+        return { ok: false, error: err.message };
+    }
+}
+
+async function notificarConfirmacionPago({ telefono, nombre, tablero, numeroCasilla, monto, linkReferido }) {
+    const fecha = new Date().toLocaleDateString('es-MX', { day:'2-digit', month:'2-digit', year:'numeric' });
+    return enviarWhatsAppTemplate({
+        to: telefono, template: 'confirmacion_pago',
+        variables: { "1": nombre, "2": tablero, "3": String(numeroCasilla), "4": String(monto), "5": fecha, "6": linkReferido }
+    });
+}
+
+async function notificarCasillaRegalada({ telefono, nombreReferidor, nombreReferido, numeroCasilla, totalCasillas, linkReferido }) {
+    return enviarWhatsAppTemplate({
+        to: telefono, template: 'casilla_regalada',
+        variables: { "1": nombreReferidor, "2": nombreReferido, "3": String(numeroCasilla), "4": String(totalCasillas), "5": linkReferido }
+    });
+}
+
+async function notificarRecordatorioTablero({ telefono, nombre, tablero, diasRestantes, casillasOcupadas, tuNumero, linkTablero }) {
+    return enviarWhatsAppTemplate({
+        to: telefono, template: 'recordatorio_tablero',
+        variables: { "1": nombre, "2": tablero, "3": String(diasRestantes), "4": String(casillasOcupadas), "5": String(tuNumero), "6": linkTablero }
+    });
+}
+
+async function notificarGanador({ telefono, nombre, tablero, numeroGanador, premio }) {
+    return enviarWhatsAppTemplate({
+        to: telefono, template: 'ganador',
+        variables: { "1": nombre, "2": tablero, "3": String(numeroGanador), "4": String(premio) }
+    });
+}
+
 
 // Función para enviar correos via Resend
 async function enviarCorreo({ to, subject, html }) {
@@ -3104,7 +3163,24 @@ function revisarCierreTablero(tableroId){
                         console.log("✅ Tablero marcado como completo:", tableroId);
                         console.log("✅ Ranking guardado:", resultadoGuardado);
 
-                        await enviarCorreoRankingFinal(resumen);
+                         await enviarCorreoRankingFinal(resumen);
+
+                        // WhatsApp al ganador
+                        if (resumen.ganador && resumen.ganador.jugadorId) {
+                            db.get(`SELECT telefono FROM usuarios WHERE id = ?`, [resumen.ganador.jugadorId], async (eG, uG) => {
+                                if (uG && uG.telefono) {
+                                    const tcRaw = await obtenerConfiguracion('tipoCambioPremio');
+                                    const premioMXN = Math.round(1000 * Number(tcRaw || 19.5));
+                                    await notificarGanador({
+                                        telefono: uG.telefono,
+                                        nombre: resumen.ganador.nombreSolo || resumen.ganador.nombre,
+                                        tablero: resumen.tableroId,
+                                        numeroGanador: resumen.ganador.casillaGanadora || 'N/D',
+                                        premio: premioMXN.toLocaleString('es-MX')
+                                    });
+                                }
+                            });
+                        }
 
                         resolve({
                             ok:true,
@@ -4246,7 +4322,23 @@ function(err){
                                                     </div>
                                                 `
                                             });
-                                            console.log(`📧 Correo de casilla regalada enviado a ${usuario.email}`);
+                                           console.log(`📧 Correo de casilla regalada enviado a ${usuario.email}`);
+
+                                            // WhatsApp casilla regalada
+                                            if (usuario.telefono) {
+                                                db.get(`SELECT nombre, apellidos FROM usuarios WHERE id = ?`, [jugadorId], async (eRef, referido) => {
+                                                    const nombreRef = referido ? `${referido.nombre || ''} ${referido.apellidos || ''}`.trim() : 'un amigo';
+                                                    await notificarCasillaRegalada({
+                                                        telefono: usuario.telefono,
+                                                        nombreReferidor: nombre,
+                                                        nombreReferido: nombreRef,
+                                                        numeroCasilla: regalo.casilla,
+                                                        totalCasillas: totalReferidos,
+                                                        linkReferido: `https://quiz1000-nuevo.onrender.com/portada?ref=${referidorId}`
+                                                    });
+                                                });
+                                            }
+
                                         } catch(errEmail) {
                                             console.log("❌ Error enviando correo de regalo:", errEmail.message);
                                         }
@@ -4309,6 +4401,19 @@ function(err){
                 });
 
                 console.log("✅ Correo de confirmación enviado a:", usuario.email);
+
+                // WhatsApp confirmación de pago
+                if (usuario.telefono) {
+                    const linkRef = `https://quiz1000-nuevo.onrender.com/portada?ref=${jugadorId}`;
+                    await notificarConfirmacionPago({
+                        telefono: usuario.telefono,
+                        nombre: nombreCompleto,
+                        tablero: folio,
+                        numeroCasilla: casillas.join(', '),
+                        monto: data.transaction_amount || 0,
+                        linkReferido: linkRef
+                    });
+                }
 
             }catch(emailError){
                 console.log("❌ Error enviando correo de confirmación:", emailError.message);
@@ -4567,92 +4672,7 @@ async function reembolsarPagosDeTablero(tableroId) {
         };
     }
 }
-// ==========================
-// TEST MANUAL - REEMBOLSAR TABLERO
-// ==========================
-app.post("/api/test/reembolsar-tablero", async (req, res) => {
 
-    // 🔒 PROTECCIÓN SIMPLE
-    if (req.headers["x-admin-key"] !== "QUIZ1000_ADMIN") {
-        return res.status(403).json({
-            ok: false,
-            mensaje: "No autorizado"
-        });
-    }
-
-    try {
-        const folio = (req.body.folio || "").trim();
-
-        if (!folio) {
-            return res.status(400).json({
-                ok: false,
-                mensaje: "Folio requerido"
-            });
-        }
-
-        db.get(`
-            SELECT id, noReembolsable
-            FROM tableros
-            WHERE id = ?
-        `, [folio], async (err, tablero) => {
-
-            if (err) {
-                console.log("❌ ERROR CONSULTANDO TABLERO EN TEST REEMBOLSO:", err.message);
-                return res.status(500).json({
-                    ok: false,
-                    mensaje: "Error consultando tablero",
-                    error: err.message
-                });
-            }
-
-            if (!tablero) {
-                return res.status(404).json({
-                    ok: false,
-                    mensaje: "Tablero no encontrado"
-                });
-            }
-
-            if (tablero.noReembolsable === 1) {
-                console.log("⛔ TABLERO NO REEMBOLSABLE:", folio);
-                return res.json({
-                    ok: false,
-                    folio,
-                    mensaje: "Este tablero ya es no reembolsable"
-                });
-            }
-
-            console.log("🧪 TEST REEMBOLSO MANUAL INICIADO:", folio);
-
-            try {
-                const resultado = await reembolsarPagosDeTablero(folio);
-
-                return res.json({
-                    ok: resultado.ok,
-                    folio,
-                    resultado
-                });
-
-            } catch (error) {
-                console.log("❌ ERROR EN TEST MANUAL REEMBOLSAR TABLERO:", error.message);
-
-                return res.status(500).json({
-                    ok: false,
-                    mensaje: "Error ejecutando reembolso manual",
-                    error: error.message
-                });
-            }
-        });
-
-    } catch (error) {
-        console.log("❌ ERROR GENERAL EN ENDPOINT TEST REEMBOLSO:", error.message);
-
-        return res.status(500).json({
-            ok: false,
-            mensaje: "Error general en endpoint de reembolso manual",
-            error: error.message
-        });
-    }
-});
 // =============================
 // CREAR PAGO (MULTICASILLA)
 // =============================
@@ -5676,20 +5696,17 @@ app.get('/api/notificaciones-tablero', async (req, res) => {
           folio: tablero.id
         });
 
-        // WhatsApp
-        if(jugador.telefono && jugador.telefono !== 'pendiente'){
-          const mensajeWA = `🎯 *Quiz1000* - Hola ${jugador.nombre || 'Jugador'}, faltan *${diasRestantes} días* para que cierre tu tablero *${tablero.id}*.\n\n` +
-            `📊 Casillas jugadas: ${jugador.casillasJugadas} | Libres: ${Math.max(0, casillasRestantes)}\n\n` +
-            `🤝 Recomienda amigos y gana décimas: https://quiz1000-nuevo.onrender.com/portada?ref=${jugador.jugador}`;
-          await enviarWhatsApp({ to: jugador.telefono, mensaje: mensajeWA });
-        }
-
-        // WhatsApp
-        if(jugador.telefono && jugador.telefono !== 'pendiente'){
-          const mensajeWA = `🎯 *Quiz1000* - Hola ${jugador.nombre || 'Jugador'}, faltan *${diasRestantes} días* para que cierre tu tablero *${tablero.id}*.\n\n` +
-            `📊 Casillas jugadas: ${jugador.casillasJugadas} | Libres: ${Math.max(0, casillasRestantes)}\n\n` +
-            `🤝 Recomienda amigos y gana décimas: https://quiz1000-nuevo.onrender.com/portada?ref=${jugador.jugador}`;
-          await enviarWhatsApp({ to: jugador.telefono, mensaje: mensajeWA });
+        // WhatsApp recordatorio con template aprobado
+        if (jugador.telefono && jugador.telefono !== 'pendiente') {
+            await notificarRecordatorioTablero({
+                telefono: jugador.telefono,
+                nombre: jugador.nombre || 'Jugador',
+                tablero: tablero.id,
+                diasRestantes,
+                casillasOcupadas: 50 - Math.max(0, casillasRestantes),
+                tuNumero: jugador.casillasJugadas,
+                linkTablero: `https://quiz1000-nuevo.onrender.com/portada?ref=${jugador.jugador}`
+            });
         }
 
         resultados.push({
