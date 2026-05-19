@@ -905,6 +905,7 @@ function asegurarColumnasReembolsoTablero(callback){
         const existeFechaFinReembolso = columnas.some(col => col.name === "fechaFinReembolso");
         const existeReembolsoProcesado = columnas.some(col => col.name === "reembolsoProcesado");
         const existePremioPagado = columnas.some(col => col.name === "premioPagado");
+        const existeNoReembolsable = columnas.some(col => col.name === "noReembolsable");
 
         const tareas = [];
 
@@ -1007,7 +1008,24 @@ function asegurarColumnasReembolsoTablero(callback){
         }else{
             console.log("Columna premioPagado ya existe en tableros");
         }
-
+        if(!existeNoReembolsable){
+    tareas.push((done) => {
+        db.run(
+            `ALTER TABLE tableros ADD COLUMN noReembolsable INTEGER DEFAULT 0`,
+            [],
+            (errAlter) => {
+                if(errAlter){
+                    console.log("Error agregando columna noReembolsable:", errAlter.message);
+                    return done(errAlter);
+                }
+                console.log("Columna noReembolsable agregada correctamente en tableros");
+                done(null);
+            }
+        );
+    });
+}else{
+    console.log("Columna noReembolsable ya existe en tableros");
+}
         if(tareas.length === 0){
             if(callback) return callback(null);
             return;
