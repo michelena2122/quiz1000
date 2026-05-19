@@ -4718,11 +4718,9 @@ app.post("/crear-pago", async (req, res) => {
         console.log("🧾 Respuesta completa SDK:", JSON.stringify(response, null, 2));
 
         const link =
-            response?.body?.sandbox_init_point ||
-            response?.body?.init_point ||
-            response?.sandbox_init_point ||
-            response?.init_point ||
-            null;
+    response?.init_point ||
+    response?.body?.init_point ||
+    null;
 
         console.log("🧾 LINK FINAL:", link);
 
