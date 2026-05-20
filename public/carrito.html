@@ -324,9 +324,9 @@ document.getElementById("pagar").addEventListener("click",()=>{
     console.log("BOTON PAGAR PRESIONADO");
 
     const jugadorActual = JSON.parse(localStorage.getItem("jugadorActual"));
-    const destino = (!jugadorActual || !jugadorActual.id)
-        ? "registro.html?folio=" + folio
-        : "pago.html?folio=" + folio;
+    var destinoPopup = (!jugadorActual || !jugadorActual.id)
+    ? "registro.html?folio=" + folio
+    : "pago.html?folio=" + folio;
 
     // Solo mostrar popup la primera vez por sesión
     if(sessionStorage.getItem('popupMostrado') === 'si'){
@@ -342,7 +342,7 @@ document.getElementById("pagar").addEventListener("click",()=>{
     audio.pause();
     audio.currentTime = 0;
     popup.style.display = 'none';
-    window.location.href = destino;
+    window.location.href = destinoPopup;
 }
     // Mostrar popup
     var popup = document.getElementById('popupReferidos');
