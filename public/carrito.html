@@ -319,24 +319,9 @@ document.getElementById("seguir").addEventListener("click", (e) => {
     window.location.href = "/tablero?folio=" + folio;
 });
 
-document.getElementById("pagar").addEventListener("click",()=>{
+var destinoPopup = "";
 
-    console.log("BOTON PAGAR PRESIONADO");
-
-    const jugadorActual = JSON.parse(localStorage.getItem("jugadorActual"));
-    var destinoPopup = (!jugadorActual || !jugadorActual.id)
-    ? "registro.html?folio=" + folio
-    : "pago.html?folio=" + folio;
-
-    // Solo mostrar popup la primera vez por sesión
-    if(sessionStorage.getItem('popupMostrado') === 'si'){
-        window.location.href = destino;
-        return;
-    }
-
-    sessionStorage.setItem('popupMostrado', 'si');
-
-    function cerrarPopupReferidos(){
+function cerrarPopupReferidos(){
     var popup = document.getElementById('popupReferidos');
     var audio = document.getElementById('audioPopup');
     audio.pause();
@@ -344,25 +329,38 @@ document.getElementById("pagar").addEventListener("click",()=>{
     popup.style.display = 'none';
     window.location.href = destinoPopup;
 }
-    // Mostrar popup
+
+document.getElementById("pagar").addEventListener("click", function(){
+
+    console.log("BOTON PAGAR PRESIONADO");
+
+    const jugadorActual = JSON.parse(localStorage.getItem("jugadorActual"));
+    destinoPopup = (!jugadorActual || !jugadorActual.id)
+        ? "registro.html?folio=" + folio
+        : "pago.html?folio=" + folio;
+
+    if(sessionStorage.getItem('popupMostrado') === 'si'){
+        window.location.href = destinoPopup;
+        return;
+    }
+
+    sessionStorage.setItem('popupMostrado', 'si');
+
     var popup = document.getElementById('popupReferidos');
     popup.style.display = 'flex';
 
-    // Audio — funciona porque viene de un toque directo
     var audio = document.getElementById('audioPopup');
     audio.volume = 0.5;
     audio.currentTime = 0;
     audio.play().catch(function(){});
 
-    // Cerrar cuando termine el audio y redirigir
     audio.addEventListener('ended', function(){
         popup.style.display = 'none';
-        window.location.href = destino;
+        window.location.href = destinoPopup;
     });
 
-    // Seguro por si el audio falla — redirigir tras 40 segundos
     setTimeout(function(){
-        window.location.href = destino;
+        window.location.href = destinoPopup;
     }, 40000);
 
 });
