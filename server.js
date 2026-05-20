@@ -152,7 +152,7 @@ passport.deserializeUser((user, done) => {
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: "https://quiz1000-nuevo.onrender.com/auth/google/callback"
+    callbackURL: "https://quiz1000.llc/auth/google/callback"
 },
 (accessToken, refreshToken, profile, done) => {
 
@@ -684,7 +684,7 @@ app.post("/facebook/data-deletion", express.urlencoded({ extended: false }), (re
                 `
             }).catch(e => console.error("Error enviando email baja:", e.message));
 
-            const statusUrl = `https://quiz1000-nuevo.onrender.com/facebook/data-deletion-status?id=${encodeURIComponent(confirmationCode)}`;
+            const statusUrl = `https://quiz1000.llc/facebook/data-deletion-status?id=${encodeURIComponent(confirmationCode)}`;
 
             return res.json({
                 url: statusUrl,
@@ -1704,7 +1704,7 @@ app.post("/enviar-codigo", async (req, res) => {
             subject: "Tu código de verificación - Quiz1000",
             html: `
                 <div style="font-family:Arial,sans-serif;max-width:400px;margin:0 auto;padding:30px;background:#0a0a0a;border-radius:12px;border:1px solid #333;">
-                    <img src="https://quiz1000-nuevo.onrender.com/assets/images/logotipo.png" style="width:150px;display:block;margin:0 auto 20px;">
+                    <img src="https://quiz1000.llc/assets/images/logotipo.png" style="width:150px;display:block;margin:0 auto 20px;">
                     <h2 style="color:#00d4ff;text-align:center;">Tu código de verificación</h2>
                     <div style="background:#111;border:2px solid #00ff88;border-radius:10px;padding:20px;text-align:center;margin:20px 0;">
                         <span style="font-size:36px;font-weight:900;color:#00ff88;letter-spacing:8px;">${codigo}</span>
@@ -2763,7 +2763,7 @@ function generarTokenPremio({ folio, jugadorId, expira }) {
 }
 
 function construirUrlPremioTemporal({ folio, token }) {
-    return `https://quiz1000-nuevo.onrender.com/premio.html?folio=${encodeURIComponent(folio)}&token=${encodeURIComponent(token)}`;
+    return `https://quiz1000.llc/premio.html?folio=${encodeURIComponent(folio)}&token=${encodeURIComponent(token)}`;
 }
 
 function construirMensajesGanador({ ganador, folio, urlPremio }) {
@@ -3090,7 +3090,7 @@ async function enviarCorreoRankingFinal(resumen){
 
                 <p style="margin-top:20px;">
                     Puedes consultar el ranking publicado aquí:
-                    <a href="https://quiz1000-nuevo.onrender.com/ranking">
+                    <a href="https://quiz1000.llc/ranking">
                         Ver ranking oficial
                     </a>
                 </p>
@@ -4309,7 +4309,7 @@ function(err){
                                                 subject: `🎁 ¡Ganaste la casilla ${regalo.casilla} gratis! - Quiz1000`,
                                                 html: `
                                                     <div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;padding:30px;background:#0a0a0a;border-radius:12px;border:1px solid #333;">
-                                                        <img src="https://quiz1000-nuevo.onrender.com/assets/images/logotipo.png" style="width:150px;display:block;margin:0 auto 20px;">
+                                                        <img src="https://quiz1000.llc/assets/images/logotipo.png" style="width:150px;display:block;margin:0 auto 20px;">
                                                         <h2 style="color:#00ff88;text-align:center;">🎁 ¡Felicidades ${nombre}!</h2>
                                                         <p style="color:#fff;text-align:center;font-size:16px;">
                                                             Alcanzaste <strong style="color:#00d4ff;">${totalReferidos} referidos pagados</strong><br>
@@ -4323,7 +4323,7 @@ function(err){
                                                         <div style="background:#111;border:1px solid #333;border-radius:8px;padding:16px;margin:16px 0;text-align:left;">
                                                             <p style="color:#00d4ff;font-weight:900;margin:0 0 10px;font-size:14px;">📋 ¿CÓMO RECLAMAR TU CASILLA?</p>
                                                             <ol style="color:#aaa;font-size:13px;line-height:1.8;margin:0;padding-left:18px;">
-                                                                <li>Ingresa a <strong style="color:#fff;">quiz1000-nuevo.onrender.com</strong></li>
+                                                                <li>Ingresa a <strong style="color:#fff;">quiz1000.llc</strong></li>
                                                                 <li>Ve a <strong style="color:#fff;">Lobby</strong></li>
                                                                 <li>Abre un <strong style="color:#fff;">nuevo tablero</strong></li>
                                                                 <li>Tu casilla <strong style="color:#ffcc00;">#${regalo.casilla}</strong> aparecerá automáticamente marcada con tu mejor tiempo</li>
@@ -4333,7 +4333,7 @@ function(err){
                                                         <p style="color:#666;text-align:center;font-size:11px;margin:10px 0;">
                                                             Este premio tiene vigencia de 30 días. Si no es reclamado en ese plazo,<br>quedará sin efecto. Quiz1000 LLC.
                                                         </p>
-                                                        <a href="https://quiz1000-nuevo.onrender.com/lobby" 
+                                                        <a href="https://quiz1000.llc/lobby" 
                                                            style="display:block;background:#00ff88;color:#000;text-align:center;padding:14px;border-radius:8px;text-decoration:none;font-weight:900;font-size:16px;margin-top:16px;">
                                                            🎯 IR A LOBBY Y RECLAMAR MI CASILLA
                                                         </a>
@@ -4352,7 +4352,7 @@ function(err){
                                                         nombreReferido: nombreRef,
                                                         numeroCasilla: regalo.casilla,
                                                         totalCasillas: totalReferidos,
-                                                        linkReferido: `https://quiz1000-nuevo.onrender.com/portada?ref=${referidorId}`
+                                                        linkReferido: `https://quiz1000.llc/portada?ref=${referidorId}`
                                                     });
                                                 });
                                             }
@@ -4402,7 +4402,7 @@ function(err){
                     subject: "✅ Compra confirmada - QUIZ1000",
                     html: `
                         <div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;padding:30px;background:#0a0a0a;border-radius:12px;border:1px solid #333;">
-                            <img src="https://quiz1000-nuevo.onrender.com/assets/images/logotipo.png" style="width:150px;display:block;margin:0 auto 20px;">
+                            <img src="https://quiz1000.llc/assets/images/logotipo.png" style="width:150px;display:block;margin:0 auto 20px;">
                             <h2 style="color:#00ff88;text-align:center;">¡Compra confirmada!</h2>
                             <p style="color:#fff;">Hola <strong>${nombreCompleto}</strong>,</p>
                             <p style="color:#aaa;">Tu pago fue aprobado correctamente.</p>
@@ -4410,7 +4410,7 @@ function(err){
                                 <p style="color:#fff;margin:4px 0;"><strong>Folio:</strong> ${folio}</p>
                                 <p style="color:#fff;margin:4px 0;"><strong>Casillas compradas:</strong> ${listaCasillas}</p>
                             </div>
-                            <a href="https://quiz1000-nuevo.onrender.com/perfil" 
+                            <a href="https://quiz1000.llc/perfil" 
                                style="display:block;background:#003366;color:#fff;text-align:center;padding:12px;border-radius:8px;text-decoration:none;font-weight:bold;margin-top:16px;">
                                Ver mi perfil
                             </a>
@@ -4422,7 +4422,7 @@ function(err){
 
                 // WhatsApp confirmación de pago
                 if (usuario.telefono) {
-                    const linkRef = `https://quiz1000-nuevo.onrender.com/portada?ref=${jugadorId}`;
+                    const linkRef = `https://quiz1000.llc/portada?ref=${jugadorId}`;
                     await notificarConfirmacionPago({
                         telefono: usuario.telefono,
                         nombre: nombreCompleto,
@@ -4736,13 +4736,13 @@ app.post("/crear-pago", async (req, res) => {
             },
 
             back_urls: {
-                success: `https://quiz1000-nuevo.onrender.com/perfil.html?folio=${folio}&pago=success`,
-                failure: `https://quiz1000-nuevo.onrender.com/pago.html?folio=${folio}&pago=failure`,
-                pending: `https://quiz1000-nuevo.onrender.com/perfil.html?folio=${folio}&pago=pending`
+                success: `https://quiz1000.llc/perfil.html?folio=${folio}&pago=success`,
+                failure: `https://quiz1000.llc/pago.html?folio=${folio}&pago=failure`,
+                pending: `https://quiz1000.llc/perfil.html?folio=${folio}&pago=pending`
             },
 
             auto_return: "approved",
-            notification_url: "https://quiz1000-nuevo.onrender.com/webhook/mercadopago"
+            notification_url: "https://quiz1000.llc/webhook/mercadopago"
         };
 
         console.log("🧾 Preference lista para enviar:", JSON.stringify(preference, null, 2));
@@ -5723,7 +5723,7 @@ app.get('/api/notificaciones-tablero', async (req, res) => {
                 diasRestantes,
                 casillasOcupadas: 50 - Math.max(0, casillasRestantes),
                 tuNumero: jugador.casillasJugadas,
-                linkTablero: `https://quiz1000-nuevo.onrender.com/portada?ref=${jugador.jugador}`
+                linkTablero: `https://quiz1000.llc/portada?ref=${jugador.jugador}`
             });
         }
 
